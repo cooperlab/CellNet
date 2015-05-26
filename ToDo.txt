@@ -1,0 +1,4 @@
+To Do:
+
+- Play with CAFFE (Write a CNN code)
+- Handle OpenSlide extraction
