@@ -4,10 +4,9 @@
 LaplacianPyramidNode::LaplacianPyramidNode(std::string id, int n_layers): Node(id), _layers(), _n_layers(n_layers), _layer0(), _w0(0), _h0(0) {
 }
 
-void LaplacianPyramidNode::run(cv::Mat layer0){
+void LaplacianPyramidNode::run(){
 	
 	// Initialize parameters
-	_layer0 = layer0;
 	_w0 = _layer0.size[0];
 	_h0 = _layer0.size[1];
 	cv::Mat _gaussian_layer0;

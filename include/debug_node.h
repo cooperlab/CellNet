@@ -13,8 +13,8 @@ class DebugNode: public Node{
 
 	public:
 		DebugNode();
-		
+		void set_target(cv::Mat target){};
   	private:
-
+  		std::vector<cv::Mat> _output;
 };
 #endif
