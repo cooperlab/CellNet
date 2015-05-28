@@ -1,7 +1,7 @@
 #include "read_node.h"
 #include "edge.h"
 #define SHIFT 25
-ReadNode::ReadNode(std::string name, boost::uuids::uuid id, std::string image_path): Node(name, id), _extracted_images(), _image_path(image_path), _entire_image(){
+ReadNode::ReadNode(std::string id, std::string image_path, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _extracted_images(), _image_path(image_path), _entire_image(), _cells_coordinates(cells_coordinates){
 }
 
 void ReadNode::run(){
@@ -72,16 +72,16 @@ void ReadNode::open_image(){
 	}
 }
 
-void ReadNode::crop_cells(std::vector<std::tuple<int, int>> cells_coordinates){
+void ReadNode::crop_cells(){
 	if(!_entire_image.empty()){
 		cv::Size s = _entire_image.size();
 		int _entire_image_height = s.height;
 		int _entire_image_width = s.width;
 
-		for (int i = 0; i != cells_coordinates.size(); i++) {
+		for (int i = 0; i != _cells_coordinates.size(); i++) {
 
-			int x = std::get<0>(cells_coordinates[i]);
-			int y = std::get<1>(cells_coordinates[i]);
+			int x = std::get<0>(_cells_coordinates[i]);
+			int y = std::get<1>(_cells_coordinates[i]);
 			
 
 			if((x-SHIFT >=0) && (y-SHIFT >=0) && (x+SHIFT < _entire_image_width) && (y+SHIFT < _entire_image_height)){

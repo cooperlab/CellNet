@@ -8,25 +8,24 @@
 #include <iostream>
 #include <glib.h>
 #include <cv.h>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>
 
 class ReadNode: public Node{
 
 	public:
-		ReadNode(std::string name, boost::uuids::uuid id, std::string image_path);
+		ReadNode(std::string id, std::string image_path, std::vector<std::tuple<int, int>> cells_coordinates);
 		void show_entire_image();
 		void show_cropped_cells();
-		void crop_cells(std::vector<std::tuple<int, int>> cells_coordinates);
+		void crop_cells();
 		void run();
+		std::vector<cv::Mat> get_output(){return _extracted_images};
 
   	private:
   		void open_image();
   		std::vector<cv::Mat> _extracted_images;
   		std::string _image_path;
   		cv::Mat _entire_image;
+  		std::vector<std::tuple<int, int>> cells_coordinates;
 };
 #endif

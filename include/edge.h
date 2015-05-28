@@ -7,12 +7,13 @@
 class Edge{
 
 	public:
-		Edge(int id, int in_node_id, int out_node_id);
-	
+		Edge(std::string in_node_id, std::string out_node_id);
+		std::string get_in_node_id(){return _in_node_id};
+		std::string get_out_node_id(){return _out_node_id};
+
 	protected:
-		int _id;
-		int _in_node_id;
-		int _out_node_id;
+		std::string _in_node_id;
+		std::string _out_node_id;
 		cv::vector<cv::Mat> _buffer;
 };
 #endif

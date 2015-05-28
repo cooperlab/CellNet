@@ -1,12 +1,13 @@
 #include "laplacian_pyramid_node.h"
 #define KERNELL_SIZE 3
 
-LaplacianPyramidNode::LaplacianPyramidNode(std::string name, boost::uuids::uuid id, cv::Mat layer0, int n_layers): Node(name, id), _layers(), _n_layers(n_layers), _layer0(layer0), _w0(0), _h0(0) {
+LaplacianPyramidNode::LaplacianPyramidNode(std::string id, int n_layers): Node(id), _layers(), _n_layers(n_layers), _layer0(), _w0(0), _h0(0) {
 }
 
-void LaplacianPyramidNode::run(){
+void LaplacianPyramidNode::run(cv::Mat layer0){
 	
 	// Initialize parameters
+	_layer0 = layer0;
 	_w0 = _layer0.size[0];
 	_h0 = _layer0.size[1];
 	cv::Mat _gaussian_layer0;
@@ -16,7 +17,7 @@ void LaplacianPyramidNode::run(){
 	gen_next_level(_gaussian_layer0, _layer0, 0);
 }
 
-/* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1    */
+/* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */
 /* In order to obtain '_n_layers' laplacian layers we build a pyramid with '_n_layers' + 1 layers,  */
 /* where the last layer corresponds to a gaussian layer and the first '_n_layers' layers correspond */
 /* to laplacian layers. 																			*/
