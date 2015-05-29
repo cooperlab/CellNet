@@ -12,9 +12,12 @@
 class DebugNode: public Node{
 
 	public:
-		DebugNode();
-		void set_target(cv::Mat target){};
+		DebugNode(std::string id);
+		void set_target(cv::Mat target);
+		void run();
+		
   	private:
   		std::vector<cv::Mat> _output;
+  		cv::Mat _target;
 };
 #endif

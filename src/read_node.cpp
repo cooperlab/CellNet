@@ -1,23 +1,31 @@
 #include "read_node.h"
 #include "edge.h"
 #define SHIFT 25
+#include <iostream>
+
 ReadNode::ReadNode(std::string id, std::string image_path, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _extracted_images(), _image_path(image_path), _entire_image(), _cells_coordinates(cells_coordinates){
 }
 
 void ReadNode::run(){
+
 	open_image();
+	crop_cells();
+
+	/****************** Debug ******************/
+	show_entire_image();
+	show_cropped_cells();
 }	
 
-	// This method opens an image using openslide and removes the alpha channel
+// This method opens an image using openslide and removes the alpha channel
 void ReadNode::open_image(){
 
 	std::cout << _image_path << std::endl;
 	openslide_t *oslide = openslide_open(_image_path.c_str());
-
 	if(oslide != NULL){
+		
 		// Declare variables
 		int64_t w, h;
-		openslide_get_level_dimensions(oslide, 3, &w, &h);
+		openslide_get_level_dimensions(oslide, 2, &w, &h);
 		uint32_t *buf = g_new(uint32_t, w * h);
 		uint32_t *out = g_new(uint32_t, w * h);
 
@@ -27,7 +35,7 @@ void ReadNode::open_image(){
 		cv::Mat b = cv::Mat::zeros(cv::Size(w, h), CV_8UC1);
 
 		// Read region
-		openslide_read_region(oslide, buf, 3, 0, 0, w, h);
+		openslide_read_region(oslide, buf, 2, 0, 0, w, h);
 
 		// Convert to RGBX
 		for (int64_t i = 0; i < w * h; i++) {
@@ -78,7 +86,7 @@ void ReadNode::crop_cells(){
 		int _entire_image_height = s.height;
 		int _entire_image_width = s.width;
 
-		for (int i = 0; i != _cells_coordinates.size(); i++) {
+		for (std::vector<cv::Mat>::size_type i= 0; i != _cells_coordinates.size(); i++) {
 
 			int x = std::get<0>(_cells_coordinates[i]);
 			int y = std::get<1>(_cells_coordinates[i]);
@@ -120,7 +128,7 @@ void ReadNode::show_entire_image(){
 
 void ReadNode::show_cropped_cells(){
 	if(!_extracted_images.empty()){
-		for(int i =0; i < _extracted_images.size(); i++){
+		for(std::vector<cv::Mat>::size_type i =0; i < _extracted_images.size(); i++){
 
 			std::cout << "Showing Cropped Images" << std::endl;
 			imshow("img" + std::to_string(i), _extracted_images.at(i));
@@ -130,4 +138,9 @@ void ReadNode::show_cropped_cells(){
 	else{
 		std::cout << "Image is empty" << std::endl;
 	}
+}
+
+bool ReadNode::get_output(std::vector<cv::Mat> &out){
+	out = _extracted_images;
+	return true;
 }

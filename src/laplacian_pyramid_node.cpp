@@ -14,6 +14,9 @@ void LaplacianPyramidNode::run(){
 	// Build Laplacian pyramid
 	cv::GaussianBlur( _layer0, _gaussian_layer0, cv::Size( KERNELL_SIZE, KERNELL_SIZE ), 0, 0 );
 	gen_next_level(_gaussian_layer0, _layer0, 0);
+
+	/****************** Debug ******************/
+	print_pyramid();
 }
 
 /* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */
@@ -69,3 +72,12 @@ void LaplacianPyramidNode::print_pyramid(){
 		}
 		cv::waitKey(0);
 	}
+
+void LaplacianPyramidNode::set_target(cv::Mat target){
+	_layer0 = target;
+}
+
+bool LaplacianPyramidNode::get_output(std::vector<cv::Mat> &out){
+	out = _layers;
+	return true;
+}

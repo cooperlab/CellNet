@@ -11,13 +11,13 @@
 class LaplacianPyramidNode: public Node{
 	
 	public:
-		LaplacianPyramidNode(std::string id, cv::Mat layer0, int n_layers);
+		LaplacianPyramidNode(std::string id, int n_layers);
 		void run();
-		void set_target(cv::Mat target){_layer0 = target};
+		void set_target(cv::Mat target);
 		std::vector<cv::Mat> _layers;
 		int _n_layers;
 		void print_pyramid();
-		std::vector<cv::Mat> get_output(){return _layers};
+		bool get_output(std::vector<cv::Mat> &out);
 		
 	private:
 		void gen_next_level(cv::Mat, cv::Mat, int);

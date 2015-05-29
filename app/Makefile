@@ -1,5 +1,5 @@
-LOCAL_HOME = /usr/local
-SDK_HOME = /Users/nelson/Desktop/WorkSpaces/GSOCSpace
+LOCAL_HOME = /usr
+SDK_HOME = /home/nelson/CellNet
 OBJ_DIR = $(SDK_HOME)/obj
 SRC_DIR = $(SDK_HOME)/src
 
@@ -15,10 +15,10 @@ CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS
 # Define Includes
 CPPFLAGS =  -std=c++11
 CPPFLAGS += -I$(SDK_HOME)/include					# Include graph nodes and algorithms 
-CPPFLAGS += -I$(LOCAL_HOME)/include  				# Include OpenCV ...
-CPPFLAGS += -I$(LOCAL_HOME)/include/openslide   	# Include OpenSlide
-CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0		# Include glib			
-CPPFLAGS += -I$(LOCAL_HOME)/lib/glib-2.0/include	# Include glib		
+CPPFLAGS += -I$(LOCAL_HOME)/include/opencv  					# Include OpenCV ...
+CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   			# Include OpenSlide
+CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0				# Include glib			
+CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 
 # Define location of OpenCV
 CV_LIBS       = -L$(LOCAL_HOME)/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui

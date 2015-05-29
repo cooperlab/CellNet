@@ -19,13 +19,13 @@ class ReadNode: public Node{
 		void show_cropped_cells();
 		void crop_cells();
 		void run();
-		std::vector<cv::Mat> get_output(){return _extracted_images};
+		bool get_output(std::vector<cv::Mat> &out);
 
   	private:
   		void open_image();
   		std::vector<cv::Mat> _extracted_images;
   		std::string _image_path;
   		cv::Mat _entire_image;
-  		std::vector<std::tuple<int, int>> cells_coordinates;
+  		std::vector<std::tuple<int, int>> _cells_coordinates;
 };
 #endif
