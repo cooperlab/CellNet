@@ -5,13 +5,15 @@
 #include "edge.h"
 #include <tuple>
 #include <vector>
+#include <string>
 #include <iostream>
 
 int main (int argc, char * argv[])
 {
+
 	// Declare variables
 	GraphNet graph = GraphNet();
-	std::string fname = "/home/nelson/CellNet/resource/14276.svs";
+	std::vector<std::string> file_paths;
 	std::vector<std::tuple<int, int>> coords;
 
 	std::cout << "Defining cropping coordinates..." << std::endl;
@@ -20,9 +22,11 @@ int main (int argc, char * argv[])
 	coords.push_back(std::make_tuple(2000,2000));
 
 	std::cout << "Defining graph nodes..." << std::endl;
+
 	// Add some nodes
-	ReadNode read_node = ReadNode("read_node", fname, coords);
-	LaplacianPyramidNode laplacian_node = LaplacianPyramidNode("laplacian_node", 4);
+	file_paths.push_back("/home/nelson/CellNet/resource/14276.svs");
+	ReadNode read_node = ReadNode("read_node", file_paths, coords);
+	LaplacianPyramidNode laplacian_node = LaplacianPyramidNode("laplacian_node");
 	DebugNode debug_node = DebugNode("debug_node");
 
 	graph.add_node(&read_node);

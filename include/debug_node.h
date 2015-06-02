@@ -13,11 +13,6 @@ class DebugNode: public Node{
 
 	public:
 		DebugNode(std::string id);
-		void set_target(cv::Mat target);
-		void run();
-		
-  	private:
-  		std::vector<cv::Mat> _output;
-  		cv::Mat _target;
+		void *run();
 };
 #endif

@@ -5,6 +5,9 @@
 #include "node.h"
 #include "edge.h"
 #include <map> 
+#include <boost/thread.hpp>
+
+
 
 class GraphNet {
 	
@@ -18,8 +21,6 @@ class GraphNet {
   		void link();
   		void start_parallel();
   		void start_serial();
-  		void copy_to_buffer(int node_idx);
-  		cv::Mat copy_from_buffer(int edge_idx);
 		std::vector<Node*> _nodes;
 		std::vector<Edge> _edges;
 		std::map<std::string, int> _node_map;

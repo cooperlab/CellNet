@@ -6,23 +6,18 @@
 #include <opencv2/core/core.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
-
+#define N_LAYERS 4
 
 class LaplacianPyramidNode: public Node{
 	
 	public:
-		LaplacianPyramidNode(std::string id, int n_layers);
-		void run();
-		void set_target(cv::Mat target);
-		std::vector<cv::Mat> _layers;
+		LaplacianPyramidNode(std::string id);
+		void *run();
+		void init();
 		int _n_layers;
-		void print_pyramid();
-		bool get_output(std::vector<cv::Mat> &out);
+		void print_pyramid(std::vector<cv::Mat> layers);
 		
 	private:
-		void gen_next_level(cv::Mat, cv::Mat, int);
-		cv::Mat _layer0;
-		int _w0;
-		int _h0;
+		void gen_next_level(cv::Mat, cv::Mat, std::vector<cv::Mat> *, int);
 };
 #endif

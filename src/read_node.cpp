@@ -3,24 +3,41 @@
 #define SHIFT 25
 #include <iostream>
 
-ReadNode::ReadNode(std::string id, std::string image_path, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _extracted_images(), _image_path(image_path), _entire_image(), _cells_coordinates(cells_coordinates){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _image_paths(image_paths), _cells_coordinates(cells_coordinates){
 }
 
-void ReadNode::run(){
+void *ReadNode::run(){
+	
+	std::vector<cv::Mat> extracted_images;
+	cv::Mat entire_image;
 
-	open_image();
-	crop_cells();
+	// Execute
+	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
 
+		entire_image = open_image(_image_paths.at(i));
+		extracted_images = crop_cells(entire_image);
+		copy_to_buffer(extracted_images);
+	}
+
+	// Notify it has finished
+	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+		_out_edges.at(i)->set_in_node_done();
+	}
+
+	std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
-	show_entire_image();
-	show_cropped_cells();
+	//show_entire_image();
+	//show_cropped_cells();
+	return NULL;
 }	
 
 // This method opens an image using openslide and removes the alpha channel
-void ReadNode::open_image(){
+cv::Mat ReadNode::open_image(std::string image_path){
 
-	std::cout << _image_path << std::endl;
-	openslide_t *oslide = openslide_open(_image_path.c_str());
+	std::cout << image_path << std::endl;
+	cv::Mat entire_image;
+
+	openslide_t *oslide = openslide_open(image_path.c_str());
 	if(oslide != NULL){
 		
 		// Declare variables
@@ -73,16 +90,20 @@ void ReadNode::open_image(){
 		channels.push_back(g);
 		channels.push_back(b);
 
-		merge(channels, _entire_image);
+		merge(channels, entire_image);
 
 		// Close openslide object
 		openslide_close(oslide);
 	}
+	return entire_image;
 }
 
-void ReadNode::crop_cells(){
-	if(!_entire_image.empty()){
-		cv::Size s = _entire_image.size();
+std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image){
+
+	std::vector<cv::Mat> extracted_images;
+
+	if(!entire_image.empty()){
+		cv::Size s = entire_image.size();
 		int _entire_image_height = s.height;
 		int _entire_image_width = s.width;
 
@@ -100,10 +121,10 @@ void ReadNode::crop_cells(){
 				cv::Rect cellROI(tl, br);
 
 				// Crop image
-				cv::Mat croppedImage = _entire_image(cellROI);
+				cv::Mat croppedImage = entire_image(cellROI);
 
 				// Store image
-				_extracted_images.push_back(croppedImage);
+				extracted_images.push_back(croppedImage);
 			}
 			else{
 				std::cout << "Crop out of bound" << std::endl;
@@ -113,12 +134,13 @@ void ReadNode::crop_cells(){
 	else{
 		std::cout << "Image is empty" << std::endl;
 	}
+	return extracted_images;
 }
 
-void ReadNode::show_entire_image(){
-	if(!_entire_image.empty()){
+void ReadNode::show_entire_image(cv::Mat entire_image){
+	if(!entire_image.empty()){
 		std::cout << "Showing Entire Image" << std::endl;
-		imshow("img", _entire_image);
+		cv::imshow("img", entire_image);
 		cv::waitKey(0);
 	}
 	else{
@@ -126,21 +148,16 @@ void ReadNode::show_entire_image(){
 	}
 }
 
-void ReadNode::show_cropped_cells(){
-	if(!_extracted_images.empty()){
-		for(std::vector<cv::Mat>::size_type i =0; i < _extracted_images.size(); i++){
+void ReadNode::show_cropped_cells(std::vector<cv::Mat> extracted_images){
+	if(!extracted_images.empty()){
+		for(std::vector<cv::Mat>::size_type i =0; i < extracted_images.size(); i++){
 
 			std::cout << "Showing Cropped Images" << std::endl;
-			imshow("img" + std::to_string(i), _extracted_images.at(i));
+			imshow("img" + std::to_string(i), extracted_images.at(i));
 		}
 		cv::waitKey(0);
 	}
 	else{
 		std::cout << "Image is empty" << std::endl;
 	}
-}
-
-bool ReadNode::get_output(std::vector<cv::Mat> &out){
-	out = _extracted_images;
-	return true;
 }

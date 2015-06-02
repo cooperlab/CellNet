@@ -21,7 +21,7 @@ CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0				# Include glib
 CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 
 # Define location of OpenCV
-CV_LIBS       = -L$(LOCAL_HOME)/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui
+CV_LIBS       = -L$(LOCAL_HOME)/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread
 
 # Define location of X Windows libraries and the X11 library names
 XLIBS         = -L/usr/X11R6/lib -L/usr/lib -lX11
