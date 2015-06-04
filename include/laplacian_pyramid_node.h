@@ -16,8 +16,6 @@ class LaplacianPyramidNode: public Node{
 		void init();
 		int _n_layers;
 		void print_pyramid(std::vector<cv::Mat> layers);
-		
-	private:
 		void gen_next_level(cv::Mat, cv::Mat, std::vector<cv::Mat> *, int);
 };
 #endif

@@ -6,6 +6,7 @@
 #include "edge.h"
 #include <map> 
 #include <boost/thread.hpp>
+#include <boost/ptr_container/ptr_deque.hpp>
 
 
 
@@ -15,14 +16,14 @@ class GraphNet {
 		GraphNet();
 		void run();
 		void add_node(Node *node);
-		void add_edge(Edge edge);
+		void add_edge(Edge *edge);
 
   	private:
   		void link();
   		void start_parallel();
   		void start_serial();
-		std::vector<Node*> _nodes;
-		std::vector<Edge> _edges;
+		boost::ptr_deque<Node> _nodes;
+		boost::ptr_deque<Edge> _edges;
 		std::map<std::string, int> _node_map;
 };
 #endif

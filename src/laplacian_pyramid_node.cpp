@@ -7,32 +7,45 @@ LaplacianPyramidNode::LaplacianPyramidNode(std::string id): Node(id) {
 void *LaplacianPyramidNode::run(){
 
 	while(true){
+		cv::Mat _layer0; 
 
-		cv::Mat *_layer0 = NULL; 
+		//std::cout << "Copying from buffer" << std::endl;
 		copy_from_buffer(_layer0);
-			
-		if(_layer0 != NULL){
+		//std::cout << "Copy finished" << std::endl;
+		
+		if(!_layer0.empty()){
+			std::cout << "LaplacianPyramidNode start" << std::endl;
+
 			cv::Mat _gaussian_layer0;
 			std::vector<cv::Mat> layers;
 		
 			// Build Laplacian pyramid
-			cv::GaussianBlur(*_layer0, _gaussian_layer0	, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
-			std::cout << "LaplacianPyramidNode start" << std::endl;
-			gen_next_level(_gaussian_layer0, *_layer0, &layers, 0);
+			cv::GaussianBlur(_layer0, _gaussian_layer0	, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
+			
+			//std::cout << "Start building pyramid" << std::endl;
+			gen_next_level(_gaussian_layer0, _layer0, &layers, 0);
+			//std::cout << "Pyramid built" << std::endl;
 
-			//copy_to_buffer(layers);
+			copy_to_buffer(layers);
 			std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
+			
+			// Release memory
+			_gaussian_layer0.release();
+			layers.clear();
+
 			std::cout << "LaplacianPyramidNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
+			std::cout << "Stopping LaplacianPyramidNode" << std::endl;
 			break;
 		}
+		_layer0.release();
 	}
 
 	// Notify it has finished
-	//for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-	//	_out_edges.at(i)->set_in_node_done();
-	//}
+	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+		_out_edges.at(i)->set_in_node_done();
+	}
 	/****************** Debug ******************/
 	//print_pyramid();
 	return NULL;

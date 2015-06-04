@@ -9,50 +9,57 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out){
 
 	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 
+		//std::cout << "To Buffer" << std::endl; 
 		// Lock access to buffer
-		_out_edges.at(i)->lock_access();
+		//std::cout << "Node: " << _id << " trying to lock buffer " << _out_edges.at(i)->_id << std::endl; 
+		boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
+
+		//std::cout << "Node: " << _id << " locked buffer " << _out_edges.at(i)->_id << std::endl;
 
 		/******* Restricted Access ********/
 		// Get current buffer
-		std::vector<cv::Mat> curr_buffer = _out_edges.at(i)->get_buffer();
+		std::vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
 		
 		// Concatenate buffers
 		std::vector<cv::Mat> new_buffer;
-		new_buffer.reserve(curr_buffer.size() + out.size());
-		new_buffer.insert( new_buffer.end(), curr_buffer.begin(), curr_buffer.end());
+		new_buffer.reserve(curr_buffer->size() + out.size());
+		new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
 		new_buffer.insert( new_buffer.end(), out.begin(), out.end());
 
 		// Set new buffer
 		_out_edges.at(i)->set_buffer(new_buffer);
 		/******* Restricted Access ********/
 
-		// Unlock access to buffer
-		_out_edges.at(i)->unlock_access();
+		//std::cout << "Node: " << _id << " unlocking buffer " << _out_edges.at(i)->_id << std::endl; 
+		_out_edges.at(i)->_mutex.unlock();
 	}
 }
 
-void Node::copy_from_buffer(cv::Mat *out){
+void Node::copy_from_buffer(cv::Mat &out){
 	
 	// Lock access to buffer
-	_in_edges.at(0)->lock_access();
+	//std::cout << "From Buffer" << std::endl; 
+	//std::cout << "Node: " << _id << " trying to lock buffer " << _in_edges.at(0)->_id << std::endl; 
+	boost::mutex::scoped_lock lk(_in_edges.at(0)->_mutex);
 
+	//std::cout << "Node: " << _id << " locked buffer " << _in_edges.at(0)->_id << std::endl;
 	/******* Restricted Access ********/
 	// Get buffer
-	_buffer = _in_edges.at(0)->get_buffer();
+	std::vector<cv::Mat> *_buffer = _in_edges.at(0)->get_buffer();
 
 	// Remove first element from buffer
-	if(!_buffer.empty()){
+	if(!_buffer->empty()){
 
-		cv::Mat top = _buffer.at(0);
-		out = &top;
-		_buffer.erase(_buffer.begin());
+		out = _buffer->at(0);//.clone();
+
+		//std::cout << "Buffer size:" << std::to_string(_buffer->size()) << std::endl; 
+		_buffer->erase(_buffer->begin());	
+		//std::cout << "Buffer size:" << std::to_string(_buffer->size()) << std::endl; 
 
 		// Set new buffer and return first element
-		_in_edges.at(0)->set_buffer(_buffer);
+		//_in_edges.at(0)->set_buffer(*_buffer);
 	}
-	//_buffer.clear();
 	/******* Restricted Access ********/
-
-	// Unlock access to buffer
-	_in_edges.at(0)->unlock_access();
+	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
+	_in_edges.at(0)->_mutex.unlock();
 }

@@ -26,7 +26,7 @@ void *ReadNode::run(){
 
 	std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
-	//show_entire_image();
+	//show_entire_image(entire_image);
 	//show_cropped_cells();
 	return NULL;
 }	

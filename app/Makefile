@@ -15,13 +15,14 @@ CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS
 # Define Includes
 CPPFLAGS =  -std=c++11
 CPPFLAGS += -I$(SDK_HOME)/include					# Include graph nodes and algorithms 
-CPPFLAGS += -I$(LOCAL_HOME)/include/opencv  					# Include OpenCV ...
+CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv  					# Include OpenCV ...
+CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv2  					# Include OpenCV ...
 CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   			# Include OpenSlide
 CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0				# Include glib			
 CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 
 # Define location of OpenCV
-CV_LIBS       = -L$(LOCAL_HOME)/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread
+CV_LIBS       = -L$(LOCAL_HOME)/lib/ -L$(LOCAL_HOME)/local/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread
 
 # Define location of X Windows libraries and the X11 library names
 XLIBS         = -L/usr/X11R6/lib -L/usr/lib -lX11
