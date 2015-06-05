@@ -1,6 +1,6 @@
 #include "read_node.h"
 #include "edge.h"
-#define SHIFT 25
+#define SHIFT 128
 #include <iostream>
 
 ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _image_paths(image_paths), _cells_coordinates(cells_coordinates){
@@ -22,11 +22,15 @@ void *ReadNode::run(){
 	// Notify it has finished
 	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 		_out_edges.at(i)->set_in_node_done();
-	}
-
+	}	
 	std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
-	//show_entire_image(entire_image);
+	show_entire_image(entire_image);
+
+	// Release memory
+	extracted_images.clear();
+	entire_image.release();
+	
 	//show_cropped_cells();
 	return NULL;
 }	
@@ -42,24 +46,20 @@ cv::Mat ReadNode::open_image(std::string image_path){
 		
 		// Declare variables
 		int64_t w, h;
-		openslide_get_level_dimensions(oslide, 2, &w, &h);
+		openslide_get_level_dimensions(oslide, 3, &w, &h);
 		uint32_t *buf = g_new(uint32_t, w * h);
 		uint32_t *out = g_new(uint32_t, w * h);
 
-		std::vector<cv::Mat> channels;
-		cv::Mat r = cv::Mat::zeros(cv::Size(w, h), CV_8UC1);
-		cv::Mat g = cv::Mat::zeros(cv::Size(w, h), CV_8UC1);
-		cv::Mat b = cv::Mat::zeros(cv::Size(w, h), CV_8UC1);
-
 		// Read region
-		openslide_read_region(oslide, buf, 2, 0, 0, w, h);
+		openslide_read_region(oslide, buf, 0, 0, 3, w, h);
 
+		
 		// Convert to RGBX
 		for (int64_t i = 0; i < w * h; i++) {
-			//cout << i;
 
 			uint32_t pixel = buf[i];
 			uint8_t a = pixel >> 24;
+
 			if (a == 255) {
 	     	   // Common case.  Compiles to a shift and a BSWAP.
 				out[i] = GUINT32_TO_BE(pixel << 8);
@@ -75,22 +75,19 @@ cv::Mat ReadNode::open_image(std::string image_path){
 				uint8_t b = 255 * (pixel & 0xff) / a;
 				out[i] = GUINT32_TO_BE(r << 24 | g << 16 | b << 8);
 			}
-
-			// Convert to opencv
-			int k = i/w;
-			int l = i%w;
-
-			r.at<uchar>(k, l) = 255 * ((pixel >> 16) & 0xff);
-			g.at<uchar>(k, l) = 255 * ((pixel >> 8) & 0xff);
-			b.at<uchar>(k, l) = 255 * (pixel & 0xff);
 		}
+		
+		// Convert to opencv
+		// Get XBGR channels
+		cv::Mat int_XBGR = cv::Mat(h, w, CV_8UC4, out);
+		std::vector<cv::Mat> XBRG_channels;
+		cv::split(int_XBGR, XBRG_channels);
 
-		// Show image
-		channels.push_back(r);
-		channels.push_back(g);
-		channels.push_back(b);
+		// Pop X channels
+		XBRG_channels.pop_back();
 
-		merge(channels, entire_image);
+		// Merge channels BGR back to image
+		cv::merge(XBRG_channels, entire_image);
 
 		// Close openslide object
 		openslide_close(oslide);

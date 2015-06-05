@@ -25,6 +25,7 @@ void *LaplacianPyramidNode::run(){
 			//std::cout << "Start building pyramid" << std::endl;
 			gen_next_level(_gaussian_layer0, _layer0, &layers, 0);
 			//std::cout << "Pyramid built" << std::endl;
+			resize_all(layers, _layer0.size());
 
 			copy_to_buffer(layers);
 			std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
@@ -49,6 +50,13 @@ void *LaplacianPyramidNode::run(){
 	/****************** Debug ******************/
 	//print_pyramid();
 	return NULL;
+}
+
+void LaplacianPyramidNode::resize_all(std::vector<cv::Mat> &layers, cv::Size size){
+
+	for(std::vector<cv::Mat>::size_type i =0; i < layers.size(); i++){
+		cv::resize(layers.at(i), layers.at(i), size, 0, 0, CV_INTER_CUBIC);
+	}
 }
 
 /* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */

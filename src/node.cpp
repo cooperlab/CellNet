@@ -31,7 +31,6 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out){
 		/******* Restricted Access ********/
 
 		//std::cout << "Node: " << _id << " unlocking buffer " << _out_edges.at(i)->_id << std::endl; 
-		_out_edges.at(i)->_mutex.unlock();
 	}
 }
 
@@ -61,5 +60,4 @@ void Node::copy_from_buffer(cv::Mat &out){
 	}
 	/******* Restricted Access ********/
 	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
-	_in_edges.at(0)->_mutex.unlock();
 }

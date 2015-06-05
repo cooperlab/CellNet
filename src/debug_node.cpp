@@ -15,14 +15,14 @@ void *DebugNode::run(){
 		if(!out.empty()){
 
 			std::cout << "DebugNode start" << std::endl; 
-			cv::imshow("img " + std::to_string(counter), out);
+			//cv::imshow("img " + std::to_string(counter), out);
 			std::cout << std::to_string(counter++) << std::endl;
 			// Debugger
 			std::cout << "DebugNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
 			std::cout << "Stopping DebuggerNode" << std::endl;
-			cv::waitKey(0);
+			//cv::waitKey(0);
 			// Some debug
 			break;
 		}
