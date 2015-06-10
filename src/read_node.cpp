@@ -2,6 +2,7 @@
 #include "edge.h"
 #define SHIFT 128
 #include <iostream>
+#include <sstream>
 
 ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _image_paths(image_paths), _cells_coordinates(cells_coordinates){
 }
@@ -35,6 +36,36 @@ void *ReadNode::run(){
 	return NULL;
 }	
 
+// This method gets the 20 X magnification layer 
+int ReadNode::get_layer(openslide_t *oslide){
+
+	/*get # of levels*/
+	int levels = openslide_get_level_count(oslide);
+
+	/*loop through levels, get dimensions/downsample factor of each*/
+	std::vector<double> magnification;
+	int objective;
+	std::stringstream str_objective;
+	for(int i = 0; i < levels; i++) {
+
+		/*get level info*/
+		str_objective << openslide_get_property_value(oslide, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER);
+		str_objective >> objective; 
+		magnification.push_back(objective / (double) openslide_get_level_downsample(oslide, (int32_t)i));
+		//std::cout << "Magnification: " << magnification[i] << std::endl;
+	}
+
+	// Return the closest magnification to 20.0
+	for(std::vector<double>::size_type i = 0; i < magnification.size(); i++){
+		if(magnification[i] >= 20.0){
+			return i;
+		}
+	}
+
+	// Never reach 20.0, so return the highest value
+	return magnification.size()-1;
+}
+
 // This method opens an image using openslide and removes the alpha channel
 cv::Mat ReadNode::open_image(std::string image_path){
 
@@ -44,16 +75,17 @@ cv::Mat ReadNode::open_image(std::string image_path){
 	openslide_t *oslide = openslide_open(image_path.c_str());
 	if(oslide != NULL){
 		
+		int layer_i = get_layer(oslide);
+
 		// Declare variables
 		int64_t w, h;
-		openslide_get_level_dimensions(oslide, 3, &w, &h);
+		openslide_get_level_dimensions(oslide, layer_i, &w, &h);
 		uint32_t *buf = g_new(uint32_t, w * h);
 		uint32_t *out = g_new(uint32_t, w * h);
 
 		// Read region
-		openslide_read_region(oslide, buf, 0, 0, 3, w, h);
+		openslide_read_region(oslide, buf, 0, 0, layer_i, w, h);
 
-		
 		// Convert to RGBX
 		for (int64_t i = 0; i < w * h; i++) {
 
@@ -137,8 +169,10 @@ std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image){
 void ReadNode::show_entire_image(cv::Mat entire_image){
 	if(!entire_image.empty()){
 		std::cout << "Showing Entire Image" << std::endl;
-		cv::imshow("img", entire_image);
-		cv::waitKey(0);
+		//cv::imshow("img", entire_image);
+		//cv::waitKey(0);
+
+		cv::imwrite("/home/nelson/CellNet/entire_image.png", entire_image);
 	}
 	else{
 		std::cout << "Image is empty" << std::endl;

@@ -47,8 +47,7 @@ void GraphNet::start_parallel(){
 	boost::thread_group threads;
 
 	// For each node
-	threads.create_thread(boost::bind(&Node::run, boost::ref(_nodes.at(0))));
-	for(std::vector<Node*>::size_type i=1; i < _nodes.size(); i++){
+	for(std::vector<Node*>::size_type i=0; i < _nodes.size(); i++){
 
 		// Release fixed number of threads for each node
 		for(int j=0; j < NUM_THREADS; j++){

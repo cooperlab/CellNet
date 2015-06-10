@@ -1,5 +1,5 @@
-#ifndef _CNN_NODE_H
-#define _CNN_NODE_H
+#ifndef _WRITE_NODE_H
+#define _WRITE_NODE_H
 
 #include "node.h"
 #include <vector>

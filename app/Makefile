@@ -42,7 +42,7 @@ OBJ           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS))
 PROGRAM	      = main
 
 # Define all C++ source files here
-CPPSRCS       = $(SRC_DIR)/main.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_node.cpp
+CPPSRCS       = $(SRC_DIR)/main.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_node.cpp $(SRC_DIR)/grayscale_node.cpp
 
 ##############################################################################
 # Define additional rules that make should know about in order to compile our

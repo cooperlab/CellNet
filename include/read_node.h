@@ -24,6 +24,7 @@ class ReadNode: public Node{
 		bool get_output(std::vector<cv::Mat> &out);
 
   	private:
+  		int get_layer(openslide_t *oslide);
   		cv::Mat open_image(std::string image_path);
   		std::vector<std::string> _image_paths;
   		std::vector<std::tuple<int, int>> _cells_coordinates;
