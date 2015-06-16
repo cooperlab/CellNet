@@ -22,15 +22,16 @@ CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0				# Include glib
 CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 
 # Define location of OpenCV
-CV_LIBS       = -L$(LOCAL_HOME)/lib/ -L$(LOCAL_HOME)/local/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread
+CV_LIBS       = -L$(LOCAL_HOME)/lib/ -L$(LOCAL_HOME)/local/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread -lhdf5 -lhdf5_cpp
 
 # Define location of X Windows libraries and the X11 library names
 XLIBS         = -L/usr/X11R6/lib -L/usr/lib -lX11
 
 # Define location of OpenSlide
 SLIDE_LIBS =    -L$(LOCAL_HOME)/lib/ -lglib-2.0 -lopenslide
+
 # Define libraries to be linked with
-LIBS	      =  -lm $(XLIBS) $(CV_LIBS) $(SLIDE_LIBS)
+LIBS	      =  -lm $(XLIBS) $(CV_LIBS) $(SLIDE_LIBS) 
 
 # Define linker
 LINKER	      = g++
@@ -42,7 +43,7 @@ OBJ           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS))
 PROGRAM	      = main
 
 # Define all C++ source files here
-CPPSRCS       = $(SRC_DIR)/main.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_node.cpp $(SRC_DIR)/grayscale_node.cpp
+CPPSRCS       = $(SRC_DIR)/main.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp
 
 ##############################################################################
 # Define additional rules that make should know about in order to compile our

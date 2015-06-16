@@ -1,10 +1,10 @@
 #include "read_node.h"
 #include "edge.h"
-#define SHIFT 128
 #include <iostream>
 #include <sstream>
+#define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::tuple<int, int>> cells_coordinates): Node(id), _image_paths(image_paths), _cells_coordinates(cells_coordinates){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set){
 }
 
 void *ReadNode::run(){
@@ -15,8 +15,13 @@ void *ReadNode::run(){
 	// Execute
 	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
 
+		std::cout << "Opening file ..." << std::endl;
 		entire_image = open_image(_image_paths.at(i));
-		extracted_images = crop_cells(entire_image);
+		std::cout << "Entire image extracted" << std::endl;
+
+		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
+		std::cout << "Images cropped" << std::endl; 
+
 		copy_to_buffer(extracted_images);
 	}
 
@@ -24,6 +29,7 @@ void *ReadNode::run(){
 	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 		_out_edges.at(i)->set_in_node_done();
 	}	
+
 	std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
 	show_entire_image(entire_image);
@@ -41,28 +47,33 @@ int ReadNode::get_layer(openslide_t *oslide){
 
 	/*get # of levels*/
 	int levels = openslide_get_level_count(oslide);
-
+	
 	/*loop through levels, get dimensions/downsample factor of each*/
 	std::vector<double> magnification;
 	int objective;
 	std::stringstream str_objective;
+
+	std::cout << "num_levels: " << std::to_string(levels) << std::endl;
 	for(int i = 0; i < levels; i++) {
 
 		/*get level info*/
 		str_objective << openslide_get_property_value(oslide, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER);
 		str_objective >> objective; 
 		magnification.push_back(objective / (double) openslide_get_level_downsample(oslide, (int32_t)i));
-		//std::cout << "Magnification: " << magnification[i] << std::endl;
+		std::cout << "Magnification: " << magnification[i] << std::endl;
 	}
 
 	// Return the closest magnification to 20.0
 	for(std::vector<double>::size_type i = 0; i < magnification.size(); i++){
+		
 		if(magnification[i] >= 20.0){
+			std::cout << "Picked mag: " << magnification[i] << std::endl;
 			return i;
 		}
 	}
 
-	// Never reach 20.0, so return the highest value
+	// Return the second highest value
+	std::cout << "Magnification: " << magnification[magnification.size()-1] << std::endl;
 	return magnification.size()-1;
 }
 
@@ -74,9 +85,10 @@ cv::Mat ReadNode::open_image(std::string image_path){
 
 	openslide_t *oslide = openslide_open(image_path.c_str());
 	if(oslide != NULL){
-		
-		int layer_i = get_layer(oslide);
 
+		int layer_i = get_layer(oslide);
+		std::cout << "layer: " << std::to_string(layer_i) << std::endl;
+		
 		// Declare variables
 		int64_t w, h;
 		openslide_get_level_dimensions(oslide, layer_i, &w, &h);
@@ -127,11 +139,12 @@ cv::Mat ReadNode::open_image(std::string image_path){
 	return entire_image;
 }
 
-std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image){
+std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std::tuple<double, double>> _cells_coordinates){
 
 	std::vector<cv::Mat> extracted_images;
 
 	if(!entire_image.empty()){
+
 		cv::Size s = entire_image.size();
 		int _entire_image_height = s.height;
 		int _entire_image_width = s.width;

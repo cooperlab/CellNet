@@ -1,5 +1,9 @@
 #include "graph_net.h"
 #include <iostream>
+/* Define the number of threads running for each node
+NOTE: At some nodes (e.g writing nodes), the graph considers only one thread for each node.
+To include more threads working at the same node, we would have to control the access at some nodes (e.g writing nodes),
+Also, changing the number of threads per node does not guarantee the order of the outputs. */
 #define NUM_THREADS 1
 
 GraphNet::GraphNet(): _nodes(), _edges(), _node_map(){}
