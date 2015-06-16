@@ -2,7 +2,7 @@
 #define _WRITE_HDF5_NODE_H
 
 #include "node.h"
-#include "H5Cpp.h"
+#include "hdf5.h"
 #include <vector>
 #include <tuple>
 #include <iostream>

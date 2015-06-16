@@ -25,7 +25,7 @@ void *WriteHDF5Node::run(){
 		if(!out.empty()){
 
 			// If there is space in the buffer
-			if(_curr_size + _w * _h * out.channels() * sizeof(H5::PredType::NATIVE_DOUBLE)/2 <= FILE_SIZE_LIMIT){
+			if(_curr_size + _w * _h * out.channels() * 2 *  sizeof(H5T_NATIVE_DOUBLE) <= FILE_SIZE_LIMIT){
 
 				// Copy mat to file buffer
 				copy_mat(out);
@@ -38,7 +38,7 @@ void *WriteHDF5Node::run(){
 				_file_buffer.clear();
 			}
 
-			_curr_size += _w * _h * out.channels() * sizeof(H5::PredType::NATIVE_DOUBLE)/2;
+			_curr_size += _w * _h * out.channels() * 2* sizeof(H5T_NATIVE_DOUBLE);
 			out.release();
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
@@ -77,15 +77,16 @@ void WriteHDF5Node::write_to_disk(){
 		_dem *= _dim[i];
 	}
 	_dim[0] = _el_cont / _dem;
-	H5::DataSpace space(_n_dim, &_dim[0]);
+	hid_t space = H5Screate_simple(_n_dim, &_dim[0], NULL);
 
 	// Open file
 	std::cout << "numb_items: " << std::to_string(_dim[0]) << std::endl;
-    H5::H5File file(_fname + "_part_" + std::to_string(_f_count) + ".h5", H5F_ACC_TRUNC);
+    std::string full_fname = _fname + "_part_" + std::to_string(_f_count) + ".h5";
+    hid_t file =  H5Fcreate(full_fname.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     // Create and write dataset
-    H5::DataSet dataset = file.createDataSet(_dataset_name, H5::PredType::NATIVE_DOUBLE, space);
-    dataset.write(&_file_buffer[0], H5::PredType::NATIVE_DOUBLE);
+    hid_t dataset = H5Dcreate2(file, _dataset_name.c_str(), H5T_NATIVE_DOUBLE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &_file_buffer[0]);
 
     // Initialize parameters
     _file_buffer.clear();

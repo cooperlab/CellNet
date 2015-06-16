@@ -14,11 +14,11 @@ CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS
 
 # Define Includes
 CPPFLAGS =  -std=c++11
-CPPFLAGS += -I$(SDK_HOME)/include					# Include graph nodes and algorithms 
+CPPFLAGS += -I$(SDK_HOME)/include									# Include graph nodes and algorithms 
 CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv  					# Include OpenCV ...
 CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv2  					# Include OpenCV ...
-CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   			# Include OpenSlide
-CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0				# Include glib			
+CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   				# Include OpenSlide
+CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0						# Include glib			
 CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 
 # Define location of OpenCV
