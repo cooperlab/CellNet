@@ -12,11 +12,12 @@
 #include <vector>
 #include <string>
 #include <iostream>
-
+#include <ctime>
 
 int main (int argc, char * argv[])
 {
 
+	const clock_t begin_time = clock();
 	/***************************** Declare nodes variables  **********************/
  	GraphNet *graph = new GraphNet();
 	std::vector<std::string> file_paths;
@@ -44,19 +45,17 @@ int main (int argc, char * argv[])
 	cells_coordinates_set.push_back(slide1);
 	cells_coordinates_set.push_back(slide2);
 
-	file_paths.push_back("/home/nelson/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 	//file_paths.push_back("/home/nelson/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	file_paths.push_back("/home/nelson/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
 	//std::cout << "size: " << std::to_string(x_centroid.size()) << std::endl;
 	for(int i=0; i < 5; i++){
 
 		//std::cout << "x: " << std::to_string(x_centroid[i]) << ", " << "y: " << std::to_string(y_centroid[i]) << std::endl;
 		if((int)slide_idx[i] == 0){
-			std::cout << "Teste" << std::endl;
 			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[i], y_centroid[i]));
 		}
 		else{
-			std::cout << "Teste2" << std::endl;
 			//cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[i], y_centroid[i]));
 		}
 	}
@@ -104,5 +103,6 @@ int main (int argc, char * argv[])
 	// Start serial execution
 	graph->run();
 
+	std::cout << "Elapsed Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << std::endl;
 	return 0;
 }

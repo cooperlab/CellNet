@@ -3,6 +3,7 @@
 
 #include "node.h"
 #include "hdf5.h"
+#include "utils.h"
 #include <vector>
 #include <tuple>
 #include <iostream>
@@ -19,6 +20,7 @@ class WriteHDF5Node: public Node{
   	private:
   		void copy_mat(cv::Mat out);
   		void write_to_disk();
+  		void write_labels();
   		std::string _fname;
   		std::vector<hsize_t> _dim;
   		unsigned int _curr_size;
@@ -28,7 +30,9 @@ class WriteHDF5Node: public Node{
   		int _n_dim;
   		std::vector<double> _file_buffer;
   		int _f_count;
+  		int _label_count;
   		std::string _dataset_name;
   		int _el_cont;
+  		std::vector<double> _labels;
 };	
 #endif

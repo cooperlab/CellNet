@@ -5,7 +5,7 @@
 
 /* Consider dimensions as (numb_items, ..., channels, height, width) */
 /* Min: 4D */
-WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _dataset_name(dataset_name), _el_cont(0){}
+WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(){}
 
 void *WriteHDF5Node::run(){
 
@@ -16,7 +16,12 @@ void *WriteHDF5Node::run(){
 	_n_dim = _dim.size();
 	_curr_size = 0;
 	_f_count = 0;
+	_label_count = 0;
 	_file_buffer.clear();
+
+	// Get labels
+	_labels.clear();
+	utils::get_data("/home/nelson/LGG-test/LGG-Endothelial-2-test.h5", "labels", _labels);
 
 	while(true){
 
@@ -76,7 +81,9 @@ void WriteHDF5Node::write_to_disk(){
 	for(int i = 1; i < _n_dim - 2; i++){
 		_dem *= _dim[i];
 	}
-	_dim[0] = _el_cont / _dem;
+
+	int numb_samples = _el_cont / _dem;
+	_dim[0] = numb_samples;
 	hid_t space = H5Screate_simple(_n_dim, &_dim[0], NULL);
 
 	// Open file
@@ -88,7 +95,31 @@ void WriteHDF5Node::write_to_disk(){
     hid_t dataset = H5Dcreate2(file, _dataset_name.c_str(), H5T_NATIVE_DOUBLE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &_file_buffer[0]);
 
-    // Initialize parameters
+    // Write label (# Labels, 1)
+    std::vector<hsize_t> label_dim;
+    label_dim.push_back(numb_samples);
+    //label_dim.push_back(1);
+
+    // Create label space
+    hid_t label_space = H5Screate_simple(1, &label_dim[0], NULL);
+
+    // Get range of labels to write
+    std::vector<double>::const_iterator first = _labels.begin() + _label_count;
+	std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
+	std::vector<double> sub_labels(first, last);
+	    
+	// Debug
+	for(int i=0; i < sub_labels.size(); i++){
+		std::cout << sub_labels[i] << " ";
+	}
+	std::cout << std::endl;
+
+    // Create and write labels
+    hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(label_dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &sub_labels[0]);
+
+    // Update parameters
+    _label_count += numb_samples;
     _file_buffer.clear();
     _f_count++;
     _el_cont = 0;
