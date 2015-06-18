@@ -122,9 +122,9 @@ int main (int argc, char * argv[])
 
 	/******************************** Shuffle & Split Data ******************************************/
 
-	fill_data(108, 148, train_cells_coordinates_set, x_centroid, y_centroid, labels, slide_idx);
-	fill_data(20, 40, test_cells_coordinates_set, x_centroid, y_centroid, labels, slide_idx);
-	fill_data(20, 20, valid_cells_coordinates_set, x_centroid, y_centroid, labels, slide_idx);
+	fill_data(108, 148, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
+	fill_data(20, 40, test_cells_coordinates_set, test_labels, x_centroid, y_centroid, labels, slide_idx);
+	fill_data(20, 20, valid_cells_coordinates_set, valid_labels, x_centroid, y_centroid, labels, slide_idx);
 	
 	//fill_data(10, 148, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 	//fill_data(10, 138, test_cells_coordinates_set, test_labels, x_centroid, y_centroid, labels, slide_idx);
