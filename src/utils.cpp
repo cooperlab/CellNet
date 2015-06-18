@@ -27,15 +27,17 @@ namespace utils{
 
 		// Allocate  matrix
 		num_elem = H5Sget_simple_extent_npoints(file_dataspace_id);
-		data_out.reserve(num_elem); // = (double*)malloc(num_elem *sizeof(double));
+		std::vector<double> data_out_tmp(num_elem);
+		// = (double*)malloc(num_elem *sizeof(double));
 		//std::cout << "num_elem: " << std::to_string(num_elem) << std::endl;
 
 		// Create  dataspace
 		dataspace_id = H5Screate_simple(rank , dims , NULL);
 
 		// Read  matrix  data  from  file 
-		H5Dread(dataset_id, H5T_NATIVE_DOUBLE, dataspace_id, file_dataspace_id , H5P_DEFAULT , &data_out[0]);
-
+		H5Dread(dataset_id, H5T_NATIVE_DOUBLE, dataspace_id, file_dataspace_id , H5P_DEFAULT , &data_out_tmp[0]);
+		data_out = data_out_tmp;
+		
 		//  Release  resources  and  close  file 
 		H5Dclose(dataset_id);
 		H5Sclose(dataspace_id);

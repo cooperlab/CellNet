@@ -134,6 +134,8 @@ cv::Mat ReadNode::open_image(std::string image_path){
 		cv::merge(XBRG_channels, entire_image);
 
 		// Close openslide object
+		free(buf);
+		free(out);
 		openslide_close(oslide);
 	}
 	return entire_image;
