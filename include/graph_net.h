@@ -14,7 +14,7 @@ class GraphNet {
 	
 	public:
 		GraphNet();
-		void run();
+		void *run();
 		void add_node(Node *node);
 		void add_edge(Edge *edge);
 

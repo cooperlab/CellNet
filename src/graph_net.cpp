@@ -8,7 +8,7 @@ Also, changing the number of threads per node does not guarantee the order of th
 
 GraphNet::GraphNet(): _nodes(), _edges(), _node_map(){}
 
-void GraphNet::run(){
+void *GraphNet::run(){
 
 	std::cout << "Linking graph..." << std::endl;
 	link();
