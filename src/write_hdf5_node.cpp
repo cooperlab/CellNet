@@ -5,7 +5,7 @@
 
 /* Consider dimensions as (numb_items, ..., channels, height, width) */
 /* Min: 4D */
-WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(){}
+WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(labels){}
 
 void *WriteHDF5Node::run(){
 
@@ -18,10 +18,6 @@ void *WriteHDF5Node::run(){
 	_f_count = 0;
 	_label_count = 0;
 	_file_buffer.clear();
-
-	// Get labels
-	_labels.clear();
-	utils::get_data("/home/nelson/LGG-test/LGG-Endothelial-2-test.h5", "labels", _labels);
 
 	while(true){
 
@@ -107,12 +103,6 @@ void WriteHDF5Node::write_to_disk(){
     std::vector<double>::const_iterator first = _labels.begin() + _label_count;
 	std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
 	std::vector<double> sub_labels(first, last);
-	    
-	// Debug
-	for(int i=0; i < sub_labels.size(); i++){
-		std::cout << sub_labels[i] << " ";
-	}
-	std::cout << std::endl;
 
     // Create and write labels
     hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);

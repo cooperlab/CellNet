@@ -14,7 +14,7 @@
 class WriteHDF5Node: public Node{
 
 	public:
-		WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name);
+		WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels);
 		void *run();
 		
   	private:
