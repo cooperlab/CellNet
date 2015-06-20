@@ -31,6 +31,9 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 	for(int i=0; i < N; i++){
 
 		k = rand() % num_elem;
+		if(labels[k] == -1){
+			labels[k] = 0;
+		}
 		if(!slide_idx[k]){
 			//std::cout <<  "slide: " << slide_idx[k] << std::endl;
 			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
@@ -49,7 +52,7 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 		num_elem--;
 	}
 
-	std::cout << "labels1_size: " << labels1.size() << " " << "labels2_size: " << labels2.size() << std::endl;
+	//std::cout << "labels1_size: " << labels1.size() << " " << "labels2_size: " << labels2.size() << std::endl;
 
 	shuffled_labels.clear();
 	shuffled_labels.reserve(labels1.size() + labels2.size());
@@ -229,7 +232,7 @@ int main (int argc, char * argv[])
 	valid_graph->add_node(valid_write_hdf5_node);
 	valid_graph->add_node(valid_write_hdf5_node2);
 	valid_graph->add_node(valid_write_hdf5_node3);
-
+	
 	std::cout << "*Nodes defined*" << std::endl;
 	std::cout << "Defining graph edges..." << std::endl;
 
