@@ -32,20 +32,24 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 
 		k = rand() % num_elem;
 		if(!slide_idx[k]){
+			//std::cout <<  "slide: " << slide_idx[k] << std::endl;
 			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 			labels1.push_back(labels[k]);
 		}
 		else{
-			std::cout << std::to_string(x_centroid[k]) << " " << std::to_string(y_centroid[k]) << " " << std::to_string(labels[k]) << std::endl;
 			cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 			labels2.push_back(labels[k]);
 		}
 
+		std::cout << std::to_string(x_centroid[k]) << " " << std::to_string(y_centroid[k]) << " " << std::to_string(labels[k]) << std::endl;
 		x_centroid.erase(x_centroid.begin() + k);
 		y_centroid.erase(y_centroid.begin() + k);
+		slide_idx.erase(slide_idx.begin() + k);
 		labels.erase(labels.begin() + k);
 		num_elem--;
 	}
+
+	std::cout << "labels1_size: " << labels1.size() << " " << "labels2_size: " << labels2.size() << std::endl;
 
 	shuffled_labels.clear();
 	shuffled_labels.reserve(labels1.size() + labels2.size());
@@ -128,24 +132,22 @@ int main (int argc, char * argv[])
 	fill_data(20, 40, test_cells_coordinates_set, test_labels, x_centroid, y_centroid, labels, slide_idx);
 	fill_data(20, 20, valid_cells_coordinates_set, valid_labels, x_centroid, y_centroid, labels, slide_idx);
 	
-	//fill_data(10, 148, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
-	//fill_data(10, 138, test_cells_coordinates_set, test_labels, x_centroid, y_centroid, labels, slide_idx);
-	//fill_data(10, 128, valid_cells_coordinates_set, valid_labels, x_centroid, y_centroid, labels, slide_idx);
 	//std::cout << "labels_size: " << std::to_string(train_labels.size()) << std::endl;
 
 	std::cout << "train_size: " << train_labels.size() << std::endl;
-	std::cout << "test_size: " << train_labels.size() << std::endl;
-	std::cout << "valid_size: " << train_labels.size() << std::endl;
+	std::cout << "test_size: " << test_labels.size() << std::endl;
+	std::cout << "valid_size: " << valid_labels.size() << std::endl;
+	std::cout << "labels_size: " << labels.size() << std::endl;
+	std::cout << "x_centroid_size: " << x_centroid.size() << std::endl;
+	std::cout << "y_centroid_size: " << y_centroid.size() << std::endl;
 
 	/********************************    Setup Graphs     *******************************************/
 
 	//Define paths
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
-	
 	test_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	test_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
-	
 	valid_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	valid_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
