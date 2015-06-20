@@ -57,15 +57,18 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 
 	// Get image
 	std::vector<double> image;
+
+	// Check if mat is continuous
+	if(!out.isContinuous()){
+		out = out.clone();
+	}
 	image.assign(out.datastart, out.dataend);
 
 	// Concatenate buffers
 	std::vector<double> new_buffer;
-
 	new_buffer.reserve(_file_buffer.size() + image.size());
 	new_buffer.insert( new_buffer.end(), _file_buffer.begin(), _file_buffer.end());
 	new_buffer.insert( new_buffer.end(), image.begin(), image.end());
-
 	_file_buffer = new_buffer;
 	_el_cont++;
 }
