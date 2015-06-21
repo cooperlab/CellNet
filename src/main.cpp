@@ -16,7 +16,7 @@
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_deque.hpp>
 
-const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string LOCAL_HOME = "/home/nelson";
 
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &shuffled_labels, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &labels, std::vector<double> &slide_idx){
 
@@ -36,11 +36,11 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 		}
 		if(!slide_idx[k]){
 			//std::cout <<  "slide: " << slide_idx[k] << std::endl;
-			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
-			labels1.push_back(labels[k]);
+			//cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			//abels1.push_back(labels[k]);
 		}
 		else{
-			cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 			labels2.push_back(labels[k]);
 		}
 
@@ -153,11 +153,11 @@ int main (int argc, char * argv[])
 	/********************************    Setup Graphs     *******************************************/
 
 	//Define paths
-	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	//train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
-	test_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	//test_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	test_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
-	valid_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	//valid_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	valid_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
 	// Define Graphs

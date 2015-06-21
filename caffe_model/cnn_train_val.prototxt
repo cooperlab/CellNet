@@ -10,7 +10,7 @@ layer {
     phase: TRAIN
   }
   hdf5_data_param {
-    source: "/home/nelson/CellNet/train/data_hdf5/train_data_list.txt"
+    source: "/home/nelson/CellNet/train/data_hdf5/lap5d_train_data_list.txt"
     batch_size: 10
   }
 }
@@ -25,8 +25,8 @@ layer {
     phase: TEST
   }
   hdf5_data_param {
-    source: "/home/nelson/CellNet/valid/data_hdf5/valid_data_list.txt"
-    batch_size: 10
+    source: "/home/nelson/CellNet/valid/data_hdf5/lap5d_valid_data_list.txt"
+    batch_size: 20
   }
 }
 

@@ -1,0 +1,1 @@
+/home/nelson/CellNet/train/data_hdf5/rgb_train_part_0.h5

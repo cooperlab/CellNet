@@ -70,7 +70,7 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 	new_buffer.insert( new_buffer.end(), _file_buffer.begin(), _file_buffer.end());
 	new_buffer.insert( new_buffer.end(), image.begin(), image.end());
 	_file_buffer = new_buffer;
-	_el_cont++;
+	_el_cont += out.channels();
 }
 
 void WriteHDF5Node::write_to_disk(){

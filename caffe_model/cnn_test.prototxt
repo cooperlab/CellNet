@@ -7,7 +7,7 @@ layer {
   top: "data"
   top: "labels"
   hdf5_data_param {
-    source: "/home/nelson/CellNet/test/data_hdf5/test_data_list.txt"
+    source: "/home/nelson/CellNet/test/data_hdf5/lap5d_test_data_list.txt"
     batch_size: 20
   }
 }
