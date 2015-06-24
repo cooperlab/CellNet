@@ -80,7 +80,9 @@ int main (int argc, char * argv[])
 
 	/******************************** Shuffle & Split Data ******************************************/
 
+	double begin_time_2 = utils::get_time();
 	fill_data(num_elems, num_elems, train_cells_coordinates_set, x_centroid, y_centroid, slide_idx);
+	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2 )  << std::endl;
 
 	std::cout << "train_size: " << train_labels.size() << std::endl;
 	std::cout << "x_centroid_size: " << x_centroid.size() << std::endl;

@@ -1,5 +1,6 @@
 #include "write_hdf5_node.h"
 #include "edge.h"
+#include "utils.h"
 #define FILE_SIZE_LIMIT 2 * (unsigned long int)1000000000// ~2Gb
 // NOTE: Here we are rounding down file size limit in order to avoid files with size over 2Gb
 

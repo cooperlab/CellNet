@@ -17,10 +17,14 @@ void *WritePNGNode::run(){
 			write_to_disk(out);
 			out.release();
 
-			std::cout << "Time to write png: " << float( utils::get_time() - begin_time )  << std::endl;
+			runtime_average_first += float( utils::get_time() - begin_time );
+			//std::cout << "Time to write png: " << float( utils::get_time() - begin_time )  << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			//std::cout << "Stopping Write Node" << std::endl;
+				std::cout << "******************" << std::endl;
+				std::cout << "WritePNGNode complete" << std::endl;
+				std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
+				std::cout << "******************" << std::endl;
 			break;
 		}
 	}

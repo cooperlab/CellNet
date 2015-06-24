@@ -20,14 +20,18 @@ void *ReadNode::run(){
 		//std::cout << "Opening file ..." << std::endl;
 		entire_image = open_image(_image_paths.at(i));
 	
-		std::cout << "Time to open image: " << float( utils::get_time() - begin_time )  << std::endl;
+		//std::cout << "Time to open image: " << float( utils::get_time() - begin_time )  << std::endl;
+		runtime_average_first += float( utils::get_time() - begin_time );
+
 		begin_time = utils::get_time();
 
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
 		//std::cout << "Images cropped" << std::endl; 
 
 		copy_to_buffer(extracted_images);
-		std::cout << "Time to crop image: " << float( utils::get_time() - begin_time )  << std::endl;
+		//std::cout << "Time to crop image: " << float( utils::get_time() - begin_time )  << std::endl;
+		runtime_average_second += float( utils::get_time() - begin_time;
+		count++;
 	}
 
 	// Notify it has finished
@@ -35,7 +39,12 @@ void *ReadNode::run(){
 		_out_edges.at(i)->set_in_node_done();
 	}	
 
-	//std::cout << "ReadNode complete" << std::endl;
+	std::cout << "******************" << std::endl;
+	std::cout << "ReadNode complete" << std::endl;
+	std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
+	std::cout << "Avg_second: " << std::to_string(runtime_average_second/count) << std::endl;
+	std::cout << "******************" << std::endl;
+
 	/****************** Debug ******************/
 	show_entire_image(entire_image);
 

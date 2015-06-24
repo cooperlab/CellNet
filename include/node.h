@@ -19,6 +19,9 @@ class Node : private boost::noncopyable{
 		std::string _id;
 		std::vector<Edge *> _in_edges;
 		std::vector<Edge *> _out_edges;
+		long long unsigned int count;
+		double runtime_average_first;
+		double runtime_average_second;  
 		
   	protected:
 		void copy_to_buffer(std::vector<cv::Mat> out);

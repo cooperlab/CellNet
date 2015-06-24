@@ -1,6 +1,6 @@
 #include "node.h"
 
-Node::Node(std::string id): _is_ready(false), _is_valid(false), _id(id), _in_edges(), _out_edges(){}
+Node::Node(std::string id): _is_ready(false), _is_valid(false), _id(id), _in_edges(), _out_edges(), count(0), runtime_average_first(0), runtime_average_second(0){}
 std::string Node::get_id(){return _id;}
 void Node::insert_in_edge(Edge *edge_ptr){_in_edges.push_back(edge_ptr);}
 void Node::insert_out_edge(Edge *edge_ptr){_out_edges.push_back(edge_ptr);}

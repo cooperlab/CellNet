@@ -1,11 +1,12 @@
 #include "utils.h"
+#include <sys/time.h>
 
 namespace utils{
 
 	// Get current time
 	double get_time(void)
 	{
-	    double          now_time;
+	    double now_time;
 	    struct timeval  etstart;
 	    struct timezone tzp;
 
