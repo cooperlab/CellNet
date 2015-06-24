@@ -75,6 +75,9 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 
 void WriteHDF5Node::write_to_disk(){
 
+
+	double begin_time = utils::get_time();
+			
 	// Set number of items
 	int _dem = 1;
 	for(int i = 1; i < _n_dim - 2; i++){
@@ -117,4 +120,6 @@ void WriteHDF5Node::write_to_disk(){
     _f_count++;
     _el_cont = 0;
     std::cout << "File size: " << _curr_size << std::endl; 
+
+    std::cout << "Time to write HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
 }

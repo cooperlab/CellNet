@@ -44,7 +44,7 @@ int main (int argc, char * argv[])
 {
 
 	// Start clock
-	const clock_t begin_time = clock();
+	double begin_time = utils::get_time();
 	/**************************************** Get Input Data  ***************************************/
 
 	// Declare input data
@@ -57,6 +57,7 @@ int main (int argc, char * argv[])
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "x_centroid", x_centroid);
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "y_centroid", y_centroid);
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "slideIdx", slide_idx);
+	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
 
 	/************************************* Create Train Dataset ************************************/
 
@@ -151,6 +152,6 @@ int main (int argc, char * argv[])
 	/*********************************************    Clean   ***************************************************/
 	
 	// Stop clock
-	std::cout << "Elapsed Time: " << float( clock () - begin_time ) /  CLOCKS_PER_SEC << std::endl;
+	std::cout << "Elapsed Time: " << float( utils::get_time() - begin_time )  << std::endl;
 	return 0;
 }

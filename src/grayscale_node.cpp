@@ -14,6 +14,7 @@ void *GrayScaleNode::run(){
 
 		if(!out.empty()){
 
+			double begin_time = utils::get_time();
 			//std::cout << "GrayScaleNode start" << std::endl; 
 			
 			// Convert to grayscale and equalize
@@ -30,6 +31,7 @@ void *GrayScaleNode::run(){
 			// Copy to buffer
 			copy_to_buffer(gray_out);
 
+			std::cout << "Time to convert to grayscale: " << float( utils::get_time() - begin_time )  << std::endl;
 			//std::cout << "GrayScaleNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){

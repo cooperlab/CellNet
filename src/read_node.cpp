@@ -2,6 +2,7 @@
 #include "edge.h"
 #include <iostream>
 #include <sstream>
+#include "utils.h"
 #define SHIFT 25
 
 ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set){
@@ -14,15 +15,19 @@ void *ReadNode::run(){
 
 	// Execute
 	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
+		double begin_time = utils::get_time();
 
 		//std::cout << "Opening file ..." << std::endl;
 		entire_image = open_image(_image_paths.at(i));
-		//std::cout << "Entire image extracted" << std::endl;
+	
+		std::cout << "Time to open image: " << float( utils::get_time() - begin_time )  << std::endl;
+		begin_time = utils::get_time();
 
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
 		//std::cout << "Images cropped" << std::endl; 
 
 		copy_to_buffer(extracted_images);
+		std::cout << "Time to crop image: " << float( utils::get_time() - begin_time )  << std::endl;
 	}
 
 	// Notify it has finished

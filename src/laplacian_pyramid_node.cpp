@@ -14,6 +14,8 @@ void *LaplacianPyramidNode::run(){
 		//std::cout << "Copy finished" << std::endl;
 		
 		if(!_layer0.empty()){
+
+			double begin_time = utils::get_time();
 			//std::cout << "LaplacianPyramidNode start" << std::endl;
 
 			cv::Mat _gaussian_layer0;
@@ -35,6 +37,7 @@ void *LaplacianPyramidNode::run(){
 			layers.clear();
 
 			//std::cout << "LaplacianPyramidNode complete" << std::endl;
+			std::cout << "Time to take laplacian pyramid: " << float( utils::get_time() - begin_time )  << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
 			//std::cout << "Stopping LaplacianPyramidNode" << std::endl;
