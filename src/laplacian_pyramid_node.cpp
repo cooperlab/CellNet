@@ -14,7 +14,7 @@ void *LaplacianPyramidNode::run(){
 		//std::cout << "Copy finished" << std::endl;
 		
 		if(!_layer0.empty()){
-			std::cout << "LaplacianPyramidNode start" << std::endl;
+			//std::cout << "LaplacianPyramidNode start" << std::endl;
 
 			cv::Mat _gaussian_layer0;
 			std::vector<cv::Mat> layers;
@@ -28,16 +28,16 @@ void *LaplacianPyramidNode::run(){
 			resize_all(layers, _layer0.size());
 
 			copy_to_buffer(layers);
-			std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
+			//std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
 			
 			// Release memory
 			_gaussian_layer0.release();
 			layers.clear();
 
-			std::cout << "LaplacianPyramidNode complete" << std::endl;
+			//std::cout << "LaplacianPyramidNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			std::cout << "Stopping LaplacianPyramidNode" << std::endl;
+			//std::cout << "Stopping LaplacianPyramidNode" << std::endl;
 			break;
 		}
 		_layer0.release();

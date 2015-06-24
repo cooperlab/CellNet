@@ -46,7 +46,7 @@ void *WriteHDF5Node::run(){
 
 			// Write remaining matrices in buffer
 			write_to_disk();
-			std::cout << "Stopping Write Node" << std::endl;
+			//std::cout << "Stopping Write Node" << std::endl;
 			break;
 		}
 	}

@@ -15,12 +15,12 @@ void *ReadNode::run(){
 	// Execute
 	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
 
-		std::cout << "Opening file ..." << std::endl;
+		//std::cout << "Opening file ..." << std::endl;
 		entire_image = open_image(_image_paths.at(i));
-		std::cout << "Entire image extracted" << std::endl;
+		//std::cout << "Entire image extracted" << std::endl;
 
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
-		std::cout << "Images cropped" << std::endl; 
+		//std::cout << "Images cropped" << std::endl; 
 
 		copy_to_buffer(extracted_images);
 	}
@@ -30,7 +30,7 @@ void *ReadNode::run(){
 		_out_edges.at(i)->set_in_node_done();
 	}	
 
-	std::cout << "ReadNode complete" << std::endl;
+	//std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
 	show_entire_image(entire_image);
 
@@ -53,14 +53,14 @@ int ReadNode::get_layer(openslide_t *oslide){
 	int objective;
 	std::stringstream str_objective;
 
-	std::cout << "num_levels: " << std::to_string(levels) << std::endl;
+	//std::cout << "num_levels: " << std::to_string(levels) << std::endl;
 	for(int i = 0; i < levels; i++) {
 
 		/*get level info*/
 		str_objective << openslide_get_property_value(oslide, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER);
 		str_objective >> objective; 
 		magnification.push_back(objective / (double) openslide_get_level_downsample(oslide, (int32_t)i));
-		std::cout << "Magnification: " << magnification[i] << std::endl;
+		//std::cout << "Magnification: " << magnification[i] << std::endl;
 	}
 
 	// Return the closest magnification to 20.0

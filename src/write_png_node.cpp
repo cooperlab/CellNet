@@ -9,12 +9,12 @@ void *WritePNGNode::run(){
 		cv::Mat out;
 		copy_from_buffer(out);
 		if(!out.empty()){
-			std::cout << "Writing sample" << std::endl; 
+			//std::cout << "Writing sample" << std::endl; 
 			write_to_disk(out);
 			out.release();
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			std::cout << "Stopping Write Node" << std::endl;
+			//std::cout << "Stopping Write Node" << std::endl;
 			break;
 		}
 	}

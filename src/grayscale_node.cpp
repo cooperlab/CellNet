@@ -14,7 +14,7 @@ void *GrayScaleNode::run(){
 
 		if(!out.empty()){
 
-			std::cout << "GrayScaleNode start" << std::endl; 
+			//std::cout << "GrayScaleNode start" << std::endl; 
 			
 			// Convert to grayscale and equalize
 			cv::Mat gray_img;
@@ -30,10 +30,10 @@ void *GrayScaleNode::run(){
 			// Copy to buffer
 			copy_to_buffer(gray_out);
 
-			std::cout << "GrayScaleNode complete" << std::endl;
+			//std::cout << "GrayScaleNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			std::cout << "Stopping GrayScaleNode" << std::endl;
+			//std::cout << "Stopping GrayScaleNode" << std::endl;
 			break;
 		}
 		out.release();
