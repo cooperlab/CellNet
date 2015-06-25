@@ -47,6 +47,7 @@ void *LaplacianPyramidNode::run(){
 				std::cout << "******************" << std::endl;
 				std::cout << "LaplacianPyramidNode complete" << std::endl;
 				std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
+				std::cout << "Total_time_first: " << std::to_string(runtime_average_first) << std::endl;
 				std::cout << "******************" << std::endl;
 			break;
 		}

@@ -30,7 +30,7 @@ void *ReadNode::run(){
 
 		copy_to_buffer(extracted_images);
 		//std::cout << "Time to crop image: " << float( utils::get_time() - begin_time )  << std::endl;
-		runtime_average_second += float( utils::get_time() - begin_time;
+		runtime_average_second += float( utils::get_time() - begin_time);
 		count++;
 	}
 
@@ -43,10 +43,12 @@ void *ReadNode::run(){
 	std::cout << "ReadNode complete" << std::endl;
 	std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
 	std::cout << "Avg_second: " << std::to_string(runtime_average_second/count) << std::endl;
+	std::cout << "Total_time_first: " << std::to_string(runtime_average_first) << std::endl;
+	std::cout << "Total_time_second: " << std::to_string(runtime_average_second) << std::endl;
 	std::cout << "******************" << std::endl;
 
 	/****************** Debug ******************/
-	show_entire_image(entire_image);
+	//show_entire_image(entire_image);
 
 	// Release memory
 	extracted_images.clear();
@@ -197,7 +199,7 @@ std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std:
 
 void ReadNode::show_entire_image(cv::Mat entire_image){
 	if(!entire_image.empty()){
-		std::cout << "Showing Entire Image" << std::endl;
+		//std::cout << "Showing Entire Image" << std::endl;
 		//cv::imshow("img", entire_image);
 		//cv::waitKey(0);
 
