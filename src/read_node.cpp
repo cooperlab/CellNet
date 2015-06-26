@@ -5,7 +5,7 @@
 #include "utils.h"
 #define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
 }
 
 void *ReadNode::run(){
@@ -14,7 +14,9 @@ void *ReadNode::run(){
 	cv::Mat entire_image;
 
 	// Execute
-	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
+	int i = get_input();
+
+	if(i >= 0){
 		double begin_time = utils::get_time();
 
 		//std::cout << "Opening file ..." << std::endl;
@@ -57,6 +59,17 @@ void *ReadNode::run(){
 	//show_cropped_cells();
 	return NULL;
 }	
+
+int ReadNode::get_input(){
+
+	boost::mutex::scoped_lock lk(_mutex);
+	if(i_ptr < _image_paths.size()){
+		return i_ptr++;
+	}
+	else{
+		return -1;
+	}
+}
 
 // This method gets the 20 X magnification layer 
 int ReadNode::get_layer(openslide_t *oslide){

@@ -104,35 +104,26 @@ int main (int argc, char * argv[])
 	WritePNGNode *train_write_png_node1 = new WritePNGNode("write_png_node1", LOCAL_HOME + "/CellNet/train/data_gray/");
 	WritePNGNode *train_write_png_node2 = new WritePNGNode("write_png_node2", LOCAL_HOME + "/CellNet/train/data_rgb/");
 	GrayScaleNode *train_grayscale_node = new GrayScaleNode("grayscale_node");
-	WriteHDF5Node *train_write_hdf5_node1 = new WriteHDF5Node("write_hdf5_node1", LOCAL_HOME + "/CellNet/train/data_hdf5/rgb_train", train_dim1, train_dataset_name, train_labels);
-	WriteHDF5Node *train_write_hdf5_node2 = new WriteHDF5Node("write_hdf5_node2", LOCAL_HOME + "/CellNet/train/data_hdf5/gray_train", train_dim2, train_dataset_name, train_labels);
-	WriteHDF5Node *train_write_hdf5_node3 = new WriteHDF5Node("write_hdf5_node3", LOCAL_HOME + "/CellNet/train/data_hdf5/lap_train", train_dim3, train_dataset_name, train_labels);
+	//WriteHDF5Node *train_write_hdf5_node1 = new WriteHDF5Node("write_hdf5_node1", LOCAL_HOME + "/CellNet/train/data_hdf5/rgb_train", train_dim1, train_dataset_name, train_labels);
+	//WriteHDF5Node *train_write_hdf5_node2 = new WriteHDF5Node("write_hdf5_node2", LOCAL_HOME + "/CellNet/train/data_hdf5/gray_train", train_dim2, train_dataset_name, train_labels);
+	//WriteHDF5Node *train_write_hdf5_node3 = new WriteHDF5Node("write_hdf5_node3", LOCAL_HOME + "/CellNet/train/data_hdf5/lap_train", train_dim3, train_dataset_name, train_labels);
 
 	train_graph->add_node(train_read_node);
 	train_graph->add_node(train_laplacian_node);
 	train_graph->add_node(train_write_png_node1);
 	train_graph->add_node(train_write_png_node2);
 	train_graph->add_node(train_grayscale_node);
-	train_graph->add_node(train_write_hdf5_node1);
-	train_graph->add_node(train_write_hdf5_node2);
-	train_graph->add_node(train_write_hdf5_node3);
 
 	// Add train edges 
 	Edge *train_edge1 = new Edge("edge1", "read_node", "grayscale_node");
-	Edge *train_edge2 = new Edge("edge2", "read_node", "write_hdf5_node1");
-	Edge *train_edge3 = new Edge("edge3", "read_node", "write_png_node1");
-	Edge *train_edge4 = new Edge("edge4", "grayscale_node", "laplacian_node");
-	Edge *train_edge5 = new Edge("edge5", "grayscale_node", "write_hdf5_node2");
-	Edge *train_edge6 = new Edge("edge6", "grayscale_node", "write_png_node2");
-	Edge *train_edge7 = new Edge("edge7", "laplacian_node", "write_hdf5_node3");
+	Edge *train_edge2 = new Edge("edge3", "read_node", "write_png_node1");
+	Edge *train_edge3 = new Edge("edge4", "grayscale_node", "laplacian_node");
+	Edge *train_edge4 = new Edge("edge6", "grayscale_node", "write_png_node2");
 
 	train_graph->add_edge(train_edge1);
 	train_graph->add_edge(train_edge2);
 	train_graph->add_edge(train_edge3);
 	train_graph->add_edge(train_edge4);
-	train_graph->add_edge(train_edge5);
-	train_graph->add_edge(train_edge6);
-	train_graph->add_edge(train_edge7);
 
 	std::cout << "*Graph defined*" << std::endl;
 	
