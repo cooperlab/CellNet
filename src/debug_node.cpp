@@ -14,11 +14,11 @@ void *DebugNode::run(){
 		copy_from_buffer(out);
 		if(!out.empty()){
 
-			std::cout << "DebugNode start" << std::endl; 
+			//std::cout << "DebugNode start" << std::endl; 
 			//cv::imshow("img " + std::to_string(counter), out);
-			std::cout << std::to_string(counter++) << std::endl;
+			//std::cout << std::to_string(counter++) << std::endl;
 			// Debugger
-			std::cout << "DebugNode complete" << std::endl;
+			//std::cout << "DebugNode complete" << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
 			std::cout << "Stopping DebuggerNode" << std::endl;

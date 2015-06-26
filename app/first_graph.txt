@@ -1,0 +1,55 @@
+Time to read HDF5: 0.000705004
+Time to fill data: 1.4782e-05
+train_size: 0
+x_centroid_size: 0
+y_centroid_size: 0
+Defining graph nodes...
+*Graph defined*
+Linking graph...
+Executing in parallel mode...
+/home/nelson/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs
+Picked mag: 40
+layer: 0
+******************
+ReadNode complete
+Avg_first: 11.914912
+Avg_second: 0.003869
+Total_time_first: 11.914912
+Total_time_second: 0.003869
+******************
+******************
+GrayScaleNode complete
+Avg_first: 0.000026
+Total_time_first: 0.001682
+******************
+******************
+LaplacianPyramidNode complete
+Avg_first: 0.000273
+Total_time_first: 0.017496
+******************
+Stopping DebuggerNode
+******************
+GrayScaleNode complete
+Avg_first: 0.000033
+Total_time_first: 0.008570
+******************
+******************
+WritePNGNode complete
+Avg_first: inf
+Total_time_first: 0.019590
+******************
+numb_items: 64
+File size: 1280000
+Time to write HDF5: 0.00135303
+******************
+WritePNGNode complete
+Avg_first: inf
+Total_time_first: 0.040683
+******************
+numb_items: 21
+File size: 3840000
+Time to write HDF5: 0.00089097
+numb_items: 64
+File size: 5120000
+Time to write HDF5: 0.00252414
+Elapsed Time: 12.2431

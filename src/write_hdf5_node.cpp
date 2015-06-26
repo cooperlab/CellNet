@@ -65,13 +65,16 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 	}
 	image.assign(out.datastart, out.dataend);
 
+	//std::cout << "# of channels: " << std::to_string(out.channels()) << std::endl;
+	//std::cout << "size: " << std::to_string(image.size()) << std::endl;
+
 	// Concatenate buffers
 	std::vector<double> new_buffer;
 	new_buffer.reserve(_file_buffer.size() + image.size());
 	new_buffer.insert( new_buffer.end(), _file_buffer.begin(), _file_buffer.end());
 	new_buffer.insert( new_buffer.end(), image.begin(), image.end());
 	_file_buffer = new_buffer;
-	_el_cont++;
+	_el_cont += out.channels();
 }
 
 void WriteHDF5Node::write_to_disk(){
@@ -99,24 +102,24 @@ void WriteHDF5Node::write_to_disk(){
     H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &_file_buffer[0]);
 
     // Write label (# Labels, 1)
-    std::vector<hsize_t> label_dim;
-    label_dim.push_back(numb_samples);
+    //std::vector<hsize_t> label_dim;
+    //label_dim.push_back(numb_samples);
     //label_dim.push_back(1);
 
     // Create label space
-    hid_t label_space = H5Screate_simple(1, &label_dim[0], NULL);
+    //hid_t label_space = H5Screate_simple(1, &label_dim[0], NULL);
 
     // Get range of labels to write
-    std::vector<double>::const_iterator first = _labels.begin() + _label_count;
-	std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
-	std::vector<double> sub_labels(first, last);
+    //std::vector<double>::const_iterator first = _labels.begin() + _label_count;
+	//std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
+	//std::vector<double> sub_labels(first, last);
 
     // Create and write labels
-    hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(label_dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &sub_labels[0]);
+    //hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    //H5Dwrite(label_dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &sub_labels[0]);
 
     // Update parameters
-    _label_count += numb_samples;
+    //_label_count += numb_samples;
     _file_buffer.clear();
     _f_count++;
     _el_cont = 0;
