@@ -1,6 +1,6 @@
 #include "node.h"
 
-Node::Node(std::string id): _is_ready(false), _is_valid(false), _id(id), _in_edges(), _out_edges(), count(0), runtime_average_first(0), runtime_average_second(0){}
+Node::Node(std::string id): _is_ready(false), _is_valid(false), _id(id), _in_edges(), _out_edges(), _counter(0), runtime_total_first(0), _counter_threads(0){}
 std::string Node::get_id(){return _id;}
 void Node::insert_in_edge(Edge *edge_ptr){_in_edges.push_back(edge_ptr);}
 void Node::insert_out_edge(Edge *edge_ptr){_out_edges.push_back(edge_ptr);}
@@ -60,4 +60,28 @@ void Node::copy_from_buffer(cv::Mat &out){
 	}
 	/******* Restricted Access ********/
 	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
+}
+
+void Node::increment_counter(){
+	
+	boost::mutex::scoped_lock lk(_mutex_counter);
+	_counter++;
+}
+
+void Node::increment_threads(){
+
+	boost::mutex::scoped_lock lk(_mutex_ctrl);
+	_counter_threads++;
+}
+
+bool Node::check_finished(){
+
+	boost::mutex::scoped_lock lk(_mutex_ctrl);
+	_counter_threads--;
+	if(_counter_threads == 0){
+		return true;
+	}
+	else{
+		return false;
+	}
 }

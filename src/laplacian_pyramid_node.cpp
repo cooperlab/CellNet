@@ -3,63 +3,51 @@
 #define KERNELL_SIZE 3
 
 LaplacianPyramidNode::LaplacianPyramidNode(std::string id): Node(id) {
+	runtime_total_first = utils::get_time();
 }
 
 void *LaplacianPyramidNode::run(){
+	increment_threads();
 
 	while(true){
 		cv::Mat _layer0; 
-
-		//std::cout << "Copying from buffer" << std::endl;
 		copy_from_buffer(_layer0);
-		//std::cout << "Copy finished" << std::endl;
 		
 		if(!_layer0.empty()){
 
-			double begin_time = utils::get_time();
-			//std::cout << "LaplacianPyramidNode start" << std::endl;
-
+			increment_counter();
 			cv::Mat _gaussian_layer0;
 			std::vector<cv::Mat> layers;
 			std::vector<cv::Mat> merged_layers;
-		
-			// Build Laplacian pyramid
 			cv::GaussianBlur(_layer0, _gaussian_layer0	, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
-			
-			//std::cout << "Start building pyramid" << std::endl;
 			gen_next_level(_gaussian_layer0, _layer0, &layers, 0);
-			//std::cout << "Pyramid built" << std::endl;
 			resize_all(layers, _layer0.size());
 			merged_layers = merge_all(layers);
-
 			copy_to_buffer(merged_layers);
-			//std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
 			
 			// Release memory
 			_gaussian_layer0.release();
 			layers.clear();
 			merged_layers.clear();
-
-			count++;
-			runtime_average_first += float( utils::get_time() - begin_time );
-			//std::cout << "LaplacianPyramidNode complete" << std::endl;
-			//std::cout << "Time to take laplacian pyramid: " << float( utils::get_time() - begin_time )  << std::endl;
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			//std::cout << "Stopping LaplacianPyramidNode" << std::endl;
-				std::cout << "******************" << std::endl;
-				std::cout << "LaplacianPyramidNode complete" << std::endl;
-				std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
-				std::cout << "Total_time_first: " << std::to_string(runtime_average_first) << std::endl;
-				std::cout << "******************" << std::endl;
 			break;
 		}
 		_layer0.release();
 	}
 
-	// Notify it has finished
-	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-		_out_edges.at(i)->set_in_node_done();
+	if(check_finished() == true){
+	
+		std::cout << "******************" << std::endl;
+		std::cout << "LaplacianPyramidNode complete" << std::endl;
+		std::cout << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl;
+		std::cout << "# of elements: " << std::to_string(_counter) << std::endl;
+		std::cout << "******************" << std::endl;
+
+		// Notify it has finished
+		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+			_out_edges.at(i)->set_in_node_done();
+		}
 	}
 	/****************** Debug ******************/
 	//print_pyramid();

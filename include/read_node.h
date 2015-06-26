@@ -29,7 +29,6 @@ class ReadNode: public Node{
   		cv::Mat open_image(std::string image_path);
   		std::vector<std::string> _image_paths;
   		std::vector<std::vector<std::tuple<double, double>>> _cells_coordinates_set;
-  		boost::mutex _mutex;
   		int i_ptr;
 };
 #endif

@@ -6,48 +6,28 @@
 #define SHIFT 25
 
 ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
+	 runtime_total_first = utils::get_time();
 }
 
 void *ReadNode::run(){
 	
+	increment_threads();
+
 	std::vector<cv::Mat> extracted_images;
 	cv::Mat entire_image;
 
 	// Execute
 	int i = get_input();
+	while(i >= 0){
 
-	if(i >= 0){
-		double begin_time = utils::get_time();
-
-		//std::cout << "Opening file ..." << std::endl;
+		increment_counter();
 		entire_image = open_image(_image_paths.at(i));
-	
-		//std::cout << "Time to open image: " << float( utils::get_time() - begin_time )  << std::endl;
-		runtime_average_first += float( utils::get_time() - begin_time );
-
-		begin_time = utils::get_time();
-
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
-		//std::cout << "Images cropped" << std::endl; 
-
 		copy_to_buffer(extracted_images);
-		//std::cout << "Time to crop image: " << float( utils::get_time() - begin_time )  << std::endl;
-		runtime_average_second += float( utils::get_time() - begin_time);
-		count++;
+
+		// Execute
+		i = get_input();
 	}
-
-	// Notify it has finished
-	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-		_out_edges.at(i)->set_in_node_done();
-	}	
-
-	std::cout << "******************" << std::endl;
-	std::cout << "ReadNode complete" << std::endl;
-	std::cout << "Avg_first: " << std::to_string(runtime_average_first/count) << std::endl;
-	std::cout << "Avg_second: " << std::to_string(runtime_average_second/count) << std::endl;
-	std::cout << "Total_time_first: " << std::to_string(runtime_average_first) << std::endl;
-	std::cout << "Total_time_second: " << std::to_string(runtime_average_second) << std::endl;
-	std::cout << "******************" << std::endl;
 
 	/****************** Debug ******************/
 	//show_entire_image(entire_image);
@@ -57,6 +37,19 @@ void *ReadNode::run(){
 	entire_image.release();
 	
 	//show_cropped_cells();
+	if( check_finished() == true){
+
+		std::cout << "******************" << std::endl;
+		std::cout << "ReadNode complete" << std::endl;
+		std::cout << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl;
+		std::cout << "# of elements: " << std::to_string(_counter) << std::endl;
+		std::cout << "******************" << std::endl;
+
+		// Notify it has finished
+		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+			_out_edges.at(i)->set_in_node_done();
+		}
+	}
 	return NULL;
 }	
 
