@@ -9,14 +9,13 @@
 class Node : private boost::noncopyable{
 	
 	public:
-		Node(std::string id);
+		Node(std::string id, int mode);
 		virtual void *run(){return NULL;};
 		std::string get_id();
 		void insert_in_edge(Edge *edge);
 		void insert_out_edge(Edge *edge);
-		bool _is_ready;
-		bool _is_valid;
 		std::string _id;
+		int _mode;
 		std::vector<Edge *> _in_edges;
 		std::vector<Edge *> _out_edges;
 		long long unsigned int _counter;
@@ -25,6 +24,7 @@ class Node : private boost::noncopyable{
 		boost::mutex _mutex_counter;
 		boost::mutex _mutex_ctrl;
 		long long unsigned int _counter_threads;
+		int ctrl;
 		
   	protected:
 		void copy_to_buffer(std::vector<cv::Mat> out);

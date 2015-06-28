@@ -2,7 +2,7 @@
 #include "edge.h"
 #include "utils.h"
 
-WritePNGNode::WritePNGNode(std::string id, std::string fname): Node(id), _fname(fname), _counter(0){
+WritePNGNode::WritePNGNode(std::string id, std::string fname, int mode): Node(id, mode), _fname(fname), _counter(0){
 	runtime_total_first = utils::get_time();
 }
 

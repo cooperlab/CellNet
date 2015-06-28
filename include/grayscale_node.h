@@ -13,7 +13,7 @@
 class GrayScaleNode: public Node{
 
 	public:
-		GrayScaleNode(std::string id);
+		GrayScaleNode(std::string id, int mode);
 		void *run();
 };
 #endif

@@ -11,7 +11,7 @@
 class LaplacianPyramidNode: public Node{
 	
 	public:
-		LaplacianPyramidNode(std::string id);
+		LaplacianPyramidNode(std::string id, int mode);
 		void *run();
 		void init();
 		int _n_layers;

@@ -12,7 +12,7 @@
 class DebugNode: public Node{
 
 	public:
-		DebugNode(std::string id);
+		DebugNode(std::string id, int mode);
 		void *run();
 };
 #endif

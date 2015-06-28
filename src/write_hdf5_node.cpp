@@ -6,7 +6,7 @@
 
 /* Consider dimensions as (numb_items, ..., channels, height, width) */
 /* Min: 4D */
-WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(labels){}
+WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels, int mode): Node(id, mode), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(labels){}
 
 void *WriteHDF5Node::run(){
 

@@ -5,7 +5,7 @@
 #include "utils.h"
 #define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
 	 runtime_total_first = utils::get_time();
 }
 
@@ -39,11 +39,7 @@ void *ReadNode::run(){
 	//show_cropped_cells();
 	if( check_finished() == true){
 
-		std::cout << "******************" << std::endl;
-		std::cout << "ReadNode complete" << std::endl;
-		std::cout << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl;
-		std::cout << "# of elements: " << std::to_string(_counter) << std::endl;
-		std::cout << "******************" << std::endl;
+		std::cout << "******************" << std::endl << "ReadNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
 
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){

@@ -2,7 +2,7 @@
 #include "utils.h"
 #define KERNELL_SIZE 3
 
-LaplacianPyramidNode::LaplacianPyramidNode(std::string id): Node(id) {
+LaplacianPyramidNode::LaplacianPyramidNode(std::string id, int mode): Node(id, mode) {
 	runtime_total_first = utils::get_time();
 }
 
@@ -38,12 +38,8 @@ void *LaplacianPyramidNode::run(){
 
 	if(check_finished() == true){
 	
-		std::cout << "******************" << std::endl;
-		std::cout << "LaplacianPyramidNode complete" << std::endl;
-		std::cout << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl;
-		std::cout << "# of elements: " << std::to_string(_counter) << std::endl;
-		std::cout << "******************" << std::endl;
-
+		std::cout << "******************" <<  std::endl << "LaplacianPyramidNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+		
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 			_out_edges.at(i)->set_in_node_done();

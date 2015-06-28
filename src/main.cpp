@@ -15,8 +15,10 @@
 #include <ctime>
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_deque.hpp>
+#define REPEAT_MODE  0
+#define ALTERNATE_MODE  1
 
-const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string LOCAL_HOME = "/home/nnauata";
 
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &slide_idx){
 
@@ -27,10 +29,10 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 
 		k = rand() % num_elem;
 		if(!slide_idx[k]){
-			//cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 		}
 		else{
-			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 		}
 		x_centroid.erase(x_centroid.begin() + k);
 		y_centroid.erase(y_centroid.begin() + k);
@@ -75,9 +77,9 @@ int main (int argc, char * argv[])
 
 	// Create input
 	std::vector<std::tuple<double, double>> train_slide1;
-	//std::vector<std::tuple<double, double>> train_slide2;
+	std::vector<std::tuple<double, double>> train_slide2;
 	train_cells_coordinates_set.push_back(train_slide1);
-	//train_cells_coordinates_set.push_back(train_slide2);
+	train_cells_coordinates_set.push_back(train_slide2);
 
 	/******************************** Shuffle & Split Data ******************************************/
 
@@ -92,36 +94,55 @@ int main (int argc, char * argv[])
 	/********************************    Setup Graphs     *******************************************/
 
 	//Define paths
-	//train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
 	// Define Graphs
 	std::cout << "Defining graph nodes..." << std::endl;
 
 	// Add some Train Nodes
-	ReadNode *train_read_node = new ReadNode("read_node", train_file_paths, train_cells_coordinates_set);
-	LaplacianPyramidNode *train_laplacian_node = new LaplacianPyramidNode("laplacian_node");
+	ReadNode *train_read_node = new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, ALTERNATE_MODE);
+
+	GrayScaleNode *train_grayscale_node1 = new GrayScaleNode("grayscale_node1", ALTERNATE_MODE);
+	GrayScaleNode *train_grayscale_node2 = new GrayScaleNode("grayscale_node2", ALTERNATE_MODE);
+
+	LaplacianPyramidNode *train_laplacian_node1 = new LaplacianPyramidNode("laplacian_node1", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node2 = new LaplacianPyramidNode("laplacian_node2", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node3 = new LaplacianPyramidNode("laplacian_node3", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node4 = new LaplacianPyramidNode("laplacian_node4", REPEAT_MODE);
+
 	//WritePNGNode *train_write_png_node1 = new WritePNGNode("write_png_node1", LOCAL_HOME + "/CellNet/train/data_gray/");
 	//WritePNGNode *train_write_png_node2 = new WritePNGNode("write_png_node2", LOCAL_HOME + "/CellNet/train/data_rgb/");
-	GrayScaleNode *train_grayscale_node = new GrayScaleNode("grayscale_node");
 	//WriteHDF5Node *train_write_hdf5_node1 = new WriteHDF5Node("write_hdf5_node1", LOCAL_HOME + "/CellNet/train/data_hdf5/rgb_train", train_dim1, train_dataset_name, train_labels);
 	//WriteHDF5Node *train_write_hdf5_node2 = new WriteHDF5Node("write_hdf5_node2", LOCAL_HOME + "/CellNet/train/data_hdf5/gray_train", train_dim2, train_dataset_name, train_labels);
 	//WriteHDF5Node *train_write_hdf5_node3 = new WriteHDF5Node("write_hdf5_node3", LOCAL_HOME + "/CellNet/train/data_hdf5/lap_train", train_dim3, train_dataset_name, train_labels);
 
 	train_graph->add_node(train_read_node);
-	train_graph->add_node(train_laplacian_node);
-	//train_graph->add_node(train_write_png_node1);
-	//train_graph->add_node(train_write_png_node2);
-	train_graph->add_node(train_grayscale_node);
+	
+	train_graph->add_node(train_grayscale_node1);
+	train_graph->add_node(train_grayscale_node2);
 
+	train_graph->add_node(train_laplacian_node1);
+	train_graph->add_node(train_laplacian_node2);
+	train_graph->add_node(train_laplacian_node3);
+	train_graph->add_node(train_laplacian_node4);
+	
 	// Add train edges 
-	Edge *train_edge1 = new Edge("edge1", "read_node", "grayscale_node");
-	//Edge *train_edge2 = new Edge("edge3", "read_node", "write_png_node1");
-	Edge *train_edge2 = new Edge("edge4", "grayscale_node", "laplacian_node");
-	//Edge *train_edge4 = new Edge("edge6", "grayscale_node", "write_png_node2");
+	Edge *train_edge1 = new Edge("edge1", "read_node", "grayscale_node1");
+	Edge *train_edge2 = new Edge("edge2", "read_node", "grayscale_node2");
+
+	Edge *train_edge3 = new Edge("edge3", "grayscale_node1", "laplacian_node1");
+	Edge *train_edge4 = new Edge("edge4", "grayscale_node1", "laplacian_node2");
+
+	Edge *train_edge5 = new Edge("edge5", "grayscale_node2", "laplacian_node3");
+	Edge *train_edge6 = new Edge("edge6", "grayscale_node2", "laplacian_node4");
 
 	train_graph->add_edge(train_edge1);
 	train_graph->add_edge(train_edge2);
+	train_graph->add_edge(train_edge3);
+	train_graph->add_edge(train_edge4);
+	train_graph->add_edge(train_edge5);
+	train_graph->add_edge(train_edge6);
 
 	std::cout << "*Graph defined*" << std::endl;
 	

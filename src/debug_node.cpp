@@ -2,7 +2,7 @@
 #include "edge.h"
 #include <iostream>
 
-DebugNode::DebugNode(std::string id): Node(id){
+DebugNode::DebugNode(std::string id, int mode): Node(id, mode){
 }
 
 void *DebugNode::run(){
