@@ -110,6 +110,12 @@ int main (int argc, char * argv[])
 	LaplacianPyramidNode *train_laplacian_node2 = new LaplacianPyramidNode("laplacian_node2", REPEAT_MODE);
 	LaplacianPyramidNode *train_laplacian_node3 = new LaplacianPyramidNode("laplacian_node3", REPEAT_MODE);
 	LaplacianPyramidNode *train_laplacian_node4 = new LaplacianPyramidNode("laplacian_node4", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node5 = new LaplacianPyramidNode("laplacian_node5", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node6 = new LaplacianPyramidNode("laplacian_node6", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node7 = new LaplacianPyramidNode("laplacian_node7", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node8 = new LaplacianPyramidNode("laplacian_node8", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node9 = new LaplacianPyramidNode("laplacian_node9", REPEAT_MODE);
+	LaplacianPyramidNode *train_laplacian_node10 = new LaplacianPyramidNode("laplacian_node10", REPEAT_MODE);
 
 	//WritePNGNode *train_write_png_node1 = new WritePNGNode("write_png_node1", LOCAL_HOME + "/CellNet/train/data_gray/");
 	//WritePNGNode *train_write_png_node2 = new WritePNGNode("write_png_node2", LOCAL_HOME + "/CellNet/train/data_rgb/");
@@ -126,6 +132,12 @@ int main (int argc, char * argv[])
 	train_graph->add_node(train_laplacian_node2);
 	train_graph->add_node(train_laplacian_node3);
 	train_graph->add_node(train_laplacian_node4);
+	train_graph->add_node(train_laplacian_node5);
+	train_graph->add_node(train_laplacian_node6);
+	train_graph->add_node(train_laplacian_node7);
+	train_graph->add_node(train_laplacian_node8);
+	train_graph->add_node(train_laplacian_node9);
+	train_graph->add_node(train_laplacian_node10);
 	
 	// Add train edges 
 	Edge *train_edge1 = new Edge("edge1", "read_node", "grayscale_node1");
@@ -133,9 +145,15 @@ int main (int argc, char * argv[])
 
 	Edge *train_edge3 = new Edge("edge3", "grayscale_node1", "laplacian_node1");
 	Edge *train_edge4 = new Edge("edge4", "grayscale_node1", "laplacian_node2");
+	Edge *train_edge5 = new Edge("edge5", "grayscale_node1", "laplacian_node3");
+	Edge *train_edge6 = new Edge("edge6", "grayscale_node1", "laplacian_node4");
+	Edge *train_edge7 = new Edge("edge7", "grayscale_node1", "laplacian_node5");
+	Edge *train_edge8 = new Edge("edge8", "grayscale_node1", "laplacian_node6");
+	Edge *train_edge9 = new Edge("edge9", "grayscale_node1", "laplacian_node7");
+	Edge *train_edge10 = new Edge("edge10", "grayscale_node1", "laplacian_node8");
 
-	Edge *train_edge5 = new Edge("edge5", "grayscale_node2", "laplacian_node3");
-	Edge *train_edge6 = new Edge("edge6", "grayscale_node2", "laplacian_node4");
+	Edge *train_edge11 = new Edge("edge11", "grayscale_node2", "laplacian_node9");
+	Edge *train_edge12 = new Edge("edge12", "grayscale_node2", "laplacian_node10");
 
 	train_graph->add_edge(train_edge1);
 	train_graph->add_edge(train_edge2);
@@ -143,6 +161,12 @@ int main (int argc, char * argv[])
 	train_graph->add_edge(train_edge4);
 	train_graph->add_edge(train_edge5);
 	train_graph->add_edge(train_edge6);
+	train_graph->add_edge(train_edge7);
+	train_graph->add_edge(train_edge8);
+	train_graph->add_edge(train_edge9);
+	train_graph->add_edge(train_edge10);
+	train_graph->add_edge(train_edge11);
+	train_graph->add_edge(train_edge12);
 
 	std::cout << "*Graph defined*" << std::endl;
 	
