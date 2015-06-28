@@ -17,7 +17,9 @@ void *GrayScaleNode::run(){
 		copy_from_buffer(out);
 
 		if(!out.empty()){
+
 			increment_counter();
+
 
 			// Convert to grayscale and equalize
 			cv::Mat gray_img;

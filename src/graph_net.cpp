@@ -43,7 +43,37 @@ void GraphNet::link(){
 	}
 
 	/************************* Debug *******************************/
+	/*
+	// Print Graph 
+	for(std::vector<Node>::size_type i=0; i < _nodes.size(); i++){
 
+		it = _node_map.find(_nodes.at(i)._id);
+		if(it != _node_map.end()){
+		    std::cout << _nodes.at(i)._id << " " << it ->second<< std::endl;
+		}
+	}
+		
+	// Print all connections
+	for(std::vector<Node>::size_type i=0; i < _nodes.size(); i++){
+
+		std::cout << _nodes.at(i)._id << std::endl;
+
+		if(!_nodes.at(i)._in_edges.empty()){
+			std::cout << "in: "<< _nodes.at(i)._in_edges.at(0)->_id << std::endl;
+		}
+		else{
+			std::cout << "in: none" << std::endl;
+		}
+		if(!_nodes.at(i)._out_edges.empty()){
+			for(int k = 0; k < _nodes.at(i)._out_edges.size(); k++){
+				std::cout << "out: "<< _nodes.at(i)._out_edges.at(k)->_id << std::endl;
+			}
+		}
+		else{
+			std::cout << "out: none" << std::endl;
+		}
+	}
+	*/
 }
 
 void GraphNet::start_parallel(){
@@ -58,6 +88,7 @@ void GraphNet::start_parallel(){
 			threads.create_thread(boost::bind(&Node::run, boost::ref(_nodes.at(i))));
 		}		
 	}
+	std::cout << "All nodes started" << std::endl;
 	threads.join_all();
 }
 

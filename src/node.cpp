@@ -53,6 +53,41 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out){
 			}
 			/******* Restricted Access ********/
 	}
+	else if(_mode == 2){
+
+		// This code considers only one thread
+		int block_size = out.size()/_out_edges.size();
+		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+
+			//std::cout << "To Buffer" << std::endl; 
+			// Lock access to buffer
+			boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
+
+			/******* Restricted Access ********/
+			// Get current buffer
+			std::vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
+			
+			// Concatenate buffers
+			std::vector<cv::Mat> new_buffer;
+
+			if(i < _out_edges.size()-1){
+
+				new_buffer.reserve(curr_buffer->size() + block_size);
+				new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
+				new_buffer.insert( new_buffer.end(), out.begin() +  i * block_size, out.begin() + (i+1) * block_size - 1);
+			}
+			else{
+
+				new_buffer.reserve(curr_buffer->size() + out.size() - (_out_edges.size()-1)*block_size);
+				new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
+				new_buffer.insert( new_buffer.end(), out.begin() + (_out_edges.size()-1)*block_size, out.end());
+			}
+
+			// Set new buffer
+			_out_edges.at(i)->set_buffer(new_buffer);
+			/******* Restricted Access ********/
+		}
+	}
 }
 
 void Node::copy_from_buffer(cv::Mat &out){

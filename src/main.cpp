@@ -17,8 +17,11 @@
 #include <boost/ptr_container/ptr_deque.hpp>
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
+#define CHUNK_MODE 2
+#define NUMB_GRAYSCALE_NODE 64
+#define NUMB_LAPLACIAN_NODE 1
 
-const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string LOCAL_HOME = "/home/nelson";
 
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &slide_idx){
 
@@ -56,9 +59,9 @@ int main (int argc, char * argv[])
 	std::vector<double> labels;
 	
 	// Get input data from HDF5
-	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-Endothelial-2-test.h5", "x_centroid", x_centroid);
-	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-Endothelial-2-test.h5", "y_centroid", y_centroid);
-	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-Endothelial-2-test.h5", "slideIdx", slide_idx);
+	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "x_centroid", x_centroid);
+	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "y_centroid", y_centroid);
+	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "slideIdx", slide_idx);
 
 	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
 
@@ -101,72 +104,31 @@ int main (int argc, char * argv[])
 	std::cout << "Defining graph nodes..." << std::endl;
 
 	// Add some Train Nodes
-	ReadNode *train_read_node = new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, ALTERNATE_MODE);
+	train_graph->add_node(new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, CHUNK_MODE));
 
-	GrayScaleNode *train_grayscale_node1 = new GrayScaleNode("grayscale_node1", ALTERNATE_MODE);
-	GrayScaleNode *train_grayscale_node2 = new GrayScaleNode("grayscale_node2", ALTERNATE_MODE);
-
-	LaplacianPyramidNode *train_laplacian_node1 = new LaplacianPyramidNode("laplacian_node1", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node2 = new LaplacianPyramidNode("laplacian_node2", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node3 = new LaplacianPyramidNode("laplacian_node3", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node4 = new LaplacianPyramidNode("laplacian_node4", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node5 = new LaplacianPyramidNode("laplacian_node5", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node6 = new LaplacianPyramidNode("laplacian_node6", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node7 = new LaplacianPyramidNode("laplacian_node7", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node8 = new LaplacianPyramidNode("laplacian_node8", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node9 = new LaplacianPyramidNode("laplacian_node9", REPEAT_MODE);
-	LaplacianPyramidNode *train_laplacian_node10 = new LaplacianPyramidNode("laplacian_node10", REPEAT_MODE);
-
-	//WritePNGNode *train_write_png_node1 = new WritePNGNode("write_png_node1", LOCAL_HOME + "/CellNet/train/data_gray/");
-	//WritePNGNode *train_write_png_node2 = new WritePNGNode("write_png_node2", LOCAL_HOME + "/CellNet/train/data_rgb/");
-	//WriteHDF5Node *train_write_hdf5_node1 = new WriteHDF5Node("write_hdf5_node1", LOCAL_HOME + "/CellNet/train/data_hdf5/rgb_train", train_dim1, train_dataset_name, train_labels);
-	//WriteHDF5Node *train_write_hdf5_node2 = new WriteHDF5Node("write_hdf5_node2", LOCAL_HOME + "/CellNet/train/data_hdf5/gray_train", train_dim2, train_dataset_name, train_labels);
-	//WriteHDF5Node *train_write_hdf5_node3 = new WriteHDF5Node("write_hdf5_node3", LOCAL_HOME + "/CellNet/train/data_hdf5/lap_train", train_dim3, train_dataset_name, train_labels);
-
-	train_graph->add_node(train_read_node);
+	// Define grayscale nodes
+	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), CHUNK_MODE));
+	}
 	
-	train_graph->add_node(train_grayscale_node1);
-	train_graph->add_node(train_grayscale_node2);
-
-	train_graph->add_node(train_laplacian_node1);
-	train_graph->add_node(train_laplacian_node2);
-	train_graph->add_node(train_laplacian_node3);
-	train_graph->add_node(train_laplacian_node4);
-	train_graph->add_node(train_laplacian_node5);
-	train_graph->add_node(train_laplacian_node6);
-	train_graph->add_node(train_laplacian_node7);
-	train_graph->add_node(train_laplacian_node8);
-	train_graph->add_node(train_laplacian_node9);
-	train_graph->add_node(train_laplacian_node10);
+	// Define laplacian nodes
+	for(int i=0; i < NUMB_GRAYSCALE_NODE * NUMB_LAPLACIAN_NODE; i++){
+		train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i), REPEAT_MODE));
+	}
 	
-	// Add train edges 
-	Edge *train_edge1 = new Edge("edge1", "read_node", "grayscale_node1");
-	Edge *train_edge2 = new Edge("edge2", "read_node", "grayscale_node2");
+	// Add train edges
+	int n_edges = 0;
+	for(int k=0; k < 1; k++){
 
-	Edge *train_edge3 = new Edge("edge3", "grayscale_node1", "laplacian_node1");
-	Edge *train_edge4 = new Edge("edge4", "grayscale_node1", "laplacian_node2");
-	Edge *train_edge5 = new Edge("edge5", "grayscale_node1", "laplacian_node3");
-	Edge *train_edge6 = new Edge("edge6", "grayscale_node1", "laplacian_node4");
-	Edge *train_edge7 = new Edge("edge7", "grayscale_node1", "laplacian_node5");
-	Edge *train_edge8 = new Edge("edge8", "grayscale_node1", "laplacian_node6");
-	Edge *train_edge9 = new Edge("edge9", "grayscale_node1", "laplacian_node7");
-	Edge *train_edge10 = new Edge("edge10", "grayscale_node1", "laplacian_node8");
+		for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+			
+			train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node" + std::to_string(i)));
+			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-	Edge *train_edge11 = new Edge("edge11", "grayscale_node2", "laplacian_node9");
-	Edge *train_edge12 = new Edge("edge12", "grayscale_node2", "laplacian_node10");
-
-	train_graph->add_edge(train_edge1);
-	train_graph->add_edge(train_edge2);
-	train_graph->add_edge(train_edge3);
-	train_graph->add_edge(train_edge4);
-	train_graph->add_edge(train_edge5);
-	train_graph->add_edge(train_edge6);
-	train_graph->add_edge(train_edge7);
-	train_graph->add_edge(train_edge8);
-	train_graph->add_edge(train_edge9);
-	train_graph->add_edge(train_edge10);
-	train_graph->add_edge(train_edge11);
-	train_graph->add_edge(train_edge12);
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)));
+			}
+		}
+	}
 
 	std::cout << "*Graph defined*" << std::endl;
 	

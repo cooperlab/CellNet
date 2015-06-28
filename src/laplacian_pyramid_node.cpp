@@ -14,7 +14,8 @@ void *LaplacianPyramidNode::run(){
 		copy_from_buffer(_layer0);
 		
 		if(!_layer0.empty()){
-
+			
+			
 			increment_counter();
 			cv::Mat _gaussian_layer0;
 			std::vector<cv::Mat> layers;
