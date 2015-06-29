@@ -18,8 +18,8 @@
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
-#define NUMB_GRAYSCALE_NODE 64
-#define NUMB_LAPLACIAN_NODE 1
+#define NUMB_GRAYSCALE_NODE 1
+#define NUMB_LAPLACIAN_NODE 64
 
 const static std::string LOCAL_HOME = "/home/nelson";
 
@@ -112,8 +112,10 @@ int main (int argc, char * argv[])
 	}
 	
 	// Define laplacian nodes
-	for(int i=0; i < NUMB_GRAYSCALE_NODE * NUMB_LAPLACIAN_NODE; i++){
-		train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i), REPEAT_MODE));
+	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
+			train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), REPEAT_MODE));
+		}
 	}
 	
 	// Add train edges
@@ -125,7 +127,7 @@ int main (int argc, char * argv[])
 			train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node" + std::to_string(i)));
 			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
 			}
 		}
 	}
