@@ -18,10 +18,10 @@ void *GrayScaleNode::run(){
 
 		if(!out.empty()){
 
-			std::vector<cv::Mat> gray_out;
 			for(std::vector<cv::Mat>::size_type i=0; i < out.size(); i++){
 				
 				increment_counter();
+				std::vector<cv::Mat> gray_out;
 
 				// Convert to grayscale and equalize
 				cv::Mat gray_img;
@@ -31,10 +31,10 @@ void *GrayScaleNode::run(){
 
 				// Push to vector
 				gray_out.push_back(equilized_img);
-			}
 
-			// Copy to buffer
-			copy_to_buffer(gray_out);
+				// Copy to buffer
+				copy_to_buffer(gray_out);
+			}
 		}
 
 		else if(_in_edges.at(0)->is_in_node_done()){

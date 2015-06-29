@@ -72,9 +72,12 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out){
 
 			if(i < _out_edges.size()-1){
 
-				new_buffer.reserve(curr_buffer->size() + block_size);
-				new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
-				new_buffer.insert( new_buffer.end(), out.begin() +  i * block_size, out.begin() + (i+1) * block_size - 1);
+				if(block_size > 0){
+
+					new_buffer.reserve(curr_buffer->size() + block_size);
+					new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
+					new_buffer.insert( new_buffer.end(), out.begin() +  i * block_size, out.begin() + (i+1) * block_size - 1);
+				}
 			}
 			else{
 

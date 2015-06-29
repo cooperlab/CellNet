@@ -18,8 +18,8 @@
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
-#define NUMB_GRAYSCALE_NODE 1
-#define NUMB_LAPLACIAN_NODE 64
+#define NUMB_GRAYSCALE_NODE 1	
+#define NUMB_LAPLACIAN_NODE 1
 
 const static std::string LOCAL_HOME = "/home/nelson";
 
@@ -108,7 +108,7 @@ int main (int argc, char * argv[])
 
 	// Define grayscale nodes
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
-		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), CHUNK_MODE));
+		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), ALTERNATE_MODE));
 	}
 	
 	// Define laplacian nodes

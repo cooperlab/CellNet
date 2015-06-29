@@ -15,7 +15,6 @@ void *LaplacianPyramidNode::run(){
 		copy_chunk_from_buffer(_layer0);
 		if(!_layer0.empty()){
 
-			std::vector<cv::Mat> lap_out;
 			for(std::vector<cv::Mat>::size_type i=0; i < _layer0.size(); i++){
 
 				// Initialize
@@ -26,28 +25,19 @@ void *LaplacianPyramidNode::run(){
 				std::vector<cv::Mat> new_lap_out;
 
 				// Compute Laplacian
-				cv::GaussianBlur(_layer0.at(i), _gaussian_layer0	, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
+				cv::GaussianBlur(_layer0.at(i), _gaussian_layer0, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
 				gen_next_level(_gaussian_layer0, _layer0.at(i), &layers, 0);
 				resize_all(layers, _layer0.at(i).size());
 
 				// Merge layers
 				merged_layers = merge_all(layers);
-
-				// Accumulate
-				new_lap_out.reserve(lap_out.size() + merged_layers.size());
-				new_lap_out.insert( new_lap_out.end(), lap_out.begin(), lap_out.end());
-				new_lap_out.insert( new_lap_out.end(), merged_layers.begin(), merged_layers.end());
-				lap_out = new_lap_out;
+				copy_to_buffer(merged_layers);
 
 				// Release memory
 				_gaussian_layer0.release();
 				layers.clear();
 				merged_layers.clear();
-				new_lap_out.clear();
-			}
-
-			copy_to_buffer(lap_out);
-			lap_out.clear();
+			}			
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
 			break;
