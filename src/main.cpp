@@ -32,10 +32,10 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 
 		k = rand() % num_elem;
 		if(!slide_idx[k]){
-			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			//cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 		}
 		else{
-			cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 		}
 		x_centroid.erase(x_centroid.begin() + k);
 		y_centroid.erase(y_centroid.begin() + k);
@@ -80,9 +80,9 @@ int main (int argc, char * argv[])
 
 	// Create input
 	std::vector<std::tuple<double, double>> train_slide1;
-	std::vector<std::tuple<double, double>> train_slide2;
+	//std::vector<std::tuple<double, double>> train_slide2;
 	train_cells_coordinates_set.push_back(train_slide1);
-	train_cells_coordinates_set.push_back(train_slide2);
+	//train_cells_coordinates_set.push_back(train_slide2);
 
 	/******************************** Shuffle & Split Data ******************************************/
 
@@ -97,7 +97,7 @@ int main (int argc, char * argv[])
 	/********************************    Setup Graphs     *******************************************/
 
 	//Define paths
-	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	//train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
 	// Define Graphs

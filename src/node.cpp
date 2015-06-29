@@ -109,6 +109,28 @@ void Node::copy_from_buffer(cv::Mat &out){
 	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
 }
 
+void Node::copy_chunk_from_buffer(std::vector<cv::Mat> &out){
+	
+	// Lock access to buffer
+	boost::mutex::scoped_lock lk(_in_edges.at(0)->_mutex);
+
+	/******* Restricted Access ********/
+	// Get buffer
+	std::vector<cv::Mat> *_buffer = _in_edges.at(0)->get_buffer();
+
+	// Remove first element from buffer
+	if(!_buffer->empty()){
+
+		std::vector<cv::Mat> new_block;
+		new_block.reserve(_buffer->size());
+		new_block.insert( new_block.end(), _buffer->begin(), _buffer->end());
+		out = new_block;
+		_buffer->clear();	
+	}
+	/******* Restricted Access ********/
+	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
+}
+
 void Node::increment_counter(){
 	
 	boost::mutex::scoped_lock lk(_mutex_counter);

@@ -29,6 +29,7 @@ class Node : private boost::noncopyable{
   	protected:
 		void copy_to_buffer(std::vector<cv::Mat> out);
   		void copy_from_buffer(cv::Mat &);
+  		void copy_chunk_from_buffer(std::vector<cv::Mat> &out);
   		void increment_counter();
   		void increment_threads();
   		bool check_finished();

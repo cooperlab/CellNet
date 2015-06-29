@@ -13,31 +13,34 @@ void *GrayScaleNode::run(){
 
 	while(true){
 
-		cv::Mat out; 
-		copy_from_buffer(out);
+		std::vector<cv::Mat> out; 
+		copy_chunk_from_buffer(out);
 
 		if(!out.empty()){
 
-			increment_counter();
-
-
-			// Convert to grayscale and equalize
-			cv::Mat gray_img;
-			cv::Mat equilized_img;
-			cv::cvtColor(out, gray_img, CV_BGR2GRAY);
-			cv::equalizeHist(gray_img, equilized_img);
-
-			// Push to vector
 			std::vector<cv::Mat> gray_out;
-			gray_out.push_back(equilized_img);
+			for(std::vector<cv::Mat>::size_type i=0; i < out.size(); i++){
+				
+				increment_counter();
+
+				// Convert to grayscale and equalize
+				cv::Mat gray_img;
+				cv::Mat equilized_img;
+				cv::cvtColor(out.at(i), gray_img, CV_BGR2GRAY);
+				cv::equalizeHist(gray_img, equilized_img);
+
+				// Push to vector
+				gray_out.push_back(equilized_img);
+			}
 
 			// Copy to buffer
 			copy_to_buffer(gray_out);
 		}
+
 		else if(_in_edges.at(0)->is_in_node_done()){
 			break;
 		}
-		out.release();
+		out.clear();
 	}
 
 	if(check_finished() == true){
