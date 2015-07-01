@@ -12,7 +12,7 @@ void *LaplacianPyramidNode::run(){
 	while(true){
 
 		std::vector<cv::Mat> _layer0; 
-		copy_chunk_from_buffer(_layer0);
+		copy_chunk_from_buffer(_layer0, _labels);
 		if(!_layer0.empty()){
 
 			for(std::vector<cv::Mat>::size_type i=0; i < _layer0.size(); i++){
@@ -31,7 +31,7 @@ void *LaplacianPyramidNode::run(){
 
 				// Merge layers
 				merged_layers = merge_all(layers);
-				copy_to_buffer(merged_layers);
+				copy_to_buffer(merged_layers, _labels);
 
 				// Release memory
 				_gaussian_layer0.release();

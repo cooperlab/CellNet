@@ -15,7 +15,7 @@
 class ReadNode: public Node{
 
 	public:
-		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> _cells_coordinates_set, int mode);
+		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> _cells_coordinates_set, std::vector<double> labels, int mode);
 		void show_entire_image(cv::Mat);
 		void show_cropped_cells(std::vector<cv::Mat> extracted_images);
 		std::vector<cv::Mat> crop_cells(cv::Mat entire_image, std::vector<std::tuple<double, double>> cells_coordinates);

@@ -10,8 +10,8 @@ void *DebugNode::run(){
 
 	while(true){
 
-		cv::Mat out; 
-		copy_from_buffer(out);
+		std::vector<cv::Mat> out; 
+		copy_chunk_from_buffer(out, _labels);
 		if(!out.empty()){
 
 			//std::cout << "DebugNode start" << std::endl; 
@@ -26,7 +26,7 @@ void *DebugNode::run(){
 			// Some debug
 			break;
 		}
-		out.release();
+		out.clear();
 	}
 
 	// Notify it has finished

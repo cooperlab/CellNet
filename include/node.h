@@ -25,11 +25,12 @@ class Node : private boost::noncopyable{
 		boost::mutex _mutex_ctrl;
 		long long unsigned int _counter_threads;
 		int ctrl;
+		std::vector<double> _labels;
 		
   	protected:
-		void copy_to_buffer(std::vector<cv::Mat> out);
-  		void copy_from_buffer(cv::Mat &);
-  		void copy_chunk_from_buffer(std::vector<cv::Mat> &out);
+		void copy_to_buffer(std::vector<cv::Mat> out, std::vector<double> &labels);
+  		void copy_from_buffer(cv::Mat &, double &labels);
+  		void copy_chunk_from_buffer(std::vector<cv::Mat> &out, std::vector<double> &labels);
   		void increment_counter();
   		void increment_threads();
   		bool check_finished();

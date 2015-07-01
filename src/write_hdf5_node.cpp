@@ -21,9 +21,9 @@ void *WriteHDF5Node::run(){
 	_file_buffer.clear();
 
 	while(true){
-
-		cv::Mat out;
-		copy_from_buffer(out);
+		/*
+		std::vector<cv::Mat> out;
+		copy_chunk_from_buffer(out);
 		if(!out.empty()){
 
 			// If there is space in the buffer
@@ -50,6 +50,8 @@ void *WriteHDF5Node::run(){
 			//std::cout << "Stopping Write Node" << std::endl;
 			break;
 		}
+		*/
+		
 	}
 	return NULL;
 }

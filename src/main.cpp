@@ -19,29 +19,47 @@
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
-#define NUMB_LAPLACIAN_NODE 1
+#define NUMB_LAPLACIAN_NODE 2
 
 const static std::string LOCAL_HOME = "/home/nelson";
 
-void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &slide_idx){
-
+void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &shuffled_labels, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &labels, std::vector<double> &slide_idx){
+	
+	std::vector<double> labels1;
+	std::vector<double> labels2;
+	
 	// Fill train dataset
 	srand (time(NULL));
 	int k = 0;
 	for(int i=0; i < N; i++){
 
 		k = rand() % num_elem;
+		if(labels[k] == -1){
+			labels[k] = 0;
+		}
+
 		if(!slide_idx[k]){
+
 			//cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			//labels1.push_back(labels[k]);
 		}
 		else{
+
 			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			labels2.push_back(labels[k]);
 		}
+
 		x_centroid.erase(x_centroid.begin() + k);
 		y_centroid.erase(y_centroid.begin() + k);
 		slide_idx.erase(slide_idx.begin() + k);
+		labels.erase(labels.begin() + k);
 		num_elem--;
 	}
+
+	shuffled_labels.clear();
+	shuffled_labels.reserve(labels1.size() + labels2.size());
+	shuffled_labels.insert( shuffled_labels.end(), labels1.begin(), labels1.end());
+	shuffled_labels.insert( shuffled_labels.end(), labels2.begin(), labels2.end());
 }
 
 
@@ -62,6 +80,7 @@ int main (int argc, char * argv[])
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "x_centroid", x_centroid);
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "y_centroid", y_centroid);
 	utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "slideIdx", slide_idx);
+	//utils::get_data(LOCAL_HOME + "/LGG-test/LGG-features-2.h5", "labels", labels);
 
 	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
 
@@ -78,6 +97,12 @@ int main (int argc, char * argv[])
 	std::string train_dataset_name = "data";
 	std::vector<double> train_labels;
 
+
+	// Generate some labels
+	for(int i = 0; i < num_elems; i++){
+		labels.push_back(0);
+	}
+
 	// Create input
 	std::vector<std::tuple<double, double>> train_slide1;
 	//std::vector<std::tuple<double, double>> train_slide2;
@@ -87,9 +112,9 @@ int main (int argc, char * argv[])
 	/******************************** Shuffle & Split Data ******************************************/
 
 	double begin_time_2 = utils::get_time();
-	fill_data(num_elems, num_elems, train_cells_coordinates_set, x_centroid, y_centroid, slide_idx);
-	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
+	fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
+	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
 	std::cout << "train_size: " << train_cells_coordinates_set[0].size() << std::endl;
 	std::cout << "x_centroid_size: " << x_centroid.size() << std::endl;
 	std::cout << "y_centroid_size: " << y_centroid.size() << std::endl;
@@ -104,9 +129,10 @@ int main (int argc, char * argv[])
 	std::cout << "Defining graph nodes..." << std::endl;
 
 	// Add some Train Nodes
-	train_graph->add_node(new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, CHUNK_MODE));
+	train_graph->add_node(new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, train_labels, CHUNK_MODE));
 
 	// Define grayscale nodes
+
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), ALTERNATE_MODE));
 	}

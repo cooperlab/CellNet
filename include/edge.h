@@ -15,9 +15,10 @@ class Edge : private boost::noncopyable{
 		std::string get_in_node_id();
 		std::string get_out_node_id();
 		std::vector<cv::Mat> *get_buffer();
+		std::vector<double> *get_buffer_labels();
 		bool is_in_node_done();
 		bool is_empty();
-		void set_buffer(std::vector<cv::Mat> buffer);
+		void set_buffer(std::vector<cv::Mat> buffer, std::vector<double> buffer_labels);
 		void set_in_node_done();
 		void show_image();
 		std::string _id;
@@ -28,5 +29,6 @@ class Edge : private boost::noncopyable{
 		std::string _in_node_id;
 		std::string _out_node_id;
 		std::vector<cv::Mat> _buffer;
+		std::vector<double> _buffer_labels;
 };
 #endif

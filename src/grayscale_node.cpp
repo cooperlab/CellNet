@@ -14,9 +14,11 @@ void *GrayScaleNode::run(){
 	while(true){
 
 		std::vector<cv::Mat> out; 
-		copy_chunk_from_buffer(out);
+		copy_chunk_from_buffer(out, _labels);
 
 		if(!out.empty()){
+
+			std::cout << "total labels in gray: " << std::to_string(_labels.size()) << std::endl;
 
 			for(std::vector<cv::Mat>::size_type i=0; i < out.size(); i++){
 				
@@ -33,7 +35,7 @@ void *GrayScaleNode::run(){
 				gray_out.push_back(equilized_img);
 
 				// Copy to buffer
-				copy_to_buffer(gray_out);
+				copy_to_buffer(gray_out, _labels);
 			}
 		}
 
