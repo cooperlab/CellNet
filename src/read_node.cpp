@@ -2,45 +2,65 @@
 #include "edge.h"
 #include <iostream>
 #include <sstream>
+#include "utils.h"
 #define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set): Node(id), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set, std::vector<double> labels, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
+	 _labels = labels;
+	 std::cout << "total labels: " << std::to_string(_labels.size()) << std::endl;
+	 runtime_total_first = utils::get_time();
 }
 
 void *ReadNode::run(){
 	
+	increment_threads();
+
 	std::vector<cv::Mat> extracted_images;
 	cv::Mat entire_image;
 
 	// Execute
-	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
+	int i = get_input();
+	while(i >= 0){
 
-		std::cout << "Opening file ..." << std::endl;
+		increment_counter();
 		entire_image = open_image(_image_paths.at(i));
-		std::cout << "Entire image extracted" << std::endl;
-
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
-		std::cout << "Images cropped" << std::endl; 
+		copy_to_buffer(extracted_images, _labels);
 
-		copy_to_buffer(extracted_images);
+		// Execute
+		i = get_input();
 	}
 
-	// Notify it has finished
-	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-		_out_edges.at(i)->set_in_node_done();
-	}	
-
-	std::cout << "ReadNode complete" << std::endl;
 	/****************** Debug ******************/
-	show_entire_image(entire_image);
+	//show_entire_image(entire_image);
 
 	// Release memory
 	extracted_images.clear();
 	entire_image.release();
 	
 	//show_cropped_cells();
+	if( check_finished() == true){
+
+		std::cout << "******************" << std::endl << "ReadNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+
+		// Notify it has finished
+		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+			_out_edges.at(i)->set_in_node_done();
+		}
+	}
 	return NULL;
 }	
+
+int ReadNode::get_input(){
+
+	boost::mutex::scoped_lock lk(_mutex);
+	if(i_ptr < _image_paths.size()){
+		return i_ptr++;
+	}
+	else{
+		return -1;
+	}
+}
 
 // This method gets the 20 X magnification layer 
 int ReadNode::get_layer(openslide_t *oslide){
@@ -53,14 +73,14 @@ int ReadNode::get_layer(openslide_t *oslide){
 	int objective;
 	std::stringstream str_objective;
 
-	std::cout << "num_levels: " << std::to_string(levels) << std::endl;
+	//std::cout << "num_levels: " << std::to_string(levels) << std::endl;
 	for(int i = 0; i < levels; i++) {
 
 		/*get level info*/
 		str_objective << openslide_get_property_value(oslide, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER);
 		str_objective >> objective; 
 		magnification.push_back(objective / (double) openslide_get_level_downsample(oslide, (int32_t)i));
-		std::cout << "Magnification: " << magnification[i] << std::endl;
+		//std::cout << "Magnification: " << magnification[i] << std::endl;
 	}
 
 	// Return the closest magnification to 20.0
@@ -183,7 +203,7 @@ std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std:
 
 void ReadNode::show_entire_image(cv::Mat entire_image){
 	if(!entire_image.empty()){
-		std::cout << "Showing Entire Image" << std::endl;
+		//std::cout << "Showing Entire Image" << std::endl;
 		//cv::imshow("img", entire_image);
 		//cv::waitKey(0);
 

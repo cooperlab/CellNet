@@ -12,7 +12,7 @@
 class WritePNGNode: public Node{
 
 	public:
-		WritePNGNode(std::string id, std::string fname);
+		WritePNGNode(std::string id, std::string fname, int mode);
 		void *run();
 
   	private:

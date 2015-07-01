@@ -1,11 +1,12 @@
 #include "write_hdf5_node.h"
 #include "edge.h"
+#include "utils.h"
 #define FILE_SIZE_LIMIT 2 * (unsigned long int)1000000000// ~2Gb
 // NOTE: Here we are rounding down file size limit in order to avoid files with size over 2Gb
 
 /* Consider dimensions as (numb_items, ..., channels, height, width) */
 /* Min: 4D */
-WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels): Node(id), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(labels){}
+WriteHDF5Node::WriteHDF5Node(std::string id, std::string fname, std::vector<hsize_t> dim, std::string dataset_name, std::vector<double> labels, int mode): Node(id, mode), _fname(fname), _dim(dim), _curr_size(0), _h(0), _w(0), _c(0), _file_buffer(), _f_count(0), _label_count(0), _dataset_name(dataset_name), _el_cont(0), _labels(labels){}
 
 void *WriteHDF5Node::run(){
 
@@ -20,9 +21,9 @@ void *WriteHDF5Node::run(){
 	_file_buffer.clear();
 
 	while(true){
-
-		cv::Mat out;
-		copy_from_buffer(out);
+		/*
+		std::vector<cv::Mat> out;
+		copy_chunk_from_buffer(out);
 		if(!out.empty()){
 
 			// If there is space in the buffer
@@ -46,9 +47,11 @@ void *WriteHDF5Node::run(){
 
 			// Write remaining matrices in buffer
 			write_to_disk();
-			std::cout << "Stopping Write Node" << std::endl;
+			//std::cout << "Stopping Write Node" << std::endl;
 			break;
 		}
+		*/
+		
 	}
 	return NULL;
 }
@@ -64,6 +67,9 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 	}
 	image.assign(out.datastart, out.dataend);
 
+	//std::cout << "# of channels: " << std::to_string(out.channels()) << std::endl;
+	//std::cout << "size: " << std::to_string(image.size()) << std::endl;
+
 	// Concatenate buffers
 	std::vector<double> new_buffer;
 	new_buffer.reserve(_file_buffer.size() + image.size());
@@ -75,6 +81,9 @@ void WriteHDF5Node::copy_mat(cv::Mat out){
 
 void WriteHDF5Node::write_to_disk(){
 
+
+	double begin_time = utils::get_time();
+			
 	// Set number of items
 	int _dem = 1;
 	for(int i = 1; i < _n_dim - 2; i++){
@@ -95,26 +104,28 @@ void WriteHDF5Node::write_to_disk(){
     H5Dwrite(dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &_file_buffer[0]);
 
     // Write label (# Labels, 1)
-    std::vector<hsize_t> label_dim;
-    label_dim.push_back(numb_samples);
+    //std::vector<hsize_t> label_dim;
+    //label_dim.push_back(numb_samples);
     //label_dim.push_back(1);
 
     // Create label space
-    hid_t label_space = H5Screate_simple(1, &label_dim[0], NULL);
+    //hid_t label_space = H5Screate_simple(1, &label_dim[0], NULL);
 
     // Get range of labels to write
-    std::vector<double>::const_iterator first = _labels.begin() + _label_count;
-	std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
-	std::vector<double> sub_labels(first, last);
+    //std::vector<double>::const_iterator first = _labels.begin() + _label_count;
+	//std::vector<double>::const_iterator last = _labels.begin() + _label_count + numb_samples;
+	//std::vector<double> sub_labels(first, last);
 
     // Create and write labels
-    hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    H5Dwrite(label_dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &sub_labels[0]);
+    //hid_t label_dataset = H5Dcreate2(file, "labels", H5T_NATIVE_DOUBLE, label_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    //H5Dwrite(label_dataset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, &sub_labels[0]);
 
     // Update parameters
-    _label_count += numb_samples;
+    //_label_count += numb_samples;
     _file_buffer.clear();
     _f_count++;
     _el_cont = 0;
     std::cout << "File size: " << _curr_size << std::endl; 
+
+    std::cout << "Time to write HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
 }
