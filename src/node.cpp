@@ -148,33 +148,39 @@ void Node::copy_from_buffer(cv::Mat &out, double &label){
 	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
 }
 
+// This function copy chunks of data from the input edges of a given node.
+// Opposite to the function copy_from_buffer, this function supports multiple input edges for a node.
 void Node::copy_chunk_from_buffer(std::vector<cv::Mat> &out, std::vector<double> &labels){
 	
-	// Lock access to buffer
-	boost::mutex::scoped_lock lk(_in_edges.at(0)->_mutex);
+	// Check all in nodes
+	for(std::vector<int>::size_type i=0; i < _in_edges.size(); i++){
+		
+		// Lock access to buffer
+		boost::mutex::scoped_lock lk(_in_edges.at(i)->_mutex);
 
-	/******* Restricted Access ********/
-	// Get buffer
-	std::vector<cv::Mat> *_buffer = _in_edges.at(0)->get_buffer();
-	std::vector<double> *_buffer_labels = _in_edges.at(0)->get_buffer_labels();
+		/******* Restricted Access ********/
+		// Get buffer
+		std::vector<cv::Mat> *_buffer = _in_edges.at(i)->get_buffer();
+		std::vector<double> *_buffer_labels = _in_edges.at(i)->get_buffer_labels();
 
-	// Remove first element from buffer
-	if(!_buffer->empty()){
+		// Remove first element from buffer
+		if(!_buffer->empty()){
 
-		std::vector<cv::Mat> new_block;
-		new_block.reserve(_buffer->size());
-		new_block.insert( new_block.end(), _buffer->begin(), _buffer->end());
-		out = new_block;
-		_buffer->clear();	 
+			std::vector<cv::Mat> new_block;
+			new_block.reserve(_buffer->size());
+			new_block.insert( new_block.end(), _buffer->begin(), _buffer->end());
+			out = new_block;
+			_buffer->clear();	 
 
-		std::vector<double> new_block_labels;
-		new_block_labels.reserve(_buffer_labels->size());
-		new_block_labels.insert( new_block_labels.end(), _buffer_labels->begin(), _buffer_labels->end());
-		labels = new_block_labels;
-		_buffer_labels->clear();
+			std::vector<double> new_block_labels;
+			new_block_labels.reserve(_buffer_labels->size());
+			new_block_labels.insert( new_block_labels.end(), _buffer_labels->begin(), _buffer_labels->end());
+			labels = new_block_labels;
+			_buffer_labels->clear();
+		}
+		/******* Restricted Access ********/
+		//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
 	}
-	/******* Restricted Access ********/
-	//std::cout << "Node: " << _id << " unlocking	 buffer " << _in_edges.at(0)->_id << std::endl; 
 }
 
 void Node::increment_counter(){

@@ -9,6 +9,7 @@ WritePNGNode::WritePNGNode(std::string id, std::string fname, int mode): Node(id
 void *WritePNGNode::run(){
 
 	while(true){
+		
 		/*
 		cv::Mat out;
 		copy_from_buffer(out);

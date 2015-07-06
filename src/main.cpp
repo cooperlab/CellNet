@@ -40,13 +40,13 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, d
 
 		if(!slide_idx[k]){
 			//std::cout <<  "slide: " << slide_idx[k] << std::endl;
-			//cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
-			//labels1.push_back(labels[k]);
+			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			labels1.push_back(labels[k]);
 		}
 
 		else{
 
-			cells_coordinates_set[0].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			cells_coordinates_set[1].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 			labels2.push_back(labels[k]);
 		}
 
@@ -99,19 +99,18 @@ int main (int argc, char * argv[])
 	std::vector<double> train_labels;
 
 
-	// Generate some labels
+	// Generate some dummy labels
 	for(int i = 0; i < num_elems; i++){
 		labels.push_back(0);
 	}
 
 	// Create input
 	std::vector<std::tuple<double, double>> train_slide1;
-	//std::vector<std::tuple<double, double>> train_slide2;
+	std::vector<std::tuple<double, double>> train_slide2;
 	train_cells_coordinates_set.push_back(train_slide1);
-	//train_cells_coordinates_set.push_back(train_slide2);
+	train_cells_coordinates_set.push_back(train_slide2);
 
 	/******************************** Shuffle & Split Data ******************************************/
-
 	double begin_time_2 = utils::get_time();
 	fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
@@ -123,7 +122,7 @@ int main (int argc, char * argv[])
 	/********************************    Setup Graphs     *******************************************/
 
 	//Define paths
-	//train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
+	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-EZ-7264-01Z-00-DX1.80a61d74-77d9-4998-bb55-213767a588ff.svs");
 	train_file_paths.push_back(LOCAL_HOME + "/LGG-test/TCGA-HT-7474-01Z-00-DX1.B3E88862-6C35-4E30-B374-A7BC80231B8C.svs");
 
 	// Define Graphs
@@ -133,7 +132,6 @@ int main (int argc, char * argv[])
 	train_graph->add_node(new ReadNode("read_node", train_file_paths, train_cells_coordinates_set, train_labels, CHUNK_MODE));
 
 	// Define grayscale nodes
-
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), ALTERNATE_MODE));
 	}
