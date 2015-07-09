@@ -5,7 +5,7 @@
 #include "utils.h"
 #define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> cells_coordinates_set, std::vector<double> labels, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> cells_coordinates_set, std::vector<int> labels, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
 	 _labels = labels;
 	 std::cout << "total labels: " << std::to_string(_labels.size()) << std::endl;
 	 runtime_total_first = utils::get_time();
@@ -161,7 +161,7 @@ cv::Mat ReadNode::open_image(std::string image_path){
 	return entire_image;
 }
 
-std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std::tuple<double, double>> _cells_coordinates){
+std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> _cells_coordinates){
 
 	std::vector<cv::Mat> extracted_images;
 

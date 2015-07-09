@@ -15,10 +15,10 @@
 class ReadNode: public Node{
 
 	public:
-		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<double, double>>> _cells_coordinates_set, std::vector<double> labels, int mode);
+		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set, std::vector<int> labels, int mode);
 		void show_entire_image(cv::Mat);
 		void show_cropped_cells(std::vector<cv::Mat> extracted_images);
-		std::vector<cv::Mat> crop_cells(cv::Mat entire_image, std::vector<std::tuple<double, double>> cells_coordinates);
+		std::vector<cv::Mat> crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> cells_coordinates);
 		void *run();
 		void init();
 		bool get_output(std::vector<cv::Mat> &out);
@@ -28,7 +28,7 @@ class ReadNode: public Node{
   		int get_layer(openslide_t *oslide);
   		cv::Mat open_image(std::string image_path);
   		std::vector<std::string> _image_paths;
-  		std::vector<std::vector<std::tuple<double, double>>> _cells_coordinates_set;
+  		std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set;
   		int i_ptr;
 };
 #endif

@@ -4,8 +4,8 @@ Edge::Edge(std::string id, std::string in_node_id, std::string out_node_id): _id
 std::string Edge::get_in_node_id(){return _in_node_id;}
 std::string Edge::get_out_node_id(){return _out_node_id;}
 std::vector<cv::Mat> *Edge::get_buffer(){return &_buffer;}
-std::vector<double> *Edge::get_buffer_labels(){return &_buffer_labels;}
-void Edge::set_buffer(std::vector<cv::Mat> buffer, std::vector<double> buffer_labels){
+std::vector<int> *Edge::get_buffer_labels(){return &_buffer_labels;}
+void Edge::set_buffer(std::vector<cv::Mat> buffer, std::vector<int> buffer_labels){
 	_buffer = buffer;
 	_buffer_labels = buffer_labels;
 }
