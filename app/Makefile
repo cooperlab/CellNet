@@ -22,7 +22,7 @@ CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   				# Include OpenSlide
 CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0						# Include glib			
 CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
 CPPFLAGS += -I$(CAFFE_HOME)/include/		   						# Include Caffe
-CPPFLAGS += -I$(CAFFE_HOME)/build/include/		   						# Include Caffe
+CPPFLAGS += -I$(CAFFE_HOME)/build/include/		   					# Include Caffe
 CPPFLAGS += -I$(LOCAL_HOME)/local/cuda/include						# Include Cuda
 
 # Define location of OpenCV

@@ -8,18 +8,18 @@ TrainNode::TrainNode(std::string id, int mode, int batch_size, std::string model
 
 void TrainNode::init_model(){
 
-    caffe::Caffe::SetDevice(0);
-    caffe::Caffe::set_mode(caffe::Caffe::GPU);
+	caffe::Caffe::SetDevice(0);
+	caffe::Caffe::set_mode(caffe::Caffe::CPU);
 
     // Initialize the history
-  	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = this->_net->params();
-  	_history.clear();
-  	_temp.clear();
-  	for (int i = 0; i < net_params.size(); ++i) {
-    	const std::vector<int>& shape = net_params[i]->shape();
-    	_history.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));
-    	_temp.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));
- 	}
+	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = this->_net->params();
+	_history.clear();
+	_temp.clear();
+	for (int i = 0; i < net_params.size(); ++i) {
+		const std::vector<int>& shape = net_params[i]->shape();
+		_history.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));
+		_temp.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));
+	}
 }
 
 
@@ -95,6 +95,10 @@ void *TrainNode::run(){
 	if(check_finished() == true){
 
 		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+		
+		// Save model
+		snapshot();
+
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 			_out_edges.at(i)->set_in_node_done();
@@ -104,42 +108,95 @@ void *TrainNode::run(){
 	return NULL;
 }
 
+void TrainNode::snapshot(){
+	caffe::NetParameter net_param;
+
+	_net->ToProto(&net_param, true);
+	std::string filename("cell_net");
+	std::string model_filename;
+
+	// Add one to iter_ to get the number of iterations that have completed.
+	model_filename = filename + ".caffemodel";
+
+	std::cout << "Snapshotting to " << model_filename << std::endl;
+	caffe::WriteProtoToBinaryFile(net_param, model_filename.c_str());
+}
+
 void TrainNode::compute_update_value(){
 
-	const std::vector<boost::shared_ptr<caffe::Blob<float>>>& net_params = _net->params();
+	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
 	const std::vector<float>& net_params_lr = _net->params_lr();
- 	const std::vector<float>& net_params_weight_decay = _net->params_weight_decay();
+	const std::vector<float>& net_params_weight_decay = _net->params_weight_decay();
 
-  	// Get the learning rate
-  	float rate = _base_lr;
-  	
-  	//ClipGradients();
-  	float momentum = 1.0;
-  	float weight_decay = 1.0;
-  	std::string regularization_type = "L2";
-	for (int param_id = 0; param_id < net_params.size(); ++param_id) {
+  	// get parameters
+	float rate = _base_lr;
+	float momentum = 1.0;
+	float weight_decay = 1.0;
+	std::string regularization_type = "L2";
 
-      	// Compute the value to history, and then copy them to the blob's diff.
-      	float local_rate = rate * net_params_lr[param_id];
-      	float local_decay = weight_decay * net_params_weight_decay[param_id];
+	switch (caffe::Caffe::mode()) {
+		case caffe::Caffe::CPU:
+		for (int param_id = 0; param_id < net_params.size(); ++param_id) {
 
-      	if (local_decay) {
-        
-	        if (regularization_type == "L2") {
-	          	
-	          	// add weight decay
-		        caffe::caffe_gpu_axpy(net_params[param_id]->count(), local_decay, net_params[param_id]->gpu_data(), net_params[param_id]->mutable_gpu_diff());
-		    } else if (regularization_type == "L1") {
-		          
-		        caffe::caffe_gpu_sign(net_params[param_id]->count(), net_params[param_id]->gpu_data(), _temp[param_id]->mutable_gpu_data());
-		        caffe::caffe_gpu_axpy(net_params[param_id]->count(), local_decay, _temp[param_id]->gpu_data(), net_params[param_id]->mutable_gpu_diff());
-		    } else {
+      		// Compute the value to history, and then copy them to the blob's diff.
+			float local_rate = rate * net_params_lr[param_id];
+			float local_decay = weight_decay * net_params_weight_decay[param_id];
 
-	          LOG(FATAL) << "Unknown regularization type: " << regularization_type;
-	        }
-     	}
-      	caffe::caffe_gpu_axpby(net_params[param_id]->count(), local_rate, net_params[param_id]->gpu_diff(), momentum, _history[param_id]->mutable_gpu_data());
-      	// copy
-      	caffe::caffe_copy(net_params[param_id]->count(), _history[param_id]->gpu_data(), net_params[param_id]->mutable_gpu_diff());
-    }
+			if (local_decay) {
+				if (regularization_type == "L2") {
+
+          			// add weight decay
+					caffe::caffe_axpy(net_params[param_id]->count(), local_decay, net_params[param_id]->cpu_data(), net_params[param_id]->mutable_cpu_diff());
+				} else if (regularization_type == "L1") {
+
+					caffe::caffe_cpu_sign(net_params[param_id]->count(), net_params[param_id]->cpu_data(), _temp[param_id]->mutable_cpu_data());
+					caffe::caffe_axpy(net_params[param_id]->count(), local_decay, _temp[param_id]->cpu_data(), net_params[param_id]->mutable_cpu_diff());
+				} else {
+					LOG(FATAL) << "Unknown regularization type: " << regularization_type;
+				}
+			}
+
+			caffe::caffe_cpu_axpby(net_params[param_id]->count(), local_rate, net_params[param_id]->cpu_diff(), momentum, _history[param_id]->mutable_cpu_data());
+
+      		// copy
+			caffe::caffe_copy(net_params[param_id]->count(), _history[param_id]->cpu_data(), net_params[param_id]->mutable_cpu_diff());
+		}
+		break;
+		case caffe::Caffe::GPU:
+#ifndef CPU_ONLY
+
+		for (int param_id = 0; param_id < net_params.size(); ++param_id) {
+
+      		// Compute the value to history, and then copy them to the blob's diff.
+			float local_rate = rate * net_params_lr[param_id];
+			float local_decay = weight_decay * net_params_weight_decay[param_id];
+
+			if (local_decay) {
+				if (regularization_type == "L2") {
+
+          			// add weight decay
+					caffe::caffe_gpu_axpy(net_params[param_id]->count(), local_decay, net_params[param_id]->gpu_data(), net_params[param_id]->mutable_gpu_diff());
+				} else if (regularization_type == "L1") {
+
+					caffe::caffe_gpu_sign(net_params[param_id]->count(), net_params[param_id]->gpu_data(),_temp[param_id]->mutable_gpu_data());
+					caffe::caffe_gpu_axpy(net_params[param_id]->count(), local_decay, _temp[param_id]->gpu_data(), net_params[param_id]->mutable_gpu_diff());
+				} else {
+
+					LOG(FATAL) << "Unknown regularization type: " << regularization_type;
+				}
+			}
+
+			caffe::caffe_gpu_axpby(net_params[param_id]->count(), local_rate, net_params[param_id]->gpu_diff(), momentum, _history[param_id]->mutable_gpu_data());
+
+      		// copy
+			caffe::caffe_copy(net_params[param_id]->count(),_history[param_id]->gpu_data(),net_params[param_id]->mutable_gpu_diff());
+		}
+#else
+		NO_GPU;
+#endif
+		break;
+		default:
+		LOG(FATAL) << "Unknown caffe mode: " << caffe::Caffe::mode();
+	}
 }
+
