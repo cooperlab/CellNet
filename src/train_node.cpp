@@ -7,8 +7,6 @@ TrainNode::TrainNode(std::string id, int mode, int batch_size, std::string model
 }
 
 void TrainNode::init_model(){
-
-	caffe::Caffe::SetDevice(0);
 	caffe::Caffe::set_mode(caffe::Caffe::CPU);
 
     // Initialize the history
@@ -130,8 +128,8 @@ void TrainNode::compute_update_value(){
 
   	// get parameters
 	float rate = _base_lr;
-	float momentum = 1.0;
-	float weight_decay = 1.0;
+	float momentum = 0.9;
+	float weight_decay = 0.0005;
 	std::string regularization_type = "L2";
 
 	switch (caffe::Caffe::mode()) {

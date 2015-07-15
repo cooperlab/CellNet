@@ -1,14 +1,18 @@
-name: "CellNet"
+name: "OnlineCellNet"
+debug_info: false
 
-# Test data layer
+
+# Train data layer
 layer {
-  name: "valid_data"
-  type: "HDF5Data"
+  name: "data"
+  type: "MemoryData"
   top: "data"
   top: "labels"
-  hdf5_data_param {
-    source: "/home/nelson/CellNet/test/data_hdf5/lap5d_test_data_list.txt"
-    batch_size: 20
+  memory_data_param {
+   batch_size: 4
+   channels: 4
+   height: 50
+   width: 50
   }
 }
 
@@ -26,9 +30,6 @@ layer {
   }
   convolution_param {
     num_output: 20
-    axis: 1
-    kernel_size: 1
-    kernel_size: 5
     kernel_size: 5
     weight_filler {
       type: "xavier"
@@ -48,13 +49,7 @@ layer {
   top: "pool1"
   pooling_param {
     pool: MAX
-    axis: 1
-    kernel_size: 1
     kernel_size: 2
-    kernel_size: 2
-    stride: 1
-    stride: 2
-    stride: 2
   }
 }
 
@@ -80,11 +75,7 @@ layer {
   }
   convolution_param {
     num_output: 50
-    axis: 1
-    kernel_size: 1
     kernel_size: 5
-    kernel_size: 5
-    stride: 1
     weight_filler {
       type: "xavier"
     }
@@ -102,13 +93,7 @@ layer {
   top: "pool2"
   pooling_param {
     pool: MAX
-    axis: 1
-    kernel_size: 1
     kernel_size: 2
-    kernel_size: 2
-    stride: 1
-    stride: 2
-    stride: 2
   }
 }
 
@@ -172,22 +157,4 @@ layer {
       type: "constant"
     }
   }
-}
-
-# Accuracy
-layer {
-  name: "accuracy"
-  type: "Accuracy"
-  bottom: "ip2"
-  bottom: "labels"
-  top: "accuracy"
-}
-
-# Loss
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "ip2"
-  bottom: "labels"
-  top: "loss"
 }

@@ -6,6 +6,7 @@
 #include "grayscale_node.h"
 #include "write_hdf5_node.h"
 #include "train_node.h"
+#include "prediction_node.h"
 #include "edge.h"
 #include "hdf5.h"
 #include "utils.h"
@@ -143,11 +144,14 @@ int main (int argc, char * argv[])
 	}
 
 	// Define train node
+	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
+	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
-	int batch_size = 8;
-	float base_lr = 0.0001;
-	train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, model_path, base_lr));
-	
+	int batch_size = 4;
+	float base_lr = 0.00001;
+	//train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, model_path, base_lr));
+	train_graph->add_node(new PredictionNode("train_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path));
+
 	// Add train edges
 	int n_edges = 0;
 	for(int k=0; k < 1; k++){

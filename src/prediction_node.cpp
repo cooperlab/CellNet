@@ -1,6 +1,6 @@
 #include "prediction_node.h"
 
-PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string model_path): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(new caffe::Net<float>(model_path.c_str(), caffe::TEST)), _predictions(){
+PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _target_labels(), _net(new caffe::Net<float>(test_model_path.c_str(), caffe::TEST)), _params_file(params_file){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
@@ -8,11 +8,12 @@ PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::st
 
 void PredictionNode::init_model(){
 
-    caffe::Caffe::SetDevice(0);
-    caffe::Caffe::set_mode(caffe::Caffe::GPU);
+    caffe::Caffe::set_mode(caffe::Caffe::CPU);
 
     // Initialize the history
-  	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = this->_net->params();
+  	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
+  	_net->CopyTrainedLayersFrom(_params_file.c_str());
+  	std::cout << "Model loaded" << std::endl;
 }
 
 void *PredictionNode::run(){
@@ -36,11 +37,18 @@ void *PredictionNode::run(){
 				std::vector<cv::Mat> batch;
 				std::vector<int> batch_labels;
 
-				// Reseve space
+				// Reserve space
 				batch.reserve(_batch_size);
 				batch.insert(batch.end(), _data_buffer.begin(), _data_buffer.begin() + _batch_size);
 				batch_labels.reserve(_batch_size);
 				batch_labels.insert(batch_labels.end(), _labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
+				
+				// Accumulate labels
+				std::vector<int> new_target_labels;
+				new_target_labels.reserve(_target_labels.size() + _batch_size);
+				new_target_labels.insert(new_target_labels.end(), _target_labels.begin(), _target_labels.end());
+				new_target_labels.insert(new_target_labels.end(), _labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
+				_target_labels = new_target_labels;
 
 				// Remove batch from buffer
 				_data_buffer.erase(_data_buffer.begin(), _data_buffer.begin() + _batch_size);
@@ -56,10 +64,28 @@ void *PredictionNode::run(){
 				// Foward
 				float loss;
 				_net->ForwardPrefilled(&loss);
+				const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
+
+				const float* results = out_layer->cpu_data();
 
 				// Append outputs
-				const boost::shared_ptr<caffe::InnerProduct<float>> out_layer = boost::static_pointer_cast<caffe::InnerProduct<float>>(_net->layer_by_name("fc2"));
-				out_layer
+				for(int j=0; j < out_layer->shape(0); j++){
+					
+					int idx_max = 0;
+					float max = results[j*out_layer->shape(1) + 0];
+
+					// Argmax
+					for(int k=0; k < out_layer->shape(1); k++){
+
+						if(results[j*out_layer->shape(1) + k] > max){
+
+							max = results[j*out_layer->shape(1) + k];
+							idx_max = k;
+						}
+					}
+
+					_predictions.push_back(idx_max);
+				}
 			}	
 		}
 		else{
@@ -75,6 +101,10 @@ void *PredictionNode::run(){
 
 			// All input nodes have finished
 			if(is_all_done){
+
+				// Print results
+				compute_accuracy();
+				print_out_labels();
 				break;
 			}
 		}
@@ -91,4 +121,27 @@ void *PredictionNode::run(){
 	}
 
 	return NULL;
+}
+
+void PredictionNode::compute_accuracy(){
+
+	int hit = 0;
+	for(int i=0; i < _predictions.size(); i++){
+
+		if(_target_labels[i] == _predictions[i]){
+
+			hit++;
+		}
+	}
+
+	float acc = hit/_predictions.size();
+	std:: cout << "Accuracy: " << acc <<  " Hits: " << hit << std::endl;
+}
+
+void PredictionNode::print_out_labels(){
+
+	for(int i=0; i < _predictions.size(); i++){
+
+		std::cout << "out: " << _predictions[i] << " target: " << _target_labels[i] << std::endl;
+	}
 }
