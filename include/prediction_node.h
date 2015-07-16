@@ -32,7 +32,6 @@ class PredictionNode: public Node{
 		std::vector<cv::Mat> _data_buffer; 
 		std::vector<int> _labels_buffer;
 		std::vector<int> _predictions;
-		std::vector<int> _target_labels;
 		const boost::shared_ptr<caffe::Net<float>> _net;
 };
 #endif

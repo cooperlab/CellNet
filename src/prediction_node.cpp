@@ -1,6 +1,6 @@
 #include "prediction_node.h"
 
-PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _target_labels(), _net(new caffe::Net<float>(test_model_path.c_str(), caffe::TEST)), _params_file(params_file){
+PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _net(new caffe::Net<float>(test_model_path.c_str(), caffe::TEST)), _params_file(params_file){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
@@ -19,18 +19,14 @@ void PredictionNode::init_model(){
 void *PredictionNode::run(){
 
 	increment_threads();
+	int first_idx = 0;
 	while(true){
 
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
-		if(_data_buffer.size() >= _batch_size){
+		if(first_idx + _batch_size <= _data_buffer.size()){
 
-			// Track of number of elements
-			for(std::vector<cv::Mat>::size_type i=0; i < _data_buffer.size(); i++){
-				increment_counter();
-			}
-			
 			// For each epoch feed the model with a mini-batch of samples
-			int epochs = _data_buffer.size()/_batch_size;
+			int epochs = (_data_buffer.size() - first_idx)/_batch_size;
 			for(int i = 0; i < epochs; i++){	
 
 				// Split batch
@@ -39,27 +35,15 @@ void *PredictionNode::run(){
 
 				// Reserve space
 				batch.reserve(_batch_size);
-				batch.insert(batch.end(), _data_buffer.begin(), _data_buffer.begin() + _batch_size);
+				batch.insert(batch.end(), _data_buffer.begin() + first_idx, _data_buffer.begin() + first_idx + _batch_size);
 				batch_labels.reserve(_batch_size);
-				batch_labels.insert(batch_labels.end(), _labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
+				batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + _batch_size);
 				
-				// Accumulate labels
-				std::vector<int> new_target_labels;
-				new_target_labels.reserve(_target_labels.size() + _batch_size);
-				new_target_labels.insert(new_target_labels.end(), _target_labels.begin(), _target_labels.end());
-				new_target_labels.insert(new_target_labels.end(), _labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
-				_target_labels = new_target_labels;
-
-				// Remove batch from buffer
-				_data_buffer.erase(_data_buffer.begin(), _data_buffer.begin() + _batch_size);
-				_labels_buffer.erase(_labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
-
 				// Get memory layer from net
 				const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
 				
 				// Add matrices
 				data_layer->AddMatVector(batch, batch_labels);
-				std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
 
 				// Foward
 				float loss;
@@ -86,6 +70,7 @@ void *PredictionNode::run(){
 
 					_predictions.push_back(idx_max);
 				}
+				first_idx += _batch_size;
 			}	
 		}
 		else{
@@ -112,7 +97,7 @@ void *PredictionNode::run(){
 
 	if(check_finished() == true){
 
-		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_labels_buffer.size()) << std::endl << "******************" << std::endl;
 
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
@@ -128,13 +113,13 @@ void PredictionNode::compute_accuracy(){
 	int hit = 0;
 	for(int i=0; i < _predictions.size(); i++){
 
-		if(_target_labels[i] == _predictions[i]){
+		if(_labels_buffer[i] == _predictions[i]){
 
 			hit++;
 		}
 	}
 
-	float acc = hit/_predictions.size();
+	float acc = (float)hit/_predictions.size();
 	std:: cout << "Accuracy: " << acc <<  " Hits: " << hit << std::endl;
 }
 
@@ -142,6 +127,13 @@ void PredictionNode::print_out_labels(){
 
 	for(int i=0; i < _predictions.size(); i++){
 
-		std::cout << "out: " << _predictions[i] << " target: " << _target_labels[i] << std::endl;
+		std::cout << "out: " << _predictions[i] << " target: " << _labels_buffer[i] << std::endl;
+		//std::vector<cv::Mat> input;
+		//split(_data_buffer[i], input);
+		//for(int k = 0; k < input.size(); k++){
+
+		//	cv::imshow("channel#" + std::to_string(k), input[k]);
+		//}
+		//cv::waitKey(0);
 	}
 }

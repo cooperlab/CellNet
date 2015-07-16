@@ -1,6 +1,6 @@
 #include "train_node.h"
 
-TrainNode::TrainNode(std::string id, int mode, int batch_size, std::string model_path, float base_lr): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(new caffe::Net<float>(model_path.c_str(), caffe::TRAIN)), _base_lr(base_lr), _history(), _temp(){
+TrainNode::TrainNode(std::string id, int mode, int batch_size, std::string model_path, float base_lr, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(new caffe::Net<float>(model_path.c_str(), caffe::TRAIN)), _base_lr(base_lr), _history(), _temp(), _iter(iter){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
@@ -24,53 +24,16 @@ void TrainNode::init_model(){
 void *TrainNode::run(){
 
 	increment_threads();
+	int first_idx = 0;
+
 	while(true){
 
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
-		if(_data_buffer.size() >= _batch_size){
-
-			// Track of number of elements
-			for(std::vector<cv::Mat>::size_type i=0; i < _data_buffer.size(); i++){
-				increment_counter();
-			}
+		if(first_idx + _batch_size <= _data_buffer.size()){
 			
 			// For each epoch feed the model with a mini-batch of samples
-			int epochs = _data_buffer.size()/_batch_size;
-			for(int i = 0; i < epochs; i++){	
-
-				// Split batch
-				std::vector<cv::Mat> batch;
-				std::vector<int> batch_labels;
-
-				// Reseve space
-				batch.reserve(_batch_size);
-				batch.insert(batch.end(), _data_buffer.begin(), _data_buffer.begin() + _batch_size);
-				batch_labels.reserve(_batch_size);
-				batch_labels.insert(batch_labels.end(), _labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
-
-				// Remove batch from buffer
-				_data_buffer.erase(_data_buffer.begin(), _data_buffer.begin() + _batch_size);
-				_labels_buffer.erase(_labels_buffer.begin(), _labels_buffer.begin() + _batch_size);
-
-				// Get memory layer from net
-				const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-				
-				// Add matrices
-				data_layer->AddMatVector(batch, batch_labels);
-				std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
-
-				// Foward
-				float loss;
-				_net->ForwardPrefilled(&loss);
-				std::cout << "Loss: " << std::to_string(loss) << std::endl;
-
-				// Backward
-				_net->Backward();
-
-				// Update
-				compute_update_value();
-				_net->Update();
-			}
+			first_idx = train_step(first_idx);
+			std::cout << first_idx << std::endl;
 		}
 		else{
 
@@ -92,8 +55,15 @@ void *TrainNode::run(){
 
 	if(check_finished() == true){
 
-		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
-		
+		// Goes thru the data over again
+		for(int k=0; k < _iter-1; k++){
+			
+			std::cout << "iter: " << k << std::endl; 
+			train_step(0);
+		}
+
+		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_labels_buffer.size()) << std::endl << "******************" << std::endl;
+
 		// Save model
 		snapshot();
 
@@ -104,6 +74,47 @@ void *TrainNode::run(){
 	}
 
 	return NULL;
+}
+
+int TrainNode::train_step(int first_idx){
+
+	int epochs = (_data_buffer.size() - first_idx)/_batch_size;
+	for(int i = 0; i < epochs; i++){	
+
+		// Split batch
+		std::vector<cv::Mat> batch;
+		std::vector<int> batch_labels;
+
+		// Reseve space
+		batch.reserve(_batch_size);
+		batch.insert(batch.end(), _data_buffer.begin() + first_idx, _data_buffer.begin() + first_idx + _batch_size);
+		batch_labels.reserve(_batch_size);
+		batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + _batch_size);
+
+		// Get memory layer from net
+		const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+		//const boost::shared_ptr<caffe::Blob<float> >& input_layer = _net->blob_by_name("data");
+
+		// Add matrices
+		data_layer->AddMatVector(batch, batch_labels);
+		//std::cout << "Blob shape: " << input_layer->shape_string() << std::endl;
+		std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
+
+		// Foward
+		float loss;
+		_net->ForwardPrefilled(&loss);
+		std::cout << "Loss: " << std::to_string(loss) << std::endl;
+
+		// Backward
+		_net->Backward();
+
+		// Update
+		compute_update_value();
+		_net->Update();
+		first_idx += _batch_size;
+	}
+
+	return first_idx;
 }
 
 void TrainNode::snapshot(){

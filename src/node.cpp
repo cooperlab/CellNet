@@ -97,25 +97,28 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 
 					new_buffer.reserve(curr_buffer->size() + block_size);
 					new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
-					new_buffer.insert( new_buffer.end(), out.begin() +  i * block_size, out.begin() + (i+1) * block_size - 1);
+					new_buffer.insert( new_buffer.end(), out.begin(), out.begin() + block_size);
 				
 					new_buffer_labels.reserve(curr_buffer_labels->size() + block_size);
 					new_buffer_labels.insert( new_buffer_labels.end(), curr_buffer_labels->begin(), curr_buffer_labels->end());
-					new_buffer_labels.insert( new_buffer_labels.end(), labels.begin() +  i * block_size, labels.begin() + (i+1) * block_size - 1);
+					new_buffer_labels.insert( new_buffer_labels.end(), labels.begin(), labels.begin() + block_size);
+					
 					labels.erase(labels.begin(), labels.begin() + block_size);
-
+					out.erase(out.begin(), out.begin() + block_size);
 				}
 			}
 			else{
 
-				new_buffer.reserve(curr_buffer->size() + out.size() - (_out_edges.size()-1)*block_size);
+				new_buffer.reserve(curr_buffer->size() + out.size());
 				new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
-				new_buffer.insert( new_buffer.end(), out.begin() + (_out_edges.size()-1)*block_size, out.end());
+				new_buffer.insert( new_buffer.end(), out.begin(), out.end());
 
-				new_buffer_labels.reserve(curr_buffer_labels->size() + out.size() - (_out_edges.size()-1)*block_size);
+				new_buffer_labels.reserve(curr_buffer_labels->size() + out.size());
 				new_buffer_labels.insert( new_buffer_labels.end(), curr_buffer_labels->begin(), curr_buffer_labels->end());
-				new_buffer_labels.insert( new_buffer_labels.end(), labels.begin() + (_out_edges.size()-1)*block_size, labels.end());
-				labels.erase(labels.begin(), labels.begin() + labels.size() - (_out_edges.size()-1)*block_size);
+				new_buffer_labels.insert( new_buffer_labels.end(), labels.begin(), labels.begin() + out.size());
+				
+				labels.erase(labels.begin(), labels.begin() + out.size());
+				out.clear();
 			}
 
 			// Set new buffer
@@ -167,16 +170,16 @@ void Node::copy_chunk_from_buffer(std::vector<cv::Mat> &out, std::vector<int> &l
 		if(!_buffer->empty()){
 
 			std::vector<cv::Mat> new_block;
-			new_block.reserve(_buffer->size() + out.size());
-			new_block.insert( new_block.end(), _buffer->begin(), _buffer->end());
+			new_block.reserve(out.size() + _buffer->size());
 			new_block.insert( new_block.end(), out.begin(), out.end());
+			new_block.insert( new_block.end(), _buffer->begin(), _buffer->end());
 			out = new_block;
 			_buffer->clear();	 
 
 			std::vector<int> new_block_labels;
-			new_block_labels.reserve(_buffer_labels->size() + labels.size());
-			new_block_labels.insert( new_block_labels.end(), _buffer_labels->begin(), _buffer_labels->end());
+			new_block_labels.reserve(labels.size() + _buffer_labels->size());
 			new_block_labels.insert( new_block_labels.end(), labels.begin(), labels.end());
+			new_block_labels.insert( new_block_labels.end(), _buffer_labels->begin(), _buffer_labels->end());	
 			labels = new_block_labels;
 			_buffer_labels->clear();
 		}

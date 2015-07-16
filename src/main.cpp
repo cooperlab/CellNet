@@ -148,9 +148,9 @@ int main (int argc, char * argv[])
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 4;
-	float base_lr = 0.00001;
-	//train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, model_path, base_lr));
-	train_graph->add_node(new PredictionNode("train_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path));
+	float base_lr = 0.0001;
+	train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, model_path, base_lr, 1));
+	//train_graph->add_node(new PredictionNode("train_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path));
 
 	// Add train edges
 	int n_edges = 0;

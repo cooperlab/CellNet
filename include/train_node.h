@@ -20,11 +20,12 @@
 class TrainNode: public Node{
 
 	public:
-		TrainNode(std::string id, int mode, int batch_size, std::string model_path, float base_lr);
+		TrainNode(std::string id, int mode, int batch_size, std::string model_path, float base_lr, int iter);
 		void *run();
 		void init_model();
 		void compute_update_value();
 		void snapshot();
+		int train_step(int first_idx);
 
 	protected:
 		int _batch_size;
@@ -35,5 +36,6 @@ class TrainNode: public Node{
 		float _base_lr;
 		std::vector<boost::shared_ptr<caffe::Blob<float>>> _history;
 		std::vector<boost::shared_ptr<caffe::Blob<float>>> _temp;
+		int _iter;
 };
 #endif
