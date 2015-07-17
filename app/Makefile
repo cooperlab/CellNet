@@ -42,12 +42,15 @@ LINKER	      = g++
 
 # Define all object files to be the same as CPPSRCS but with all the .cpp and .c suffixes replaced with .o
 OBJ           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS))
+OBJ2           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS2))
 
 # Define name of target executable
-PROGRAM	      = main
+PROGRAM	      = train
+PROGRAM2      = test
 
 # Define all C++ source files here
 CPPSRCS       = $(SRC_DIR)/train_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp
+CPPSRCS2       = $(SRC_DIR)/test_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp
 
 ##############################################################################
 # Define additional rules that make should know about in order to compile our
@@ -55,11 +58,12 @@ CPPSRCS       = $(SRC_DIR)/train_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/u
 ##############################################################################
 
 # Define default rule if Make is run without arguments
-all : $(PROGRAM) 
+all : $(PROGRAM) $(PROGRAM2) 
 
 # Define rule for compiling all C++ files
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	$(CCC) $(CCCFLAGS) $(CPPFLAGS) -c $< -o $@
+
 	
 # Define rule for creating executable
 $(PROGRAM) :	$(OBJ)
@@ -67,7 +71,13 @@ $(PROGRAM) :	$(OBJ)
 		$(LINKER) -o $(PROGRAM) $(OBJ) $(LIBS) 
 		@echo "done"
 
+$(PROGRAM2) :	$(OBJ2)
+		@echo -n "Loading $(PROGRAM2) ... "
+		$(LINKER) -o $(PROGRAM2) $(OBJ2) $(LIBS) 
+		@echo "done"
+
 # Define rule to clean up directory by removing all object, temp and core
 # files along with the executable
 clean :
 	@rm -f $(OBJ) *~ $(PROGRAM)
+	@rm -f $(OBJ) *~ $(PROGRAM2)
