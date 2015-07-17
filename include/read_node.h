@@ -15,7 +15,7 @@
 class ReadNode: public Node{
 
 	public:
-		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set, std::vector<int> labels, int mode);
+		ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set, std::vector<std::vector<int>> input_labels, int mode);
 		void show_entire_image(cv::Mat);
 		void show_cropped_cells(std::vector<cv::Mat> extracted_images);
 		std::vector<cv::Mat> crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> cells_coordinates);
@@ -30,5 +30,6 @@ class ReadNode: public Node{
   		std::vector<std::string> _image_paths;
   		std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set;
   		int i_ptr;
+  		std::vector<std::vector<int>> _input_labels;
 };
 #endif

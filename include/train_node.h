@@ -26,6 +26,7 @@ class TrainNode: public Node{
 		void compute_update_value();
 		void snapshot();
 		int train_step(int first_idx);
+		void cross_validate(std::vector<cv::Mat> batch, std::vector<int> batch_labels);
 
 	protected:
 		int _batch_size;

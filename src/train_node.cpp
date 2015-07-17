@@ -91,13 +91,14 @@ int TrainNode::train_step(int first_idx){
 		batch_labels.reserve(_batch_size);
 		batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + _batch_size);
 
+		// Predict next batch
+		cross_validate(batch, batch_labels);
+
 		// Get memory layer from net
 		const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-		//const boost::shared_ptr<caffe::Blob<float> >& input_layer = _net->blob_by_name("data");
 
 		// Add matrices
 		data_layer->AddMatVector(batch, batch_labels);
-		//std::cout << "Blob shape: " << input_layer->shape_string() << std::endl;
 		std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
 
 		// Foward
@@ -115,6 +116,55 @@ int TrainNode::train_step(int first_idx){
 	}
 
 	return first_idx;
+}
+
+void TrainNode::cross_validate(std::vector<cv::Mat> batch, std::vector<int> batch_labels){
+
+	// Get memory layer from net
+	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+
+	// Add matrices
+	data_layer->AddMatVector(batch, batch_labels);
+
+	// Foward
+	float loss;
+	_net->ForwardPrefilled(&loss);
+	const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
+
+	const float* results = out_layer->cpu_data();
+
+	// Append outputs
+	std::vector<int> predictions;
+	for(int j=0; j < out_layer->shape(0); j++){
+		
+		int idx_max = 0;
+		float max = results[j*out_layer->shape(1) + 0];
+
+		// Argmax
+		for(int k=0; k < out_layer->shape(1); k++){
+
+			if(results[j*out_layer->shape(1) + k] > max){
+
+				max = results[j*out_layer->shape(1) + k];
+				idx_max = k;
+			}
+		}
+
+		predictions.push_back(idx_max);
+	}
+
+	// Compare labels
+	int hit = 0;
+	for(int k = 0; k < predictions.size(); k++){
+
+		if(predictions[k] == batch_labels[k]){
+
+			hit++;
+		}
+	}
+
+	float acc = (float)hit/predictions.size();
+	std::cout << "Batch accuracy: " << acc << std::endl;
 }
 
 void TrainNode::snapshot(){

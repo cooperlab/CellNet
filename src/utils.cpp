@@ -1,21 +1,29 @@
 #include "utils.h"
 #include <sys/time.h>
 
+typedef struct 
+{
+	int var;
+	int str_null_term;
+	int set_ascii;
+	char *c_str;
+}H5string;
+
 namespace utils{
 
 	// Get current time
 	double get_time(void)
 	{
-	    double now_time;
-	    struct timeval  etstart;
-	    struct timezone tzp;
+		double now_time;
+		struct timeval  etstart;
+		struct timezone tzp;
 
-	    if (gettimeofday(&etstart, &tzp) == -1)
-	        perror("Error: calling gettimeofday() not successful.\n");
+		if (gettimeofday(&etstart, &tzp) == -1)
+			perror("Error: calling gettimeofday() not successful.\n");
 
 	    now_time = ((double)etstart.tv_sec) +              /* in seconds */
 	               ((double)etstart.tv_usec) / 1000000.0;  /* in microseconds */
-	    return now_time;
+		return now_time;
 	}
 
 	// Extract information from HDF5 file
@@ -106,5 +114,46 @@ namespace utils{
 		H5Sclose(file_dataspace_id);
 		H5Fclose(file_id);
 		free(dims);
+	}
+
+	// Extract information from HDF5 file
+	void get_data(std::string data_path, std::string dataset_name, std::vector<std::string> &data_out){
+
+		//  Declare variables 
+		const char *fname = data_path.c_str();	
+		hid_t dset, fileType, space, memType, fileId;
+		herr_t status;
+		hsize_t dims[2];
+		char **slides;
+		bool result = true;
+		int numSlides;
+
+		fileId = H5Fopen (fname, H5F_ACC_RDONLY, H5P_DEFAULT);
+		dset = H5Dopen(fileId, dataset_name.c_str(), H5P_DEFAULT);
+		fileType = H5Dget_type(dset);
+		space = H5Dget_space(dset);
+		H5Sget_simple_extent_dims(space, dims, NULL);
+
+		slides = (char**)malloc(dims[0] * sizeof(char*));
+		if( slides == NULL ) {
+			result = false;
+		}
+
+		if( result ) {
+			memType = H5Tcopy(H5T_C_S1);
+			H5Tset_size(memType, H5T_VARIABLE);
+			status = H5Dread(dset, memType, H5S_ALL, H5S_ALL, H5P_DEFAULT, slides);
+			if( status < 0 ) {
+				result = false;
+			} else {
+				numSlides = dims[0];
+				H5Dclose(dset);
+				H5Tclose(fileType);
+			}
+		}
+		for (int i=0; i<dims[0]; i++){
+			std::string slide(slides[i]);
+			data_out.push_back(slide);
+		}
 	}
 }

@@ -5,9 +5,8 @@
 #include "utils.h"
 #define SHIFT 25
 
-ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> cells_coordinates_set, std::vector<int> labels, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0){
-	 _labels = labels;
-	 std::cout << "total labels: " << std::to_string(_labels.size()) << std::endl;
+ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> cells_coordinates_set, std::vector<std::vector<int>> input_labels, int mode): Node(id, mode), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0), _input_labels(input_labels){
+	
 	 runtime_total_first = utils::get_time();
 }
 
@@ -23,9 +22,9 @@ void *ReadNode::run(){
 	while(i >= 0){
 
 		increment_counter();
-		entire_image = open_image(_image_paths.at(i));
+		entire_image = open_image(_image_paths[i]);
 		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
-		copy_to_buffer(extracted_images, _labels);
+		copy_to_buffer(extracted_images, _input_labels[i]);
 
 		// Execute
 		i = get_input();
