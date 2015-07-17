@@ -27,6 +27,7 @@
 const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
 const static std::string LOCAL_HOME = "/home/nelson";
 
+// Move this function to utils!
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
 	
 	// Fill train dataset
@@ -55,11 +56,13 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, fl
 	}
 }
 
+// Move this function to utils!
 bool has_prefix(const std::string& s, const std::string& prefix)
 {
     return (s.size() >= prefix.size()) && equal(prefix.begin(), prefix.end(), s.begin());    
 }
 
+// Move this function to utils!
 std::string get_image_name(std::string name){
 
 	DIR *dir = opendir(IMAGE_PATH.c_str());
