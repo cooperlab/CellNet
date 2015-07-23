@@ -14,7 +14,7 @@ CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS -DCPU_ONLY
 
 # Define Includes
 CPPFLAGS =  -std=c++11
-CPPFLAGS += -I$(SDK_HOME)/include                                                                       # Include $
+CPPFLAGS += -I$(SDK_HOME)/include                                          
 CPPFLAGS += -I$(LOCAL_HOME)/include
 CPPFLAGS += -I$(LOCAL_HOME)/include/opencv
 CPPFLAGS += -I$(LOCAL_HOME)/include/openslide                           # Include OpenSlide

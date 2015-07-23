@@ -8,7 +8,7 @@ PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::st
 
 void PredictionNode::init_model(){
 
-    caffe::Caffe::set_mode(caffe::Caffe::CPU);
+    caffe::Caffe::set_mode(caffe::Caffe::GPU);
 
     // Initialize the history
   	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
@@ -97,7 +97,7 @@ void *PredictionNode::run(){
 
 	if(check_finished() == true){
 
-		std::cout << "******************" << std::endl << "TrainNode" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_labels_buffer.size()) << std::endl << "******************" << std::endl;
+		std::cout << "******************" << std::endl << "Prediction" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_labels_buffer.size()) << std::endl << "******************" << std::endl;
 
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){

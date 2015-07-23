@@ -59,7 +59,10 @@ void GraphNet::link(){
 		std::cout << _nodes.at(i)._id << std::endl;
 
 		if(!_nodes.at(i)._in_edges.empty()){
-			std::cout << "in: "<< _nodes.at(i)._in_edges.at(0)->_id << std::endl;
+			
+			for(int k = 0; k < _nodes.at(i)._in_edges.size(); k++){
+				std::cout << "in: "<< _nodes.at(i)._in_edges.at(k)->_id << std::endl;
+			}
 		}
 		else{
 			std::cout << "in: none" << std::endl;
