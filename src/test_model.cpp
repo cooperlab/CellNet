@@ -24,9 +24,9 @@
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 2
 
-const static std::string IMAGE_PATH = "/home/nnauata/LGG-test";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
 	
@@ -46,6 +46,7 @@ void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, fl
 		// Append 
 		cells_coordinates_set[slide_idx[k]].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
 		shuffled_labels[slide_idx[k]].push_back(labels[k]);
+		
 
 		// Erase selected element
 		x_centroid.erase(x_centroid.begin() + k);
@@ -98,7 +99,13 @@ int main (int argc, char * argv[])
 	utils::get_data(fname, "x_centroid", x_centroid);
 	utils::get_data(fname, "y_centroid", y_centroid);
 	utils::get_data(fname, "slideIdx", slide_idx);
-	utils::get_data(fname, "labels", labels);
+	//utils::get_data(fname, "labels", labels);
+	// Create fake labels
+	for(int k = 0; k < x_centroid.size(); k++){
+
+		labels.push_back(0);
+	}
+
 	utils::get_data(fname, "slides", slides);
 
 	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
@@ -128,7 +135,6 @@ int main (int argc, char * argv[])
 	/******************************** Shuffle & Split Data ******************************************/
 
 	float begin_time_2 = utils::get_time();
-
 	fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
 	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
@@ -168,7 +174,7 @@ int main (int argc, char * argv[])
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 8;
-	train_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, model_path, trained_model_path));
+	train_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path));
 
 	// Add train edges
 	int n_edges = 0;

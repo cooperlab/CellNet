@@ -23,11 +23,14 @@
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 2
-#define NUMB_READ_NODE 8
+#define NUMB_READ_NODE 1
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 // Move this function to utils!
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
