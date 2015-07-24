@@ -29,48 +29,7 @@ void *PredictionNode::run(){
 			int epochs = (_data_buffer.size() - first_idx)/_batch_size;
 			for(int i = 0; i < epochs; i++){	
 
-				// Split batch
-				std::vector<cv::Mat> batch;
-				std::vector<int> batch_labels;
-
-				// Reserve space
-				batch.reserve(_batch_size);
-				batch.insert(batch.end(), _data_buffer.begin() + first_idx, _data_buffer.begin() + first_idx + _batch_size);
-				batch_labels.reserve(_batch_size);
-				batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + _batch_size);
-				
-				// Get memory layer from net
-				const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-				
-				// Add matrices
-				data_layer->AddMatVector(batch, batch_labels);
-
-				// Foward
-				float loss;
-				_net->ForwardPrefilled(&loss);
-				const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
-
-				const float* results = out_layer->cpu_data();
-
-				// Append outputs
-				for(int j=0; j < out_layer->shape(0); j++){
-					
-					int idx_max = 0;
-					float max = results[j*out_layer->shape(1) + 0];
-
-					// Argmax
-					for(int k=0; k < out_layer->shape(1); k++){
-
-						if(results[j*out_layer->shape(1) + k] > max){
-
-							max = results[j*out_layer->shape(1) + k];
-							idx_max = k;
-						}
-					}
-
-					_predictions.push_back(idx_max);
-				}
-				first_idx += _batch_size;
+				first_idx = step(first_idx, _batch_size);
 			}	
 		}
 		else{
@@ -86,6 +45,13 @@ void *PredictionNode::run(){
 
 			// All input nodes have finished
 			if(is_all_done){
+
+				// Handle non-multiples
+				if(first_idx != _data_buffer.size()-1){
+					
+					std::cout << "Remaining samples: " << std::to_string(_data_buffer.size()-first_idx) << std::endl; 
+					step(first_idx, _data_buffer.size()-first_idx);
+				}
 
 				// Print results
 				compute_accuracy();
@@ -107,6 +73,82 @@ void *PredictionNode::run(){
 
 	return NULL;
 }
+
+int PredictionNode::step(int first_idx, int batch_size){
+
+	// Split batch
+	std::vector<cv::Mat> batch;
+	std::vector<int> batch_labels;
+
+	// Reserve space
+	batch.reserve(batch_size);
+	batch.insert(batch.end(), _data_buffer.begin() + first_idx, _data_buffer.begin() + first_idx + batch_size);
+	batch_labels.reserve(batch_size);
+	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
+	
+	// Get memory layer from net
+	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+	
+	// Set batch size
+	data_layer->set_batch_size(batch_size);
+
+	// Add matrices
+	data_layer->AddMatVector(batch, batch_labels);
+
+	// Foward
+	float loss;
+	_net->ForwardPrefilled(&loss);
+	const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
+
+	const float* results = out_layer->cpu_data();
+
+	// Append outputs
+	for(int j=0; j < out_layer->shape(0); j++){
+		
+		int idx_max = 0;
+		float max = results[j*out_layer->shape(1) + 0];
+
+		// Argmax
+		for(int k=0; k < out_layer->shape(1); k++){
+
+			if(results[j*out_layer->shape(1) + k] > max){
+
+				max = results[j*out_layer->shape(1) + k];
+				idx_max = k;
+			}
+		}
+
+		_predictions.push_back(idx_max);
+	}
+	first_idx += batch_size;
+	return first_idx;
+}
+
+/*
+caffe::Blob<Dtype> *PredictionNode::convert_to_blob(std::vector<cv::Mat> batch){
+
+	// Set size
+	cv::Size s = batch[0].size();
+	int batch_size = batch.size();
+	int channels = batch[0].channels();
+	int width = s.width;
+	int height = s.height;
+
+	// convert the image to a caffe::Blob
+	caffe::Blob<Dtype> *blob = new caffe::Blob<Dtype>(batch_size, c, width, height);
+	for(int k=0; k < batch_size; k++){
+		for (int c = 0; c < channels; ++c) {
+		    for (int h = 0; h < height; ++h) {
+		        for (int w = 0; w < width; ++w) {
+
+		            blob->mutable_cpu_data()[blob->offset(k, c, h, w)] = batch[k].at<cv::Vec3b>(h, w)[c];
+		        }
+		    }
+		}
+	}
+	return blob;
+}
+*/
 
 void PredictionNode::compute_accuracy(){
 

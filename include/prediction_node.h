@@ -25,6 +25,7 @@ class PredictionNode: public Node{
 		void init_model();
 		void compute_accuracy();
 		void print_out_labels();
+		int step(int first_idx, int batch_size);
 
 	protected:
 		int _batch_size;

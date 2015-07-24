@@ -25,6 +25,10 @@
 #define NUMB_LAPLACIAN_NODE 2
 #define NUMB_PREDICTION_NODE 2
 
+
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
 const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
 const static std::string LOCAL_HOME = "/home/nelson";
 const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
@@ -166,7 +170,8 @@ int main (int argc, char * argv[])
 	// Define laplacian nodes
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
-			train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), CHUNK_MODE));
+
+			train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), ALTERNATE_MODE));
 		}
 	}
 
@@ -174,10 +179,13 @@ int main (int argc, char * argv[])
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
-	int batch_size = 8;	
-	for(int i=0; i < NUMB_PREDICTION_NODE; i++){
+	int batch_size = 10;	
 
-		train_graph->add_node(new PredictionNode("prediction_node" + std::to_string(i), REPEAT_MODE, batch_size, test_model_path, trained_model_path));
+	for(int k = 0; k < NUMB_LAPLACIAN_NODE; k++){
+		for(int i=0; i < NUMB_PREDICTION_NODE; i++){
+
+			train_graph->add_node(new PredictionNode("prediction_node" + std::to_string(k) + std::to_string(i), REPEAT_MODE, batch_size, test_model_path, trained_model_path));
+		}
 	}
 
 	// Add edges
@@ -193,7 +201,7 @@ int main (int argc, char * argv[])
 				
 				for(int n=0; n < NUMB_PREDICTION_NODE; n++){
 
-					train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "prediction_node" + std::to_string(n)));
+					train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "prediction_node" + std::to_string(j) + std::to_string(n)));
 				}
 			}
 		}
