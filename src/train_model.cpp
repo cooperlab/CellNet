@@ -25,12 +25,12 @@
 #define NUMB_LAPLACIAN_NODE 2
 #define NUMB_READ_NODE 1
 
-//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
+//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+//const static std::string LOCAL_HOME = "/home/nelson";
+//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 // Move this function to utils!
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
@@ -167,11 +167,11 @@ int main (int argc, char * argv[])
 	}
 	
 	// Define laplacian nodes
-	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
-		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
-			train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), CHUNK_MODE));
-		}
-	}
+	//for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+	//	for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
+	//		train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), CHUNK_MODE));
+	//	}
+	//}
 
 	// Define train node
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
@@ -191,11 +191,12 @@ int main (int argc, char * argv[])
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
 			}
-			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
-			}
+			train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "train_node"));
+			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
+			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
+			//}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;
