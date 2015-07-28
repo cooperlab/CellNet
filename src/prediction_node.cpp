@@ -170,11 +170,11 @@ void PredictionNode::print_out_labels(){
 	for(int i=0; i < _predictions.size(); i++){
 
 		std::cout << "out: " << _predictions[i] << " target: " << _labels_buffer[i] << std::endl;
-	//	std::vector<cv::Mat> input;
-	//	split(_data_buffer[i], input);
-	//	for(int k = 0; k < input.size(); k++){
+		std::vector<cv::Mat> input;
+		split(_data_buffer[i], input);
+		for(int k = 0; k < input.size(); k++){
 
-	//		cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
-	//	}
+			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
+		}
 	}
 }

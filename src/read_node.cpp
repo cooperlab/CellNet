@@ -10,57 +10,34 @@ ReadNode::ReadNode(std::string id, std::vector<std::string> image_paths, std::ve
 	 runtime_total_first = utils::get_time();
 }
 
+
 void *ReadNode::run(){
 	
-	increment_threads();
-
-	std::vector<cv::Mat> extracted_image;
+	std::vector<cv::Mat> extracted_images;
+	cv::Mat entire_image;
 
 	// Execute
-	int i = get_input();
-	while(i >= 0){
+	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
 
-		increment_counter();
+		// Declare variable
+		int64_t min_x, min_y;
 
-		// Open image reference
-		openslide_t *oslide = openslide_open(_image_paths[i].c_str());
-		if(oslide != NULL){
+		// Read and crop images
+		entire_image = open_image(_image_paths.at(i), i, min_x, min_y);
+		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i], min_x, min_y);
+		copy_to_buffer(extracted_images, _input_labels[i]);
 
-			int layer_i = get_layer(oslide);
-			for(int k=0; k < _cells_coordinates_set[i].size(); k++){
-
-				// Get center coordinates
-				int c_x = std::get<0>(_cells_coordinates_set[i][k]);
-				int c_y = std::get<1>(_cells_coordinates_set[i][k]);
-				
-				// Extract region
-				cv::Mat img = open_image_region(oslide, layer_i, 2*SHIFT, 2*SHIFT, c_x-SHIFT, c_y-SHIFT);
-				extracted_image.push_back(img);
-
-				// Create label vector 
-				std::vector<int> label;
-				label.push_back(_input_labels[i][k]);
-
-				// Copy data to buffer
-				copy_to_buffer(extracted_image, label);
-				extracted_image.clear();
-			}
-		}
-		openslide_close(oslide);
-		
-		// Execute
-		i = get_input();
+		// Release memory
+		extracted_images.clear();
+		entire_image.release();
 	}
+
+	// Notify it has finished
+	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+		_out_edges.at(i)->set_in_node_done();
+	}	
+	std::cout << "ReadNode complete" << std::endl;
 	
-	if( check_finished() == true){
-
-		std::cout << "******************" << std::endl << "ReadNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
-
-		// Notify it has finished
-		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-			_out_edges.at(i)->set_in_node_done();
-		}
-	}
 	return NULL;
 }	
 
@@ -165,7 +142,7 @@ cv::Mat ReadNode::open_image_region(openslide_t *oslide, int layer_i, float w, f
 }
 
 // This method opens an image using openslide and removes the alpha channel
-cv::Mat ReadNode::open_image(std::string image_path){
+cv::Mat ReadNode::open_image(std::string image_path, int k, int64_t &min_x, int64_t &min_y){
 
 	std::cout << image_path << std::endl;
 	cv::Mat entire_image;
@@ -178,15 +155,55 @@ cv::Mat ReadNode::open_image(std::string image_path){
 		
 		// Declare variables
 		int64_t w, h;
-		openslide_get_level_dimensions(oslide, layer_i, &w, &h);
-		entire_image = open_image_region(oslide, layer_i, w, h, 0, 0);
+		//openslide_get_level_dimensions(oslide, layer_i, &w, &h);
+
+		get_bb(k, w, h, min_x, min_y);
+		entire_image = open_image_region(oslide, layer_i, w, h, min_x, min_y);
 	}
 
 	openslide_close(oslide);
 	return entire_image;
 }
 
-std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> _cells_coordinates){
+void ReadNode::get_bb(int64_t k, int64_t &w, int64_t &h, int64_t &x, int64_t &y){
+
+	int64_t min_x = std::get<0>(_cells_coordinates_set[k][0]);
+	int64_t max_x = std::get<0>(_cells_coordinates_set[k][0]);
+	int64_t min_y = std::get<1>(_cells_coordinates_set[k][0]);
+	int64_t max_y = std::get<1>(_cells_coordinates_set[k][0]);
+
+	for(int i=0; i < _cells_coordinates_set[k].size(); i++){
+
+		int64_t x_i = std::get<0>(_cells_coordinates_set[k][i]);
+		int64_t y_i = std::get<1>(_cells_coordinates_set[k][i]);
+
+		if(x_i < min_x){
+			min_x = x_i;
+		}
+		if(x_i > max_x){
+			max_x = x_i;
+		}
+		if(y_i < min_y){
+			min_y = y_i;
+		}
+		if(y_i > max_y){
+			max_y = y_i;
+		}
+	}
+
+	x = min_x - SHIFT;
+	y = min_y - SHIFT;
+	w = max_x - min_x + 2*SHIFT + 1;
+	h = max_y - min_y + 2*SHIFT + 1;
+
+	//std::cout << "min_x: " << min_x << " " << "min_y: " << min_y << std::endl; 
+	//std::cout << "max_x: " << max_x << " " << "max_y: " << max_y << std::endl; 
+
+}
+
+
+
+std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> _cells_coordinates, int64_t offset_x, int64_t offset_y){
 
 	std::vector<cv::Mat> extracted_images;
 
@@ -195,16 +212,17 @@ std::vector<cv::Mat> ReadNode::crop_cells(cv::Mat entire_image, std::vector<std:
 		cv::Size s = entire_image.size();
 		int _entire_image_height = s.height;
 		int _entire_image_width = s.width;
-
+		//std::cout << "height: " << _entire_image_height << " " << "width: " << _entire_image_width << std::endl; 
 		for (std::vector<cv::Mat>::size_type i= 0; i != _cells_coordinates.size(); i++) {
 
 			int x = std::get<0>(_cells_coordinates[i]);
 			int y = std::get<1>(_cells_coordinates[i]);
 			
-
-			if((x-SHIFT >=0) && (y-SHIFT >=0) && (x+SHIFT < _entire_image_width) && (y+SHIFT < _entire_image_height)){
-				cv::Point tl(x-SHIFT, y-SHIFT);
-				cv::Point br(x+SHIFT, y+SHIFT);
+			//std::cout << "x: " << std::to_string(x+SHIFT-offset_x) << " " << "y: " << std::to_string(y+SHIFT-offset_y) << std::endl;
+			if((x-SHIFT-offset_x >=0) && (y-SHIFT-offset_y >=0) && (x+SHIFT-offset_x < _entire_image_width) && (y+SHIFT-offset_y < _entire_image_height)){
+				
+				cv::Point tl(x-SHIFT-offset_x, y-SHIFT-offset_y);
+				cv::Point br(x+SHIFT-offset_x, y+SHIFT-offset_y);
 
 				// Setup a rectangle to define region of interest
 				cv::Rect cellROI(tl, br);
