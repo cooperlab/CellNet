@@ -25,12 +25,12 @@
 #define NUMB_LAPLACIAN_NODE 2
 #define NUMB_READ_NODE 1
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
-//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-//const static std::string LOCAL_HOME = "/home/nelson";
-//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 // Move this function to utils!
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
@@ -92,6 +92,7 @@ int main (int argc, char * argv[])
 
 	// Start clock
 	double begin_time = utils::get_time();
+
 	/**************************************** Get Input Data  ***************************************/
 
 	// Declare input data
@@ -108,11 +109,10 @@ int main (int argc, char * argv[])
 	utils::get_data(fname, "labels", labels);
 	utils::get_data(fname, "slides", slides);
 
-	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
-	/************************************* Create Train Dataset ************************************/
-
-	// Declare Variables
+	std::cout << "Time to read images: " << float( utils::get_time() - begin_time )  << std::endl;
+	/************************************ Create Train Dataset ************************************/
 	
+	// Declare Variables
 	long long unsigned int num_elems = x_centroid.size();
 	GraphNet *train_graph = new GraphNet();
 	std::vector<std::string> train_file_paths;
@@ -131,18 +131,18 @@ int main (int argc, char * argv[])
 		train_cells_coordinates_set.push_back(train_slide);
 		train_labels.push_back(label_slide);
 	}
+	
 
 	/******************************** Shuffle & Split Data ******************************************/
-
+	
 	float begin_time_2 = utils::get_time();
-
 	fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
 	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
 	std::cout << "train_size: " << num_elems << std::endl;
-
+	
 	/********************************    Setup Graphs     *******************************************/
-
+	
 	//Define paths
 	for(int k = 0; k < slides.size(); k++){
 
@@ -158,7 +158,7 @@ int main (int argc, char * argv[])
 	// Add some Train Nodes
 	for(int i=0; i < NUMB_READ_NODE; i++){
 
-		train_graph->add_node(new ReadNode("read_node" + std::to_string(i), train_file_paths, train_cells_coordinates_set, train_labels, CHUNK_MODE));
+		train_graph->add_node(new ReadNode("read_node" + std::to_string(i), train_file_paths, train_cells_coordinates_set, train_labels, ALTERNATE_MODE));
 	}
 
 	// Define grayscale nodes
@@ -167,11 +167,11 @@ int main (int argc, char * argv[])
 	}
 	
 	// Define laplacian nodes
-	//for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
-	//	for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
-	//		train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), CHUNK_MODE));
-	//	}
-	//}
+	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
+			train_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), CHUNK_MODE));
+		}
+	}
 
 	// Define train node
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
@@ -191,12 +191,11 @@ int main (int argc, char * argv[])
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
 			}
-			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-			train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "train_node"));
-			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
-			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
-			//}
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
+			}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;

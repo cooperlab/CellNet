@@ -18,7 +18,7 @@ void *GrayScaleNode::run(){
 
 		if(!out.empty()){
 
-			std::cout << "total labels in gray: " << std::to_string(_labels.size()) << std::endl;
+			//std::cout << "total labels in gray: " << std::to_string(_labels.size()) << std::endl;
 
 			for(std::vector<cv::Mat>::size_type i=0; i < out.size(); i++){
 				

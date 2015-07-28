@@ -14,30 +14,44 @@ void *ReadNode::run(){
 	
 	increment_threads();
 
-	std::vector<cv::Mat> extracted_images;
-	cv::Mat entire_image;
+	std::vector<cv::Mat> extracted_image;
 
 	// Execute
 	int i = get_input();
 	while(i >= 0){
 
 		increment_counter();
-		entire_image = open_image(_image_paths[i]);
-		extracted_images = crop_cells(entire_image, _cells_coordinates_set[i]);
-		copy_to_buffer(extracted_images, _input_labels[i]);
 
+		// Open image reference
+		openslide_t *oslide = openslide_open(_image_paths[i].c_str());
+		if(oslide != NULL){
+
+			int layer_i = get_layer(oslide);
+			for(int k=0; k < _cells_coordinates_set[i].size(); k++){
+
+				// Get center coordinates
+				int c_x = std::get<0>(_cells_coordinates_set[i][k]);
+				int c_y = std::get<1>(_cells_coordinates_set[i][k]);
+				
+				// Extract region
+				cv::Mat img = open_image_region(oslide, layer_i, 2*SHIFT, 2*SHIFT, c_x-SHIFT, c_y-SHIFT);
+				extracted_image.push_back(img);
+
+				// Create label vector 
+				std::vector<int> label;
+				label.push_back(_input_labels[i][k]);
+
+				// Copy data to buffer
+				copy_to_buffer(extracted_image, label);
+				extracted_image.clear();
+			}
+		}
+		openslide_close(oslide);
+		
 		// Execute
 		i = get_input();
 	}
-
-	/****************** Debug ******************/
-	//show_entire_image(entire_image);
-
-	// Release memory
-	extracted_images.clear();
-	entire_image.release();
 	
-	//show_cropped_cells();
 	if( check_finished() == true){
 
 		std::cout << "******************" << std::endl << "ReadNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
@@ -96,6 +110,60 @@ int ReadNode::get_layer(openslide_t *oslide){
 	return magnification.size()-1;
 }
 
+// Read the target portion of an slide
+cv::Mat ReadNode::open_image_region(openslide_t *oslide, int layer_i, float w, float h, float x, float y){
+
+	// Declare buff
+	// Read region
+	uint32_t *buf = g_new(uint32_t, w * h);
+	uint32_t *out = g_new(uint32_t, w * h);
+
+	// Read region
+	openslide_read_region(oslide, buf, x, y, layer_i, w, h);
+
+	// Convert to RGBX
+	for (int64_t i = 0; i < w * h; i++) {
+
+		uint32_t pixel = buf[i];
+		uint8_t a = pixel >> 24;
+
+		if (a == 255) {
+     	   // Common case.  Compiles to a shift and a BSWAP.
+			out[i] = GUINT32_TO_BE(pixel << 8);
+		} else if (a == 0) {
+        	// Less common case.  Hardcode white pixel; could also
+        	// use value from openslide.background-color property
+        	// if it exists
+			out[i] = GUINT32_TO_BE(0xffffff00u);
+		} else {
+        	// Unusual case.
+			uint8_t r = 255 * ((pixel >> 16) & 0xff) / a;
+			uint8_t g = 255 * ((pixel >> 8) & 0xff) / a;
+			uint8_t b = 255 * (pixel & 0xff) / a;
+			out[i] = GUINT32_TO_BE(r << 24 | g << 16 | b << 8);
+		}
+	}
+	
+	// Convert to opencv
+	// Get XBGR channels
+	cv::Mat int_XBGR = cv::Mat(h, w, CV_8UC4, out);
+	cv::Mat entire_image;
+	std::vector<cv::Mat> XBRG_channels;
+	cv::split(int_XBGR, XBRG_channels);
+
+	// Pop X channels
+	XBRG_channels.pop_back();
+
+	// Merge channels BGR back to image
+	cv::merge(XBRG_channels, entire_image);
+
+	// Close openslide object
+	free(buf);
+	free(out);
+
+	return entire_image;
+}
+
 // This method opens an image using openslide and removes the alpha channel
 cv::Mat ReadNode::open_image(std::string image_path){
 
@@ -111,52 +179,10 @@ cv::Mat ReadNode::open_image(std::string image_path){
 		// Declare variables
 		int64_t w, h;
 		openslide_get_level_dimensions(oslide, layer_i, &w, &h);
-		uint32_t *buf = g_new(uint32_t, w * h);
-		uint32_t *out = g_new(uint32_t, w * h);
-
-		// Read region
-		openslide_read_region(oslide, buf, 0, 0, layer_i, w, h);
-
-		// Convert to RGBX
-		for (int64_t i = 0; i < w * h; i++) {
-
-			uint32_t pixel = buf[i];
-			uint8_t a = pixel >> 24;
-
-			if (a == 255) {
-	     	   // Common case.  Compiles to a shift and a BSWAP.
-				out[i] = GUINT32_TO_BE(pixel << 8);
-			} else if (a == 0) {
-	        	// Less common case.  Hardcode white pixel; could also
-	        	// use value from openslide.background-color property
-	        	// if it exists
-				out[i] = GUINT32_TO_BE(0xffffff00u);
-			} else {
-	        	// Unusual case.
-				uint8_t r = 255 * ((pixel >> 16) & 0xff) / a;
-				uint8_t g = 255 * ((pixel >> 8) & 0xff) / a;
-				uint8_t b = 255 * (pixel & 0xff) / a;
-				out[i] = GUINT32_TO_BE(r << 24 | g << 16 | b << 8);
-			}
-		}
-		
-		// Convert to opencv
-		// Get XBGR channels
-		cv::Mat int_XBGR = cv::Mat(h, w, CV_8UC4, out);
-		std::vector<cv::Mat> XBRG_channels;
-		cv::split(int_XBGR, XBRG_channels);
-
-		// Pop X channels
-		XBRG_channels.pop_back();
-
-		// Merge channels BGR back to image
-		cv::merge(XBRG_channels, entire_image);
-
-		// Close openslide object
-		free(buf);
-		free(out);
-		openslide_close(oslide);
+		entire_image = open_image_region(oslide, layer_i, w, h, 0, 0);
 	}
+
+	openslide_close(oslide);
 	return entire_image;
 }
 
