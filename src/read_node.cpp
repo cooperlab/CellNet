@@ -17,8 +17,11 @@ void *ReadNode::run(){
 	cv::Mat entire_image;
 
 	// Execute
-	for(std::vector<std::string>::size_type i=0; i < _image_paths.size(); i++){
-
+	int i = get_input();
+	while(i >= 0){
+		
+		increment_counter();
+		
 		// Declare variable
 		int64_t min_x, min_y;
 
@@ -30,6 +33,9 @@ void *ReadNode::run(){
 		// Release memory
 		extracted_images.clear();
 		entire_image.release();
+
+		// Execute
+ 		i = get_input();
 	}
 
 	// Notify it has finished
