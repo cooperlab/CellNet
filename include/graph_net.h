@@ -8,8 +8,6 @@
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_deque.hpp>
 
-
-
 class GraphNet {
 	
 	public:

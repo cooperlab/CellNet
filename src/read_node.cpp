@@ -19,9 +19,9 @@ void *ReadNode::run(){
 	// Execute
 	int i = get_input();
 	while(i >= 0){
-		
+
 		increment_counter();
-		
+
 		// Declare variable
 		int64_t min_x, min_y;
 
@@ -160,10 +160,16 @@ cv::Mat ReadNode::open_image(std::string image_path, int k, int64_t &min_x, int6
 		std::cout << "layer: " << std::to_string(layer_i) << std::endl;
 		
 		// Declare variables
-		int64_t w, h;
-		//openslide_get_level_dimensions(oslide, layer_i, &w, &h);
+		int64_t w, h, w0, h0;
+		openslide_get_level_dimensions(oslide, layer_i, &w0, &h0);
 
 		get_bb(k, w, h, min_x, min_y);
+		
+		float area = (w * h);
+		float area0 = (w0*h0);
+
+		std::cout << "Area compression: " << std::to_string((1-(area/area0))*100) << '%' << std::endl; 
+
 		entire_image = open_image_region(oslide, layer_i, w, h, min_x, min_y);
 	}
 

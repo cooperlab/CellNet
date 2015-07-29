@@ -8,7 +8,7 @@ PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::st
 
 void PredictionNode::init_model(){
 
-    caffe::Caffe::set_mode(caffe::Caffe::GPU);
+    caffe::Caffe::set_mode(caffe::Caffe::CPU);
 
     // Initialize the history
   	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();

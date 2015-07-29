@@ -1,6 +1,10 @@
 #include "edge.h"
 
 Edge::Edge(std::string id, std::string in_node_id, std::string out_node_id): _id(id), _in_node_done(false), _in_node_id(in_node_id), _out_node_id(out_node_id), _buffer(), _buffer_labels(){}
+Edge::~Edge(){
+	_buffer.clear();
+	_buffer_labels.clear();
+}
 std::string Edge::get_in_node_id(){return _in_node_id;}
 std::string Edge::get_out_node_id(){return _out_node_id;}
 std::vector<cv::Mat> *Edge::get_buffer(){return &_buffer;}

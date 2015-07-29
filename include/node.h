@@ -10,6 +10,7 @@ class Node : private boost::noncopyable{
 	
 	public:
 		Node(std::string id, int mode);
+		~Node();
 		virtual void *run(){return NULL;};
 		std::string get_id();
 		void insert_in_edge(Edge *edge);

@@ -12,6 +12,7 @@ class Edge : private boost::noncopyable{
 
 	public:
 		Edge(std::string id, std::string in_node_id, std::string out_node_id);
+		~Edge();
 		std::string get_in_node_id();
 		std::string get_out_node_id();
 		std::vector<cv::Mat> *get_buffer();

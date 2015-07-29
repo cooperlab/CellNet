@@ -211,5 +211,9 @@ int main (int argc, char * argv[])
 	
 	// Stop clock
 	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
+	
+	// Release memory
+	delete train_graph;
+	
 	return 0;
 }

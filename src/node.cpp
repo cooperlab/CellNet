@@ -128,6 +128,12 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 	}
 }
 
+Node::~Node(){
+
+    _in_edges.clear();
+    _out_edges.clear();
+}
+
 void Node::copy_from_buffer(cv::Mat &out, int &label){
 	
 	// Lock access to buffer
