@@ -24,6 +24,7 @@
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 1
 #define NUMB_PREDICTION_NODE 1
+#define NUMB_GPUS 1
 
 
 //const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
@@ -180,10 +181,11 @@ int main (int argc, char * argv[])
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 10;	
 
+	int n = 0;
 	for(int k = 0; k < NUMB_LAPLACIAN_NODE; k++){
 		for(int i=0; i < NUMB_PREDICTION_NODE; i++){
 
-			train_graph->add_node(new PredictionNode("prediction_node" + std::to_string(k) + std::to_string(i), REPEAT_MODE, batch_size, test_model_path, trained_model_path));
+			train_graph->add_node(new PredictionNode("prediction_node" + std::to_string(k) + std::to_string(i), REPEAT_MODE, batch_size, test_model_path, trained_model_path, (n++) % NUMB_GPUS));
 		}
 	}
 

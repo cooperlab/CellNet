@@ -20,7 +20,7 @@
 class PredictionNode: public Node{
 
 	public:
-		PredictionNode(std::string id, int mode, int batch_size, std::string model_path, std::string params_file);
+		PredictionNode(std::string id, int mode, int batch_size, std::string model_path, std::string params_file, int device);
 		void *run();
 		void init_model();
 		void compute_accuracy();
@@ -34,5 +34,6 @@ class PredictionNode: public Node{
 		std::vector<int> _labels_buffer;
 		std::vector<int> _predictions;
 		const boost::shared_ptr<caffe::Net<float>> _net;
+		int _device;
 };
 #endif
