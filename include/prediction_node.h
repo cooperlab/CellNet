@@ -16,6 +16,7 @@
 #include "caffe/blob.hpp"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 class PredictionNode: public Node{
 
@@ -33,7 +34,8 @@ class PredictionNode: public Node{
 		std::vector<cv::Mat> _data_buffer; 
 		std::vector<int> _labels_buffer;
 		std::vector<int> _predictions;
-		const boost::shared_ptr<caffe::Net<float>> _net;
+		std::string _test_model_path;
+		boost::shared_ptr<caffe::Net<float>> _net;
 		int _device;
 };
 #endif
