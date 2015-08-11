@@ -1,6 +1,6 @@
 #include "prediction_node.h"
 
-PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device(device){
+PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
@@ -9,14 +9,17 @@ PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::st
 void PredictionNode::init_model(){
 
 	// Set gpu
-    caffe::Caffe::SetDevice(_device);
+	caffe::Caffe::SetDevice(_device_id);
     caffe::Caffe::set_mode(caffe::Caffe::GPU);
     caffe::Caffe::DeviceQuery();
+    
+    // Create Net
     _net = boost::make_shared<caffe::Net<float>>(_test_model_path.c_str(), caffe::TEST);
 
     // Initialize the history
   	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
   	_net->CopyTrainedLayersFrom(_params_file.c_str());
+
   	std::cout << "Model loaded" << std::endl;
 }
 
@@ -25,7 +28,7 @@ void *PredictionNode::run(){
 	increment_threads();
 	int first_idx = 0;
 	while(true){
-
+		std::cout << "Predicting" << std::endl;
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
 		if(first_idx + _batch_size <= _data_buffer.size()){
 

@@ -27,10 +27,10 @@ void *LaplacianPyramidNode::run(){
 				// Compute Laplacian
 				cv::GaussianBlur(_layer0.at(i), _gaussian_layer0, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
 				gen_next_level(_gaussian_layer0, _layer0.at(i), &layers, 0);
-				resize_all(layers, _layer0.at(i).size());
+				utils::resize_all(layers, _layer0.at(i).size());
 
 				// Merge layers
-				merged_layers = merge_all(layers);
+				merged_layers = utils::merge_all(layers);
 				copy_to_buffer(merged_layers, _labels);
 
 				// Release memory
@@ -51,30 +51,13 @@ void *LaplacianPyramidNode::run(){
 		
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+			
 			_out_edges.at(i)->set_in_node_done();
 		}
 	}
 	/****************** Debug ******************/
 	//print_pyramid();
 	return NULL;
-}
-
-std::vector<cv::Mat> LaplacianPyramidNode::merge_all(std::vector<cv::Mat> &layers){
-
-	std::vector<cv::Mat> merged_layers_vector;
-	cv::Mat merged_layers;
-
-	cv::merge(layers, merged_layers);
-	merged_layers_vector.push_back(merged_layers);
-
-	return merged_layers_vector;
-}
-
-void LaplacianPyramidNode::resize_all(std::vector<cv::Mat> &layers, cv::Size size){
-
-	for(std::vector<cv::Mat>::size_type i = 0; i < layers.size(); i++){
-		cv::resize(layers.at(i), layers.at(i), size, 0, 0, CV_INTER_CUBIC);
-	}
 }
 
 /* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */

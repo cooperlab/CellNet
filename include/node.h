@@ -30,7 +30,7 @@ class Node : private boost::noncopyable{
 		
   	protected:
 		void copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels);
-  		void copy_from_buffer(cv::Mat &, int &labels);
+  		void copy_from_buffer(std::vector<cv::Mat> &, std::vector<int> &labels);
   		void copy_chunk_from_buffer(std::vector<cv::Mat> &out, std::vector<int> &labels);
   		void increment_counter();
   		void increment_threads();

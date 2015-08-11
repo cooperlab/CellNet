@@ -43,14 +43,19 @@ LINKER	      = g++
 # Define all object files to be the same as CPPSRCS but with all the .cpp and .c suffixes replaced with .o
 OBJ           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS))
 OBJ2           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS2))
-
+OBJ3           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS3))
+OBJ4           =  $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(CPPSRCS4))
 # Define name of target executable
-PROGRAM	      = train
-PROGRAM2      = test
+PROGRAM	      = preprocess_stream
+PROGRAM2      = prediction_stream
+PROGRAM3      = test_net
+PROGRAM4      = train_net
 
 # Define all C++ source files here
-CPPSRCS       = $(SRC_DIR)/train_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp
-CPPSRCS2       = $(SRC_DIR)/test_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp
+CPPSRCS       = $(SRC_DIR)/preprocess_stream.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp $(SRC_DIR)/write_pipe_node.cpp $(SRC_DIR)/read_pipe_node.cpp
+CPPSRCS2       = $(SRC_DIR)/prediction_stream.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp $(SRC_DIR)/write_pipe_node.cpp $(SRC_DIR)/read_pipe_node.cpp
+CPPSRCS3       = $(SRC_DIR)/test_net.cpp 
+CPPSRCS4       = $(SRC_DIR)/train_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/utils.cpp $(SRC_DIR)/node.cpp $(SRC_DIR)/edge.cpp $(SRC_DIR)/laplacian_pyramid_node.cpp $(SRC_DIR)/read_node.cpp $(SRC_DIR)/debug_node.cpp $(SRC_DIR)/write_png_node.cpp $(SRC_DIR)/write_hdf5_node.cpp $(SRC_DIR)/grayscale_node.cpp $(SRC_DIR)/train_node.cpp $(SRC_DIR)/prediction_node.cpp $(SRC_DIR)/write_pipe_node.cpp $(SRC_DIR)/read_pipe_node.cpp
 
 ##############################################################################
 # Define additional rules that make should know about in order to compile our
@@ -58,7 +63,7 @@ CPPSRCS2       = $(SRC_DIR)/test_model.cpp $(SRC_DIR)/graph_net.cpp $(SRC_DIR)/u
 ##############################################################################
 
 # Define default rule if Make is run without arguments
-all : $(PROGRAM) $(PROGRAM2) 
+all : $(PROGRAM) $(PROGRAM2) $(PROGRAM3) $(PROGRAM4) 
 
 # Define rule for compiling all C++ files
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
@@ -76,9 +81,20 @@ $(PROGRAM2) :	$(OBJ2)
 		$(LINKER) -o $(PROGRAM2) $(OBJ2) $(LIBS) 
 		@echo "done"
 
+$(PROGRAM3) :	$(OBJ3)
+		@echo -n "Loading $(PROGRAM3) ... "
+		$(LINKER) -o $(PROGRAM3) $(OBJ3) $(LIBS) 
+		@echo "done"
+
+$(PROGRAM4) :	$(OBJ4)
+		@echo -n "Loading $(PROGRAM4) ... "
+		$(LINKER) -o $(PROGRAM4) $(OBJ4) $(LIBS) 
+		@echo "done"
 # Define rule to clean up directory by removing all object, temp and core
 # files along with the executable
 clean :
 	@rm -f $(OBJ) *~ $(PROGRAM)
-	@rm -f $(OBJ) *~ $(PROGRAM2)
+	@rm -f $(PROGRAM2)
+	@rm -f $(PROGRAM3)
+	@rm -f $(PROGRAM4)
 

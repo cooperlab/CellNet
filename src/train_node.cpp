@@ -1,19 +1,28 @@
 #include "train_node.h"
 
-TrainNode::TrainNode(std::string id, int mode, int batch_size, std::string model_path, float base_lr, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(new caffe::Net<float>(model_path.c_str(), caffe::TRAIN)), _base_lr(base_lr), _history(), _temp(), _iter(iter){
+TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(), _base_lr(base_lr), _history(), _temp(), _iter(iter), _device_id(_device_id){
+	
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
 }
 
 void TrainNode::init_model(){
+
+	// Setup GPU
+	caffe::Caffe::SetDevice(_device_id);	
 	caffe::Caffe::set_mode(caffe::Caffe::CPU);
+	caffe::Caffe::DeviceQuery();
+
+	// Initialize Net
+	_net.reset(new caffe::Net<float>(_model_path.c_str(), caffe::TRAIN));
 
     // Initialize the history
 	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = this->_net->params();
 	_history.clear();
 	_temp.clear();
 	for (int i = 0; i < net_params.size(); ++i) {
+
 		const std::vector<int>& shape = net_params[i]->shape();
 		_history.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));
 		_temp.push_back(boost::shared_ptr<caffe::Blob<float> >(new caffe::Blob<float>(shape)));

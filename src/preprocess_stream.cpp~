@@ -23,9 +23,7 @@
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 1
-#define NUMB_PREDICTION_NODE 1
-#define NUMB_GPUS 1
-
+#define NUMB_WRITE_PIPE_NODE 1
 
 //const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
 //const static std::string LOCAL_HOME = "/home/nnauata";
@@ -181,11 +179,10 @@ int main (int argc, char * argv[])
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 10;	
 
-	int n = 0;
 	for(int k = 0; k < NUMB_LAPLACIAN_NODE; k++){
-		for(int i=0; i < NUMB_PREDICTION_NODE; i++){
+		for(int i=0; i < NUMB_WRITE_PIPE_NODE; i++){
 
-			train_graph->add_node(new PredictionNode("prediction_node" + std::to_string(k) + std::to_string(i), REPEAT_MODE, batch_size, test_model_path, trained_model_path, (n++) % NUMB_GPUS));
+			train_graph->add_node(new WritePipeNode("write_pipe_node" + std::to_string(k) + std::to_string(i), "pipe" + std::to_string(i));
 		}
 	}
 
@@ -200,9 +197,9 @@ int main (int argc, char * argv[])
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
 				
-				for(int n=0; n < NUMB_PREDICTION_NODE; n++){
+				for(int n=0; n < NUMB_WRITE_PIPE_NODE; n++){
 
-					train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "prediction_node" + std::to_string(j) + std::to_string(n)));
+					train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "write_pipe_node" + std::to_string(j) + std::to_string(n)));
 				}
 			}
 		}
@@ -211,10 +208,8 @@ int main (int argc, char * argv[])
 	
 	/********************************************* Run Graphs ***************************************************/
 	
-	// Run graphs in parallel
-	boost::thread_group threads;
-	threads.create_thread(boost::bind(&GraphNet::run, boost::ref(train_graph)));
-	threads.join_all();
+	// Run graphs
+	train_graph->run();
 
 	/*********************************************    Clean   ***************************************************/
 	

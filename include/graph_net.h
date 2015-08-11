@@ -11,7 +11,7 @@
 class GraphNet {
 	
 	public:
-		GraphNet();
+		GraphNet(int mode);
 		void *run();
 		void add_node(Node *node);
 		void add_edge(Edge *edge);
@@ -20,6 +20,7 @@ class GraphNet {
   		void link();
   		void start_parallel();
   		void start_serial();
+  		int _mode;
 		boost::ptr_deque<Node> _nodes;
 		boost::ptr_deque<Edge> _edges;
 		std::map<std::string, int> _node_map;

@@ -134,7 +134,7 @@ Node::~Node(){
     _out_edges.clear();
 }
 
-void Node::copy_from_buffer(cv::Mat &out, int &label){
+void Node::copy_from_buffer(std::vector<cv::Mat> &out, std::vector<int> &label){
 	
 	// Lock access to buffer
 	boost::mutex::scoped_lock lk(_in_edges.at(0)->_mutex);
@@ -147,8 +147,8 @@ void Node::copy_from_buffer(cv::Mat &out, int &label){
 	// Remove first element from buffer
 	if(!_buffer->empty()){
 
-		out = _buffer->at(0);
-		label = _buffer_labels->at(0);
+		out.push_back(_buffer->at(0));
+		label.push_back(_buffer_labels->at(0));
 
 		_buffer->erase(_buffer->begin());	
 		_buffer_labels->erase(_buffer_labels->begin());	

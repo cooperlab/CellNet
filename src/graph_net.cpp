@@ -6,7 +6,7 @@ To include more threads working at the same node, we would have to control the a
 Also, changing the number of threads per node does not guarantee the order of the outputs. */
 #define NUM_THREADS 1
 
-GraphNet::GraphNet(): _nodes(), _edges(), _node_map(){}
+GraphNet::GraphNet(int mode): _mode(mode), _nodes(), _edges(), _node_map(){}
 
 void *GraphNet::run(){
 
@@ -15,8 +15,12 @@ void *GraphNet::run(){
 
 	std::cout << "Executing in parallel mode..." << std::endl;
 	
-	start_parallel();
-	//start_serial();
+	if(_mode == 0){
+		start_serial();
+	}
+	else{
+		start_parallel();
+	}
 }
 
 void GraphNet::link(){

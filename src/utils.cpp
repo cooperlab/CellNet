@@ -156,4 +156,22 @@ namespace utils{
 			data_out.push_back(slide);
 		}
 	}
+
+	std::vector<cv::Mat> merge_all(std::vector<cv::Mat> &layers){
+
+		std::vector<cv::Mat> merged_layers_vector;
+		cv::Mat merged_layers;
+
+		cv::merge(layers, merged_layers);
+		merged_layers_vector.push_back(merged_layers);
+
+		return merged_layers_vector;
+	}
+
+	void resize_all(std::vector<cv::Mat> &layers, cv::Size size){
+
+		for(std::vector<cv::Mat>::size_type i = 0; i < layers.size(); i++){
+			cv::resize(layers.at(i), layers.at(i), size, 0, 0, CV_INTER_CUBIC);
+		}
+	}	
 }
