@@ -180,7 +180,7 @@ void PredictionNode::print_out_labels(){
 		split(_data_buffer[i], input);
 		for(int k = 0; k < input.size(); k++){
 
-			cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
+			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
 		}
 	}
 }
