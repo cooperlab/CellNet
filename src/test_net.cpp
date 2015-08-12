@@ -27,22 +27,21 @@ int main(){
 
         std::cout << "Preprocess pid: " << pid1 << std::endl;
         int status2 = posix_spawn(&pid2, "/home/nelson/CellNet/app/prediction_stream", NULL, NULL, argV2, environ);
-        if (waitpid(pid1, &status, 0) != -1) {
-	        if(status2 == 0) {
+        if(status2 == 0) {
 
-	        	std::cout << "Prediction pid: " << pid2 << std::endl;
-		        
+	    	std::cout << "Prediction pid: " << pid2 << std::endl;
+	        if (waitpid(pid1, &status, 0) != -1) {
 
-		        	std::cout << "Prediction exited with status " << status2 << std::endl;
-			        if (waitpid(pid2, &status2, 0) != -1) {
+	        	std::cout << "Prediction exited with status " << status2 << std::endl;
+		        if (waitpid(pid2, &status2, 0) != -1) {
 
-			            std::cout << "Preprocess exited with status " << status << std::endl;
-			        }
+		            std::cout << "Preprocess exited with status " << status << std::endl;
+		        }
 		    	
 	    	}
-	    	else {
-	        	std::cout << "posix_spawn: " << status2 << std::endl;
-	    	}
+	    }
+    	else {
+        	std::cout << "posix_spawn: " << status2 << std::endl;
     	}
     } else {
         std::cout << "posix_spawn: " << status << std::endl;

@@ -28,7 +28,6 @@ void *PredictionNode::run(){
 	increment_threads();
 	int first_idx = 0;
 	while(true){
-		std::cout << "Predicting" << std::endl;
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
 		if(first_idx + _batch_size <= _data_buffer.size()){
 
@@ -181,7 +180,7 @@ void PredictionNode::print_out_labels(){
 		split(_data_buffer[i], input);
 		for(int k = 0; k < input.size(); k++){
 
-			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
+			cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
 		}
 	}
 }

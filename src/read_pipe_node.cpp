@@ -57,15 +57,19 @@ int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &l
 		
 		// Format <height, width, channels, label, data>
 		// Read header
-		read(pipe, &buffer[0], buffer.size());
+		int res = read(pipe, &buffer[0], buffer.size());
+		while(res == 0){
+			res = read(pipe, &buffer[0], buffer.size());
+		}
+
 		int height = (int)buffer[0];
 		int width = (int)buffer[1];
 		int channels = (int)buffer[2];
 
 		// DEBUG
-		std::cout << "height: " << height << std::endl;
-		std::cout << "width: " << width << std::endl;
-		std::cout << "channels: " << channels << std::endl;
+		//std::cout << "height: " << height << std::endl;
+		//std::cout << "width: " << width << std::endl;
+		//std::cout << "channels: " << channels << std::endl;
 
 		if((height > 0) && (width > 0) && (channels > 0)){
 
@@ -80,11 +84,11 @@ int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &l
 			vec_img.push_back(img);
 
 			// DEBUG
-			cv::Mat channel[4];
-		    cv::split(img, channel);
-		    for(int k=0; k < 4; k++){
-		    	cv::imwrite("./test/image" + std::to_string(_counter) + std::to_string(k) + ".jpg", channel[k]);
-		    }
+			//cv::Mat channel[4];
+		    //cv::split(img, channel);
+		    //for(int k=0; k < 4; k++){
+		    //	cv::imwrite("./test/image" + std::to_string(_counter) + std::to_string(k) + ".jpg", channel[k]);
+		    //}
 			// DEBUG
 
 			outs = vec_img;

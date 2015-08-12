@@ -47,18 +47,18 @@ int main (int argc, char * argv[])
 	GraphNet *prediction_graph = new GraphNet(SERIAL);
 
 	// Define grayscale nodes
-	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", "pipe0", ALTERNATE_MODE));
+	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", "pipe0", REPEAT_MODE));
 
 	// Define prediction nodes
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 10;	
-	//prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, GPU_ID));
+	prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, GPU_ID));
 
 	// Add edges
 	int n_edges = 0;
-	//prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_pipe_node", "prediction_node"));
+	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_pipe_node", "prediction_node"));
 	
 	std::cout << "*Graph defined*" << std::endl;
 	

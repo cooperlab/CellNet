@@ -13,9 +13,8 @@ void *WritePipeNode::run(){
 
 	while(true){
 		
-		copy_from_buffer(_data_buffer, _labels_buffer);
-		if(!_data_buffer.empty()){
-			
+		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
+		if(!_data_buffer.empty()){		
 			write_to_pipe();
 		}
 		else{
@@ -52,7 +51,6 @@ void WritePipeNode::write_to_pipe(){
 
 		// Open a named pipe
 		int pipe = open(_pipe_name.c_str(), O_WRONLY);
-
 		cv::Mat img = _data_buffer[k];
 		int label = _labels_buffer[k];
 
@@ -68,7 +66,6 @@ void WritePipeNode::write_to_pipe(){
 	    //	cv::imshow(std::to_string(k), channel[k]);
 	    //	cv::waitKey(0);
 	    //}
-
 	    // DEBUG
 
 		// Convert Mats to byte stream
@@ -82,7 +79,7 @@ void WritePipeNode::write_to_pipe(){
 		byte_stream.insert(byte_stream.begin(), (uint8_t)img.rows );
 
 		// Actually write out the data and close the pipe
-		write(pipe, &byte_stream[0], byte_stream.size());
+		int res = write(pipe, &byte_stream[0], byte_stream.size());
 
 		// close the pipe
 		close(pipe);
@@ -101,6 +98,7 @@ void WritePipeNode::write_to_pipe(){
 
 void WritePipeNode::send_done_to_pipe(){
 
+	std::cout << "Send done message" << std::endl;
 	// Open a named pipe
 	int pipe = open(_pipe_name.c_str(), O_WRONLY);
 

@@ -11,6 +11,7 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 
 			//std::cout << "To Buffer" << std::endl; 
 			// Lock access to buffer
+
 			boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
 
 			/******* Restricted Access ********/
@@ -29,7 +30,7 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 			new_buffer_labels.insert( new_buffer_labels.end(), curr_buffer_labels->begin(), curr_buffer_labels->end());
 			new_buffer_labels.insert( new_buffer_labels.end(), labels.begin(), labels.begin() + out.size());
 			labels.erase(labels.begin(), labels.begin() + out.size());
-
+			
 			// Set new buffer
 			_out_edges.at(i)->set_buffer(new_buffer, new_buffer_labels);
 
