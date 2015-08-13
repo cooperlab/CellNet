@@ -1,11 +1,15 @@
 #include "read_pipe_node.h"
 #include "edge.h"
 #include "utils.h"
-#define MAX_SIZE 10004
 
-ReadPipeNode::ReadPipeNode(std::string id, std::string pipe_name, int mode): Node(id, mode), _pipe_name(pipe_name), _counter(0){
+ReadPipeNode::ReadPipeNode(std::string id, std::string pipe_name, int mode): Node(id, mode), _pipe_name(pipe_name), _counter(0), _pipe(-1){
 	runtime_total_first = utils::get_time();
 	_counter = 0;
+	_pipe = open(_pipe_name.c_str(), O_RDONLY);
+	if(_pipe == -1){
+		std::cout << "Fail to open pipe" << std::endl;
+		return;
+	}
 }
 
 void *ReadPipeNode::run(){
@@ -19,7 +23,7 @@ void *ReadPipeNode::run(){
 		if(res){
 
 			if(!outs.empty()){
-	
+	=
 				// Copy to buffer
 				copy_to_buffer(outs, labels);
 
@@ -47,71 +51,43 @@ void *ReadPipeNode::run(){
 
 int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &labels){
 	
-	// Open a named pipe
-	int pipe = open(_pipe_name.c_str(), O_RDONLY);
-	while(pipe == -1){
-//		std::cout << "Fail to open pipe for reading" << std::endl;
- 		pipe = open(_pipe_name.c_str(), O_RDONLY);
-	}
-	if(pipe != 0){
-
-		// Create buffer
-		std::vector<uint8_t> buffer(MAX_SIZE);
-		
-		// Format <height, width, channels, label, data>
-		// Read header
-		int res = read(pipe, &buffer[0], buffer.size());
-		while(res == 0){
-//			std::cout << "Fail to read data from pipe" <<std::endl;
-			res = read(pipe, &buffer[0], buffer.size());
-		}
-		// Close pipe
-		close(pipe);
-
-//		std::cout << "read buffer size: " << std::to_string(res) << std::endl;
-
-		int height = (int)buffer[0];
-		int width = (int)buffer[1];
-		int channels = (int)buffer[2];
-
-		// DEBUG
-		//std::cout << "height: " << height << std::endl;
-		//std::cout << "width: " << width << std::endl;
-		//std::cout << "channels: " << channels << std::endl;
-
-		if((height > 0) && (width > 0) && (channels > 0)){
-
-			// Increment
-			_counter++;
-
-			// Read 
-			int label = (int) buffer[3];
-			cv::Mat img(height, width, CV_8UC4);
-			memcpy(img.data, &buffer[4], height * width * channels * sizeof(uint8_t));
-			std::vector<cv::Mat> vec_img;
-			vec_img.push_back(img);
-
-			// DEBUG
-			//cv::Mat channel[4];
-		    //cv::split(img, channel);
-		    //for(int k=0; k < 4; k++){
-		    //	cv::imwrite("./test/image" + std::to_string(_counter) + std::to_string(k) + ".jpg", channel[k]);
-		    //}
-			// DEBUG
-
-			outs = vec_img;
-			labels.push_back(label);
-			vec_img.clear();
-			return 1;
-		}
-		else{
-
-			return 0;
-		}
-	}else{
-
-		std::cout << "Could not open pipe" << std::endl;
+	// Create buffer
+	std::vector<uint8_t> buffer(4);
+	
+	// Format <height, width, channels, label, data>
+	// Read header
+	int res = read(_pipe, &buffer[0], buffer.size());
+	while(res == 0){
+		res = read(_pipe, &buffer[0], buffer.size());
 	}
 	
+	int height = (int)buffer[0];
+	int width = (int)buffer[1];
+	int channels = (int)buffer[2];
+	int label = (int)buffer[3];
+
+	if((height > 0) && (width > 0) && (channels > 0)){
+
+		// Increment
+		_counter++;
+
+		// Read 
+		std::vector<uint8_t> buffer_data(height * width * channels);
+                res = read(_pipe, &buffer_data[0], buffer_data.size());
+		while(res == 0){
+                       	res = read(_pipe, &buffer_data[0], buffer_data.size());
+               	}
+
+
+		cv::Mat img(height, width, CV_8UC(channels));
+		memcpy(img.data, &buffer_data[0], height * width * channels * sizeof(uint8_t));
+		std::vector<cv::Mat> vec_img;
+		vec_img.push_back(img);
+
+		outs = vec_img;
+		labels.push_back(label);
+		vec_img.clear();
+		return 1;
+	}
 	return 0;
 }

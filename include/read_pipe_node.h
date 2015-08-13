@@ -28,5 +28,6 @@ class ReadPipeNode: public Node{
   		std::vector<int> _labels_buffer;
   		std::vector<cv::Mat> _data_buffer;
   		int _counter;
+		int _pipe;
 };
 #endif

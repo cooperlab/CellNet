@@ -1,20 +1,24 @@
 #include "write_pipe_node.h"
 #include "edge.h"
 #include "utils.h"
-#define MAX_SIZE 10004
 
-WritePipeNode::WritePipeNode(std::string id, std::string pipe_name): Node(id, 0), _pipe_name(pipe_name), _counter(0), _data_buffer(), _labels_buffer(){
+WritePipeNode::WritePipeNode(std::string id, std::string pipe_name): Node(id, 0), _pipe_name(pipe_name), _counter(0), _data_buffer(), _labels_buffer(), _pipe(-1){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	_labels_buffer.clear();
+	_pipe = open(_pipe_name.c_str(), O_WRONLY);
+	if(_pipe == -1){
+		std::cout << "Fail to open pipe" << std::endl;
+		return;
+	}
 }
 
 void *WritePipeNode::run(){
 
 	while(true){
-		
+
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
-		if(!_data_buffer.empty()){		
+		if(!_data_buffer.empty()){
 			write_to_pipe();
 		}
 		else{
@@ -50,28 +54,8 @@ void WritePipeNode::write_to_pipe(){
 		_counter++;
 
 		// Open a named pipe
-		int pipe = open(_pipe_name.c_str(), O_WRONLY); 
-                while(pipe == -1){
-                        pipe = open(_pipe_name.c_str(), O_WRONLY);
-                }
-
-
 		cv::Mat img = _data_buffer[k];
 		int label = _labels_buffer[k];
-
-		//std::cout << "label: " << std::to_string((uint8_t)label) << std::endl;
-		//std::cout << "channels: " << std::to_string((uint8_t)img.channels()) << std::endl;
-		//std::cout << "cols: " << std::to_string((uint8_t)img.cols) << std::endl;
-		//std::cout << "rows: " << std::to_string((uint8_t)img.rows) << std::endl;
-		// DEBUG
-		//cv::Mat channel[4];
-	    // The actual splitting.
-	    //cv::split(img, channel);
-	    //for(int k=0; k < 4; k++){
-	    //	cv::imshow(std::to_string(k), channel[k]);
-	    //	cv::waitKey(0);
-	    //}
-	    // DEBUG
 
 		// Convert Mats to byte stream
 		std::vector<uint8_t> byte_stream(img.cols * img.rows * img.channels()); 
@@ -84,21 +68,12 @@ void WritePipeNode::write_to_pipe(){
 		byte_stream.insert(byte_stream.begin(), (uint8_t)img.rows );
 
 		// Actually write out the data and close the pipe
-		int res = write(pipe, &byte_stream[0], byte_stream.size());
-//		std::cout << "write buffer size: " << std::to_string(res) <<std::endl;
+		int res = write(_pipe, &byte_stream[0], byte_stream.size());
 		while(res == 0){
-			res = write(pipe, &byte_stream[0], byte_stream.size());
+			res = write(_pipe, &byte_stream[0], byte_stream.size());
 		}
-		// close the pipe
-		close(pipe);
 	}
 
-	//std::cout << "Bytes:" << std::endl; 
-	//for(int i = 0; i < buffer.size(); i++){
-
-	//    printf("%02x ", (unsigned char) buffer[i] & 0xff);
-	//}
-	
 	// Clear data
 	_data_buffer.clear();
 	_labels_buffer.clear();
@@ -107,15 +82,10 @@ void WritePipeNode::write_to_pipe(){
 void WritePipeNode::send_done_to_pipe(){
 
 	std::cout << "Send done message" << std::endl;
-	// Open a named pipe
-	int pipe = open(_pipe_name.c_str(), O_WRONLY);
 
 	// Create buffer
-	std::vector<uint8_t> buffer(MAX_SIZE);
+	std::vector<uint8_t> buffer(4);
 
 	// Actually write out the data and close the pipe
-	write(pipe, &buffer[0], buffer.size());
-
-	// Close the pipe
-	close(pipe);
+	write(_pipe, &buffer[0], buffer.size());
 }
