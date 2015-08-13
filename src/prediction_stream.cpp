@@ -24,17 +24,14 @@
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 1
-#define GPU_ID 0
+#define GPU_ID 1
 #define SERIAL 0
 #define PARALLEL 1
 
 
-//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
 
 int main (int argc, char * argv[])
 {

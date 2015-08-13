@@ -50,7 +50,12 @@ void WritePipeNode::write_to_pipe(){
 		_counter++;
 
 		// Open a named pipe
-		int pipe = open(_pipe_name.c_str(), O_WRONLY);
+		int pipe = open(_pipe_name.c_str(), O_WRONLY); 
+                while(pipe == -1){
+                        pipe = open(_pipe_name.c_str(), O_WRONLY);
+                }
+
+
 		cv::Mat img = _data_buffer[k];
 		int label = _labels_buffer[k];
 
@@ -80,7 +85,10 @@ void WritePipeNode::write_to_pipe(){
 
 		// Actually write out the data and close the pipe
 		int res = write(pipe, &byte_stream[0], byte_stream.size());
-
+//		std::cout << "write buffer size: " << std::to_string(res) <<std::endl;
+		while(res == 0){
+			res = write(pipe, &byte_stream[0], byte_stream.size());
+		}
 		// close the pipe
 		close(pipe);
 	}

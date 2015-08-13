@@ -49,7 +49,10 @@ int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &l
 	
 	// Open a named pipe
 	int pipe = open(_pipe_name.c_str(), O_RDONLY);
-
+	while(pipe == -1){
+//		std::cout << "Fail to open pipe for reading" << std::endl;
+ 		pipe = open(_pipe_name.c_str(), O_RDONLY);
+	}
 	if(pipe != 0){
 
 		// Create buffer
@@ -59,8 +62,13 @@ int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &l
 		// Read header
 		int res = read(pipe, &buffer[0], buffer.size());
 		while(res == 0){
+//			std::cout << "Fail to read data from pipe" <<std::endl;
 			res = read(pipe, &buffer[0], buffer.size());
 		}
+		// Close pipe
+		close(pipe);
+
+//		std::cout << "read buffer size: " << std::to_string(res) << std::endl;
 
 		int height = (int)buffer[0];
 		int width = (int)buffer[1];
@@ -94,9 +102,6 @@ int ReadPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &l
 			outs = vec_img;
 			labels.push_back(label);
 			vec_img.clear();
-
-			// close the pipe
-			close(pipe);
 			return 1;
 		}
 		else{

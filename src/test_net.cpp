@@ -12,8 +12,8 @@ int main(){
 	std::cout << "Started Running Preprocess" << std::endl;
 	pid_t pid1;
 	pid_t pid2;
-	char *argV1[] = {"/home/nelson/CellNet/app/preprocess_stream"};
-	char *argV2[] = {"/home/nelson/CellNet/app/prediction_stream"};
+	char *argV1[] = {"/home/nnauata/CellNet/app/preprocess_stream"};
+	char *argV2[] = {"/home/nnauata/CellNet/app/prediction_stream"};
 	std::string pipe_name = "pipe0";
 
 	// Create pipe
@@ -22,11 +22,11 @@ int main(){
         printf("FIFO created\n");
     }
 
-	int status = posix_spawn(&pid1, "/home/nelson/CellNet/app/preprocess_stream", NULL, NULL, argV1, environ);
+	int status = posix_spawn(&pid1, "/home/nnauata/CellNet/app/preprocess_stream", NULL, NULL, argV1, environ);
 	if (status == 0) {
 
         std::cout << "Preprocess pid: " << pid1 << std::endl;
-        int status2 = posix_spawn(&pid2, "/home/nelson/CellNet/app/prediction_stream", NULL, NULL, argV2, environ);
+        int status2 = posix_spawn(&pid2, "/home/nnauata/CellNet/app/prediction_stream", NULL, NULL, argV2, environ);
         if(status2 == 0) {
 
 	    	std::cout << "Prediction pid: " << pid2 << std::endl;
