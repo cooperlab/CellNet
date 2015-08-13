@@ -2,9 +2,10 @@
 #include "edge.h"
 #include "utils.h"
 
-ReadPipeNode::ReadPipeNode(std::string id, std::string pipe_name, int mode): Node(id, mode), _pipe_name(pipe_name), _counter(0), _pipe(-1){
+ReadPipeNode::ReadPipeNode(std::string id, std::string pipe_name, int mode): Node(id, mode), _pipe_name(pipe_name), _counter(0), _pipe(0){
 	runtime_total_first = utils::get_time();
 	_counter = 0;
+	std::cout << "Opening pipe" << std::endl;
 	_pipe = open(_pipe_name.c_str(), O_RDONLY);
 	if(_pipe == -1){
 		std::cout << "Fail to open pipe" << std::endl;
@@ -23,7 +24,7 @@ void *ReadPipeNode::run(){
 		if(res){
 
 			if(!outs.empty()){
-	=
+	
 				// Copy to buffer
 				copy_to_buffer(outs, labels);
 

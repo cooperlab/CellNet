@@ -185,7 +185,8 @@ int main (int argc, char * argv[])
 			train_graph->add_node(new WritePipeNode("write_pipe_node" + std::to_string(k) + std::to_string(i), "pipe" + std::to_string(i)));
 		}
 	}
-
+	
+	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
 	for(int k=0; k < 1; k++){

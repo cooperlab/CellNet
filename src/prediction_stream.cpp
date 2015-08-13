@@ -32,12 +32,20 @@ const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
 const static std::string LOCAL_HOME = "/home/nnauata";
 const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
 
-int main (int argc, char * argv[])
+int main (int argc, char * argv[3])
 {
 
 	// Store parameters
-	int gpu_id = argv[0];
-	int batch_size = argv[1];
+	int gpu_id;
+	int batch_size;
+	
+	std::cout << "Intializing Prediction" << std::endl; 
+	
+	sscanf(argv[1],"%d",&gpu_id);
+	sscanf(argv[2],"%d",&batch_size);
+
+	std::cout << "Running on device " << std::to_string(gpu_id) << std::endl;
+	std::cout << "Batch size: " << std::to_string(batch_size) << std::endl;
 
 	// Start clock
 	double begin_time = utils::get_time();	
@@ -47,14 +55,17 @@ int main (int argc, char * argv[])
 	GraphNet *prediction_graph = new GraphNet(SERIAL);
 
 	// Define grayscale nodes
-	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", "pipe0", REPEAT_MODE));
+	std::cout << "before read pipe" <<std::endl;
+	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", "pipe"+std::to_string(gpu_id), REPEAT_MODE));
 
 	// Define prediction nodes
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
+	std::cout << "before prediction" <<std::endl;
 	prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id));
-
+	
+	std::cout << "Defining Edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
 	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_pipe_node", "prediction_node"));
