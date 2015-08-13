@@ -24,7 +24,6 @@
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
 #define NUMB_LAPLACIAN_NODE 1
-#define GPU_ID 1
 #define SERIAL 0
 #define PARALLEL 1
 
@@ -35,6 +34,10 @@ const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.
 
 int main (int argc, char * argv[])
 {
+
+	// Store parameters
+	int gpu_id = argv[0];
+	int batch_size = argv[1];
 
 	// Start clock
 	double begin_time = utils::get_time();	
@@ -50,8 +53,7 @@ int main (int argc, char * argv[])
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
-	int batch_size = 10;	
-	prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, GPU_ID));
+	prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id));
 
 	// Add edges
 	int n_edges = 0;
