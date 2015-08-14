@@ -89,9 +89,9 @@ std::string get_image_name(std::string name){
 
 int main (int argc, char * argv[])
 {
-
 	// Start clock
-	double begin_time = utils::get_time();
+	double begin_time = utils::get_time();	
+
 	/**************************************** Get Input Data  ***************************************/
 
 	// Declare input data
@@ -217,9 +217,6 @@ int main (int argc, char * argv[])
 	train_graph->run();
 
 	/*********************************************    Clean   ***************************************************/
-	
-	// Stop clock
-	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
 	
 	// Release memory
 	delete train_graph;

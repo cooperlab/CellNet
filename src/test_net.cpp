@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <vector>
+#include <ctime>
+#include <utils.h>
 #define NUMB_PIPES 1
 
 extern char **environ;
@@ -12,6 +14,9 @@ const static std::string LOCAL_HOME = "/home/nelson";
 
 int main(){
 	
+	// Start clock
+	double begin_time = utils::get_time();	
+
 	std::vector<pid_t> pids;
 	std::vector<int> status_vec;
 	std::string batch_size = "10";
@@ -60,5 +65,7 @@ int main(){
 		std::cout << "Process: " << std::to_string(k) << " status: " << std::to_string(status_vec[k]) << std::endl;
 	}
     
+    // Stop clock
+	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
     return 0;
 }

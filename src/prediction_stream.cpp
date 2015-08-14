@@ -6,7 +6,7 @@
 #include "grayscale_node.h"
 #include "write_hdf5_node.h"
 #include "train_node.h"
-#include "prediction_node.h"
+#include "prediction_pipe_node.h"
 #include "read_pipe_node.h"
 #include "edge.h"
 #include "hdf5.h"
@@ -49,25 +49,18 @@ int main (int argc, char * argv[3])
 
 	std::cout << "Running on device " << std::to_string(gpu_id) << std::endl;
 	std::cout << "Batch size: " << std::to_string(batch_size) << std::endl;
-
-	// Start clock
-	double begin_time = utils::get_time();	
+	
 	/********************************    Setup Graphs     *******************************************/
 	// Define Graphs
 	std::cout << "Defining graph nodes..." << std::endl;
 	GraphNet *prediction_graph = new GraphNet(SERIAL);
 
-	// Define grayscale nodes
-	std::string pipe_name = LOCAL_HOME + "/CellNet/app/pipe"+std::to_string(gpu_id);
-	std::cout << pipe_name << std::endl;
-	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", pipe_name, REPEAT_MODE));
-
 	// Define prediction nodes
+	std::string pipe_name = LOCAL_HOME + "/CellNet/app/pipe"+std::to_string(gpu_id);
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
-	std::cout << "before prediction" <<std::endl;
-	prediction_graph->add_node(new PredictionNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id));
+	prediction_graph->add_node(new PredictionPipeNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id, pipe_name));
 	
 	std::cout << "Defining Edges" << std::endl;
 	// Add edges
@@ -82,8 +75,6 @@ int main (int argc, char * argv[3])
 	prediction_graph->run();
 
 	/*********************************************    Clean   ***************************************************/
-	// Stop clock
-	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
 	
 	// Release memory
 	delete prediction_graph;
