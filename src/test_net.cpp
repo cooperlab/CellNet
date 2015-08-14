@@ -8,16 +8,18 @@
 #define NUMB_PIPES 1
 
 extern char **environ;
+const static std::string LOCAL_HOME = "/home/nelson";
 
 int main(){
 	
 	std::vector<pid_t> pids;
 	std::vector<int> status_vec;
 	std::string batch_size = "10";
+	pid_t pid;
 
 	// Create pipes
 	for(int k=0; k < NUMB_PIPES; k++){
-		std::string pipe_name("pipe"+std::to_string(k));
+		std::string pipe_name(LOCAL_HOME +"/CellNet/app/pipe"+std::to_string(k));
 		int res = mkfifo(pipe_name.c_str(), 0777);
 	    if (res == 0){
 	        printf("FIFO created\n");
@@ -25,23 +27,27 @@ int main(){
 	}
 
 	// Start preprocessing
-	char* argV1[] = {"/home/nnauata/CellNet/app/preprocess_stream"};
-	int status = posix_spawn(&pids[0], "/home/nnauata/CellNet/app/preprocess_stream", NULL, NULL, argV1, environ);
+	std::string preprocess_path = LOCAL_HOME + "/CellNet/app/preprocess_stream";
+	std::string prediction_path = LOCAL_HOME + "/CellNet/app/prediction_stream";
+
+	char* argV1[] = {&preprocess_path[0]};
+	int status = posix_spawn(&pid, preprocess_path.c_str(), NULL, NULL, argV1, environ);
+	pids.push_back(pid);
 	status_vec.push_back(status);
 
 	// Start prediction
 	for(int k=1; k <= NUMB_PIPES; k++){
 		std::string device_id = std::to_string(k-1);
-		std::string dir("/home/nnauata/CellNet/app/prediction_stream");
 		char *argV2[3];
-		argV2[0] = &dir[0]; 
+		argV2[0] = &prediction_path[0]; 
 		argV2[1] = &device_id[0];
 		argV2[2] = &batch_size[0];
 
-		int status = posix_spawn(&pids[k], "/home/nnauata/CellNet/app/prediction_stream", NULL, NULL, argV2, environ);
+		int status = posix_spawn(&pid, prediction_path.c_str(), NULL, NULL, argV2, environ);
+		pids.push_back(pid);
 		status_vec.push_back(status);
-	}
 
+	}
 	// Wait processes
 	for(int k=0; k < NUMB_PIPES+1; k++){
 
@@ -53,4 +59,6 @@ int main(){
 
 		std::cout << "Process: " << std::to_string(k) << " status: " << std::to_string(status_vec[k]) << std::endl;
 	}
+    
+    return 0;
 }

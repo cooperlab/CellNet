@@ -28,21 +28,24 @@
 #define PARALLEL 1
 
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-2-test.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[3])
 {
 
 	// Store parameters
-	int gpu_id;
-	int batch_size;
+	int gpu_id = 0;
+	int batch_size = 10;
 	
 	std::cout << "Intializing Prediction" << std::endl; 
 	
-	sscanf(argv[1],"%d",&gpu_id);
-	sscanf(argv[2],"%d",&batch_size);
+	//sscanf(argv[1],"%d",&gpu_id);
+	//sscanf(argv[2],"%d",&batch_size);
 
 	std::cout << "Running on device " << std::to_string(gpu_id) << std::endl;
 	std::cout << "Batch size: " << std::to_string(batch_size) << std::endl;
@@ -55,8 +58,9 @@ int main (int argc, char * argv[3])
 	GraphNet *prediction_graph = new GraphNet(SERIAL);
 
 	// Define grayscale nodes
-	std::cout << "before read pipe" <<std::endl;
-	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", "pipe"+std::to_string(gpu_id), REPEAT_MODE));
+	std::string pipe_name = LOCAL_HOME + "/CellNet/app/pipe"+std::to_string(gpu_id);
+	std::cout << pipe_name << std::endl;
+	prediction_graph->add_node(new ReadPipeNode("read_pipe_node", pipe_name, REPEAT_MODE));
 
 	// Define prediction nodes
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";

@@ -12,13 +12,13 @@ void *GraphNet::run(){
 
 	std::cout << "Linking graph..." << std::endl;
 	link();
-
-	std::cout << "Executing in parallel mode..." << std::endl;
 	
 	if(_mode == 0){
+		std::cout << "Executing in serial mode..." << std::endl;
 		start_serial();
 	}
 	else{
+		std::cout << "Executing in parallel mode..." << std::endl;
 		start_parallel();
 	}
 }
