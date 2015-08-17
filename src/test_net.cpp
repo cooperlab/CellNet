@@ -7,10 +7,10 @@
 #include <vector>
 #include <ctime>
 #include <utils.h>
-#define NUMB_PIPES 1
+#define NUMB_PIPES 4
 
 extern char **environ;
-const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string LOCAL_HOME = "/home/nnauata";
 
 int main(){
 	
@@ -19,7 +19,7 @@ int main(){
 
 	std::vector<pid_t> pids;
 	std::vector<int> status_vec;
-	std::string batch_size = "10";
+	std::string batch_size = "2000";
 	pid_t pid;
 
 	// Create pipes

@@ -134,12 +134,10 @@ int PredictionPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<i
 	
 	// Format <height, width, channels, label, data>
 	// Read header
-	std::cout << "before reading" << std::endl;
 	int res = read(_pipe, &buffer[0], buffer.size());
 	while(res == 0){
 		res = read(_pipe, &buffer[0], buffer.size());
 	}
-	std::cout << "after reading" << std::endl;
 
 	int height = (int)buffer[0];
 	int width = (int)buffer[1];
