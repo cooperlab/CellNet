@@ -47,5 +47,6 @@ class PredictionPipeNode: public Node{
 		int _device_id;
 		int _pipe;
 		std::string _pipe_name;
+		std::vector<int> _stored_labels;
 };
 #endif

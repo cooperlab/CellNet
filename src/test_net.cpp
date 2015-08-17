@@ -19,7 +19,7 @@ int main(){
 
 	std::vector<pid_t> pids;
 	std::vector<int> status_vec;
-	std::string batch_size = "2000";
+	std::string batch_size = "10";
 	pid_t pid;
 
 	// Create pipes
