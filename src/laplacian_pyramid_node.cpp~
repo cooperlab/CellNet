@@ -2,65 +2,62 @@
 #include "utils.h"
 #define KERNELL_SIZE 3
 
-LaplacianPyramidNode::LaplacianPyramidNode(std::string id): Node(id) {
+LaplacianPyramidNode::LaplacianPyramidNode(std::string id, int mode): Node(id, mode) {
+	runtime_total_first = utils::get_time();
 }
 
 void *LaplacianPyramidNode::run(){
+	increment_threads();
 
 	while(true){
-		cv::Mat _layer0; 
 
-		//std::cout << "Copying from buffer" << std::endl;
-		copy_from_buffer(_layer0);
-		//std::cout << "Copy finished" << std::endl;
-		
+		std::vector<cv::Mat> _layer0; 
+		copy_chunk_from_buffer(_layer0, _labels);
 		if(!_layer0.empty()){
 
-			double begin_time = utils::get_time();
-			//std::cout << "LaplacianPyramidNode start" << std::endl;
+			for(std::vector<cv::Mat>::size_type i=0; i < _layer0.size(); i++){
 
-			cv::Mat _gaussian_layer0;
-			std::vector<cv::Mat> layers;
-		
-			// Build Laplacian pyramid
-			cv::GaussianBlur(_layer0, _gaussian_layer0	, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
-			
-			//std::cout << "Start building pyramid" << std::endl;
-			gen_next_level(_gaussian_layer0, _layer0, &layers, 0);
-			//std::cout << "Pyramid built" << std::endl;
-			resize_all(layers, _layer0.size());
+				// Initialize
+				increment_counter();
+				cv::Mat _gaussian_layer0;
+				std::vector<cv::Mat> layers;
+				std::vector<cv::Mat> merged_layers;
+				std::vector<cv::Mat> new_lap_out;
 
-			copy_to_buffer(layers);
-			//std::cout << "Number of layers: " << std::to_string(layers.size()) << std::endl;
-			
-			// Release memory
-			_gaussian_layer0.release();
-			layers.clear();
+				// Compute Laplacian
+				cv::GaussianBlur(_layer0.at(i), _gaussian_layer0, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
+				gen_next_level(_gaussian_layer0, _layer0.at(i), &layers, 0);
+				utils::resize_all(layers, _layer0.at(i).size());
 
-			//std::cout << "LaplacianPyramidNode complete" << std::endl;
-			std::cout << "Time to take laplacian pyramid: " << float( utils::get_time() - begin_time )  << std::endl;
+				// Merge layers
+				merged_layers = utils::merge_all(layers);
+				copy_to_buffer(merged_layers, _labels);
+
+				// Release memory
+				_gaussian_layer0.release();
+				layers.clear();
+				merged_layers.clear();
+			}			
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
-			//std::cout << "Stopping LaplacianPyramidNode" << std::endl;
 			break;
 		}
-		_layer0.release();
+		_layer0.clear();
 	}
 
-	// Notify it has finished
-	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-		_out_edges.at(i)->set_in_node_done();
+	if(check_finished() == true){
+	
+		std::cout << "******************" <<  std::endl << "LaplacianPyramidNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+		
+		// Notify it has finished
+		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
+			
+			_out_edges.at(i)->set_in_node_done();
+		}
 	}
 	/****************** Debug ******************/
 	//print_pyramid();
 	return NULL;
-}
-
-void LaplacianPyramidNode::resize_all(std::vector<cv::Mat> &layers, cv::Size size){
-
-	for(std::vector<cv::Mat>::size_type i =0; i < layers.size(); i++){
-		cv::resize(layers.at(i), layers.at(i), size, 0, 0, CV_INTER_CUBIC);
-	}
 }
 
 /* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */

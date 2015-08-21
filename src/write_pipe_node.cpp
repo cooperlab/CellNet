@@ -22,7 +22,6 @@ void *WritePipeNode::run(){
 			write_to_pipe();
 		}
 		else{
-
 			// Check if all input nodes have already finished
 			bool is_all_done = true;
 

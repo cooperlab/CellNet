@@ -24,17 +24,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <fstream>
 
 class PredictionPipeNode: public Node{
 
 	public:
-		PredictionPipeNode(std::string id, int mode, int batch_size, std::string model_path, std::string params_file, int device_id, std::string pipe_name);
+		PredictionPipeNode(std::string id, int mode, int batch_size, std::string model_path, std::string params_file, int device_id, std::string pipe_name, std::string file_out);
 		void *run();
 		void init_model();
 		void compute_accuracy();
 		void print_out_labels();
 		int read_from_pipe(std::vector<cv::Mat> &outs, std::vector<int> &labels);
 		int step(int first_idx, int batch_size);
+		void write_to_file();
 
 	protected:
 		int _batch_size;
@@ -48,5 +50,6 @@ class PredictionPipeNode: public Node{
 		int _pipe;
 		std::string _pipe_name;
 		std::vector<int> _stored_labels;
+		std::string _file_out;
 };
 #endif

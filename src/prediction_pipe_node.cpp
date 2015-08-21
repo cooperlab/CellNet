@@ -1,6 +1,7 @@
 #include "prediction_pipe_node.h"
+#include <fstream>
 
-PredictionPipeNode::PredictionPipeNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id, std::string pipe_name): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id), _pipe(0), _pipe_name(pipe_name), _stored_labels(){
+PredictionPipeNode::PredictionPipeNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id, std::string pipe_name, std::string file_out): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id), _pipe(0), _pipe_name(pipe_name), _stored_labels(), _file_out(file_out){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	_pipe = open(_pipe_name.c_str(), O_RDONLY);
@@ -57,7 +58,6 @@ void *PredictionPipeNode::run(){
 			}
 		}
 		else{
-
 			// Handle non-multiples
 			if(_data_buffer.size() > 0){
 				
@@ -75,13 +75,14 @@ void *PredictionPipeNode::run(){
 			// Print results
 			compute_accuracy();
 			print_out_labels();
+			write_to_file();
 			break;
 		}
 	}
 
 	if(check_finished() == true){
 
-		std::cout << "******************" << std::endl << "Prediction" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_labels_buffer.size()) << std::endl << "******************" << std::endl;
+		std::cout << "******************" << std::endl << "Prediction" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
 
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
@@ -104,6 +105,13 @@ int PredictionPipeNode::step(int first_idx, int batch_size){
 	batch_labels.reserve(batch_size);
 	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
 	
+	// DEBUG
+	for(int k=0; k < batch.size(); k++){
+
+		cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", batch[k]);
+	}
+	// DEBUG
+
 	// Get memory layer from net
 	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
 	
@@ -166,7 +174,7 @@ int PredictionPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<i
 	if((height > 0) && (width > 0) && (channels > 0)){
 
 		// Increment
-		_counter++;
+		//_counter++;
 
 		// Read 
 		std::vector<uint8_t> buffer_data(height * width * channels);
@@ -215,11 +223,20 @@ void PredictionPipeNode::print_out_labels(){
 	for(int i=0; i < _predictions.size(); i++){
 
 		std::cout << "out: " << _predictions[i] << " target: " << _stored_labels[i] << std::endl;
-		//std::vector<cv::Mat> input;
-		//split(_data_buffer[i], input);
-		//for(int k = 0; k < input.size(); k++){
-
-		//	cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
-		//}
 	}
+}
+
+void PredictionPipeNode::write_to_file(){
+
+	std::ofstream out;
+	out.open(_file_out, std::ofstream::out  | std::ios::app);
+	while(!out.is_open()){
+		out.open(_file_out, std::ofstream::out  | std::ios::app);
+	}
+
+	for(int i=0; i < _predictions.size(); i++){
+
+		 out <<  _predictions[i] << ";" << _stored_labels[i] << std::endl;
+	}
+	out.close();
 }

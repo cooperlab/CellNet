@@ -28,67 +28,12 @@
 #define SERIAL 0
 #define PARALLEL 1
 
-//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
-
-// Move this function to utils!
-void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
-
-	// Fill train dataset
-	srand (time(NULL));
-	int k = 0;
-	for(int i=0; i < N; i++){
-
-		// Get random sample
-		k = rand() % num_elem;
-		
-		// Adjust label value to 0 or 1
-		if(labels[k] == -1){
-			labels[k] = 0;
-		}
-
-		// Append 
-		cells_coordinates_set[slide_idx[k]].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
-		shuffled_labels[slide_idx[k]].push_back(labels[k]);
-
-		// Erase selected element
-		x_centroid.erase(x_centroid.begin() + k);
-		y_centroid.erase(y_centroid.begin() + k);
-		slide_idx.erase(slide_idx.begin() + k);
-		labels.erase(labels.begin() + k);
-		num_elem--;
-	}
-}
-
-// Move this function to utils!
-bool has_prefix(const std::string& s, const std::string& prefix)
-{
-    return (s.size() >= prefix.size()) && equal(prefix.begin(), prefix.end(), s.begin());    
-}
-
-// Move this function to utils!
-std::string get_image_name(std::string name){
-
-	DIR *dir = opendir(IMAGE_PATH.c_str());
-    dirent *entry;
-    std::string image_name;
-
-    while(entry = readdir(dir))
-    {
-        if(has_prefix(entry->d_name, name))
-        {
-
-        	std::string image(entry->d_name);
-     		image_name = image;
-        }
-    }
-
-    return image_name;
-}
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
+//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+//const static std::string LOCAL_HOME = "/home/nelson";
+//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
@@ -97,6 +42,10 @@ int main (int argc, char * argv[])
 	double begin_time = utils::get_time();
 
 	/**************************************** Get Input Data  ***************************************/
+
+	// Define slides to use for training
+	std::vector<int> train_slides;
+	train_slides.push_back(0);
 
 	// Declare input data
 	std::vector<float> x_centroid;
@@ -139,21 +88,28 @@ int main (int argc, char * argv[])
 	/******************************** Shuffle & Split Data ******************************************/
 	
 	float begin_time_2 = utils::get_time();
-	fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
+	utils::fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
 	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
 	std::cout << "train_size: " << num_elems << std::endl;
+
 	
 	/********************************    Setup Graphs     *******************************************/
 	
 	//Define paths
 	for(int k = 0; k < slides.size(); k++){
 
-		std::string img_name = get_image_name(slides[k]);
+		std::string img_name = utils::get_image_name(slides[k], IMAGE_PATH);
 		std::cout << img_name << std::endl;
 		train_file_paths.push_back(IMAGE_PATH + "/" + img_name);
 		std::cout << IMAGE_PATH << "/" << img_name << std::endl;
 	}
+
+	/********************************    Remove Slides   ********************************************/
+
+	utils::remove_slides(train_file_paths, train_cells_coordinates_set, train_labels, train_slides);
+
+	/************************************************************************************************/
 
 	// Define Graphs
 	std::cout << "Defining graph nodes..." << std::endl;
@@ -181,8 +137,10 @@ int main (int argc, char * argv[])
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
 	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
 	int batch_size = 8;
+	float momentum = 0.9;
+	float gamma = 0.0005;
 	float base_lr = 0.0001;
-	train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, GPU_ID, model_path, base_lr, 1));
+	train_graph->add_node(new TrainNode("train_node", REPEAT_MODE, batch_size, GPU_ID, model_path, base_lr, momentum, gamma, 1));
 
 	// Add train edges
 	int n_edges = 0;
@@ -193,6 +151,7 @@ int main (int argc, char * argv[])
 			for(int l = 0; l < NUMB_READ_NODE; l++){
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
+				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(l), "train_node"));
 			}
 			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 

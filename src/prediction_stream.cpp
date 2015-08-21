@@ -49,10 +49,10 @@ int main (int argc, char * argv[3])
 	std::string pipe_name = LOCAL_HOME + "/CellNet/app/pipe"+std::to_string(gpu_id);
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
-	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_train_val.prototxt";
-	prediction_graph->add_node(new PredictionPipeNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id, pipe_name));
-	
+	std::string out_file = LOCAL_HOME + "/CellNet/app/predictions.txt";
 
+	prediction_graph->add_node(new PredictionPipeNode("prediction_node", REPEAT_MODE, batch_size, test_model_path, trained_model_path, gpu_id, pipe_name, out_file));
+	
 	// Add edges
 	int n_edges = 0;
 	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_pipe_node", "prediction_node"));

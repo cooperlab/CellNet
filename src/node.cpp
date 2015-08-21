@@ -6,6 +6,8 @@ void Node::insert_in_edge(Edge *edge_ptr){_in_edges.push_back(edge_ptr);}
 void Node::insert_out_edge(Edge *edge_ptr){_out_edges.push_back(edge_ptr);}
 void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 
+// Repeat Node
+// Copy everything to all output edges, repeating the images 
 	if(_mode == 0){	
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 
@@ -38,6 +40,8 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 
 		}
 	}
+// Alternate mode
+// Copy everyting to a buffer alternating the outputs buffers
 	else if(_mode == 1){
 
 			// This code considers only one thread
@@ -68,12 +72,16 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 			_out_edges.at(i)->set_buffer(new_buffer, new_buffer_labels);
 
 			// Update control
-			if(++ctrl >= _out_edges.size()){
+			ctrl++;
+			if(ctrl >= _out_edges.size()){
 				ctrl = 0;
 			}
 			/******* Restricted Access ********/
 			
 	}
+// Chunk mode
+// Split the input images into N chunks and tranfer them to the output buffer
+// Where N is equal to the number of output nodes
 	else if(_mode == 2){
 
 		// This code considers only one thread

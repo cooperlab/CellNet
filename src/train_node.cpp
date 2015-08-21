@@ -1,6 +1,6 @@
 #include "train_node.h"
 
-TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(), _base_lr(base_lr), _history(), _temp(), _iter(iter), _device_id(_device_id){
+TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, float momentum, float gamma, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(), _base_lr(base_lr), _momentum(momentum), _gamma(gamma), _history(), _temp(), _iter(iter), _device_id(_device_id){
 	
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
@@ -198,8 +198,8 @@ void TrainNode::compute_update_value(){
 
   	// get parameters
 	float rate = _base_lr;
-	float momentum = 0.9;
-	float weight_decay = 0.0005;
+	float momentum = _momentum;
+	float weight_decay = _gamma;
 	std::string regularization_type = "L2";
 
 	switch (caffe::Caffe::mode()) {

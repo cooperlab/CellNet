@@ -174,4 +174,79 @@ namespace utils{
 			cv::resize(layers.at(i), layers.at(i), size, 0, 0, CV_INTER_CUBIC);
 		}
 	}	
+
+	void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &shuffled_labels, std::vector<float> &x_centroid, std::vector<float> &y_centroid, std::vector<int> &labels, std::vector<float> &slide_idx){
+	
+		// Fill train dataset
+		srand (time(NULL));
+		int k = 0;
+		for(int i=0; i < N; i++){
+
+			// Get random sample
+			k = rand() % num_elem;
+			
+			// Adjust label value to 0 or 1
+			if(labels[k] == -1){
+				labels[k] = 0;
+			}
+
+			// Append 
+			cells_coordinates_set[slide_idx[k]].push_back(std::make_tuple(x_centroid[k], y_centroid[k]));
+			shuffled_labels[slide_idx[k]].push_back(labels[k]);
+
+			// Erase selected element
+			x_centroid.erase(x_centroid.begin() + k);
+			y_centroid.erase(y_centroid.begin() + k);
+			slide_idx.erase(slide_idx.begin() + k);
+			labels.erase(labels.begin() + k);
+			num_elem--;
+		}
+	}
+
+	bool has_prefix(const std::string& s, const std::string& prefix)
+	{
+	    return (s.size() >= prefix.size()) && equal(prefix.begin(), prefix.end(), s.begin());    
+	}
+
+	std::string get_image_name(std::string name, std::string image_path){
+
+		DIR *dir = opendir(image_path.c_str());
+	    dirent *entry;
+	    std::string image_name;
+
+	    while(entry = readdir(dir))
+	    {
+	        if(has_prefix(entry->d_name, name))
+	        {
+
+	        	std::string image(entry->d_name);
+	     		image_name = image;
+	        }
+	    }
+
+	    return image_name;
+	}
+
+	void remove_slides(std::vector<std::string> &file_paths, std::vector< std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector< std::vector<int>> &labels, std::vector<int> slides){
+		
+		std::vector<std::string> new_file_paths;
+		std::vector<std::vector<std::tuple<float, float>>> new_cells_coordinates_set;
+		std::vector<std::vector<int>> new_labels;
+
+		for(int i=0; i < slides.size(); i++){
+			
+			int k = slides[i];
+
+			// Keep elements
+			std::cout << "test: " << file_paths.size() << std::endl; 
+			new_file_paths.push_back(file_paths[k]);
+			new_cells_coordinates_set.push_back(cells_coordinates_set[k]);
+			new_labels.push_back(labels[k]);
+		}
+
+		// Update vectors
+		file_paths = new_file_paths;
+		cells_coordinates_set = new_cells_coordinates_set; 
+		labels = new_labels;
+	}
 }
