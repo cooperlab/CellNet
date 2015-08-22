@@ -19,7 +19,7 @@
 class AugmentationNode: public Node{
 
 	public:
-		AugmentationNode(std::string id, int aug_factor);
+		AugmentationNode(std::string id, int mode, int aug_factor);
     void augment_images(std::vector<cv::Mat> imgs, std::vector<int> labels);
 		void *run();
 

@@ -6,7 +6,7 @@
 #include <random>
 #include <chrono>
 
-AugmentationNode::AugmentationNode(std::string id, int aug_factor): Node(id, 0), _counter(0), _data_buffer(), _labels_buffer(), _aug_factor(aug_factor){
+AugmentationNode::AugmentationNode(std::string id, int mode, int aug_factor): Node(id, mode), _counter(0), _data_buffer(), _labels_buffer(), _aug_factor(aug_factor){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	_labels_buffer.clear();
@@ -58,93 +58,105 @@ void AugmentationNode::augment_images(std::vector<cv::Mat> imgs, std::vector<int
 	std::vector<cv::Mat> out_imgs;
 	std::vector<int> out_labels;
 	for(int k=0; k < imgs.size(); k++){
-		_counter+=2;
+		_counter++;
 
-		// Define variables
-		cv::Mat src(imgs[k]);
-		cv::Mat rot_M(2, 3, CV_32F);
-		cv::Size double_size(src.rows * 2, src.cols * 2);
+		for(int i=0; i < _aug_factor; i++){
+			_counter++;
+			// Define variables
+			cv::Mat src(imgs[k]);
+			cv::Mat rot_M(2, 3, CV_8U);
+			cv::Size double_size(src.rows * 1.8, src.cols * 1.8);
 
-		cv::Mat warped_img(double_size, src.type());
-		int label = labels[k];
+			cv::Mat warped_img(double_size, src.type());
+			int label = labels[k];
 
-  		// construct a trivial random generator engine from a time-based seed:
-  		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  		std::default_random_engine generator (seed);
+	  		// construct a trivial random generator engine from a time-based seed:
+	  		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	  		std::default_random_engine generator (seed);
 
-  		// Rescale for correction
-		float Sx = 1.0;
-		float Sy = Sx;
+			// Upsample
+			cv::resize(src, warped_img, warped_img.size(), 0.0, 0.0, CV_INTER_CUBIC);
 
-		std::cout << Sx << std::endl; 
+			// Rotation 
+			std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
+			float theta = 180 * uniform_dist(generator);
 
-		cv::Mat double_M(2, 3, CV_32F);
-		double_M.at<float>(0,0) = Sx;
-		double_M.at<float>(0,1) = 0;
-		double_M.at<float>(0,2) = 0;
+			cv::Point2f warped_img_center(warped_img.cols/2.0F, warped_img.rows/2.0F);
+			rot_M = getRotationMatrix2D(warped_img_center, theta, 1.0);
+			cv::warpAffine( warped_img, warped_img, rot_M, warped_img.size());
 
-		double_M.at<float>(1,0) = 0;
-		double_M.at<float>(1,1) = Sy;
-		double_M.at<float>(1,2) = 0;
+			// Translation
+			float Tx = 10*uniform_dist(generator);
+			float Ty = 10*uniform_dist(generator);
 
-		cv::warpAffine( src, warped_img, double_M, warped_img.size());
+			cv::Mat trans_M(2, 3, CV_32F);
+			trans_M.at<float>(0,0) = 1;
+			trans_M.at<float>(0,1) = 0;
+			trans_M.at<float>(0,2) = Tx;
 
-		// Rotation 
-		std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
-		float theta = 180 * uniform_dist(generator);
+			trans_M.at<float>(1,0) = 0;
+			trans_M.at<float>(1,1) = 1;
+			trans_M.at<float>(1,2) = Ty;
 
-		cv::Point2f src_center(src.cols/2.0F, src.rows/2.0F);
-		rot_M = getRotationMatrix2D(src_center, theta, 1.0);
-		cv::warpAffine( src, warped_img, rot_M, warped_img.size());
+			cv::warpAffine( warped_img, warped_img, trans_M, warped_img.size());
 
-		// Translation
-		float Tx = 10*uniform_dist(generator);
-		float Ty = 10*uniform_dist(generator);
+			// Rescaling
+			std::uniform_real_distribution<double> sec_uniform_dist(1.0, 1.2);
+			int Sx = sec_uniform_dist(generator);
+			int Sy = sec_uniform_dist(generator);
 
-		cv::Mat trans_M(2, 3, CV_32F);
-		trans_M.at<float>(0,0) = 1;
-		trans_M.at<float>(0,1) = 0;
-		trans_M.at<float>(0,2) = Tx;
+			cv::Mat scaling_M(2, 3, CV_32F);
+			scaling_M.at<float>(0,0) = Sx;
+			scaling_M.at<float>(0,1) = 0;
+			scaling_M.at<float>(0,2) = 0;
 
-		trans_M.at<float>(1,0) = 0;
-		trans_M.at<float>(1,1) = 1;
-		trans_M.at<float>(1,2) = Ty;
+			scaling_M.at<float>(1,0) = 0;
+			scaling_M.at<float>(1,1) = Sy;
+			scaling_M.at<float>(1,2) = 0;
 
-		cv::warpAffine( warped_img, warped_img, trans_M, warped_img.size());
+			cv::warpAffine( warped_img, warped_img, scaling_M, warped_img.size());
 
-		// Rescaling
-		std::uniform_real_distribution<double> sec_uniform_dist(1.0/1.6, 1.6);
-		Sx = sec_uniform_dist(generator);
-		Sy = Sx;
+			// Flip image
+			std::uniform_real_distribution<double> th_uniform_dist(0.0, 1.0);
+			if(th_uniform_dist(generator) > 0.5){
+				cv::Mat flipped_img;
+				cv::flip(warped_img, flipped_img, 1);
+				warped_img = flipped_img;
+			}
 
-		std::cout << Sx << std::endl; 
+			// Shearing 
+			cv::Mat shear_M(2, 3, CV_32F);
+			std::uniform_real_distribution<double> fth_uniform_dist(0.0, 0.10);
+			float ShearX = fth_uniform_dist(generator);
+			float ShearY = fth_uniform_dist(generator);
+			shear_M.at<float>(0,0) = 1;
+			shear_M.at<float>(0,1) = ShearY;
+			shear_M.at<float>(0,2) = 0;
 
-		cv::Mat scaling_M(2, 3, CV_32F);
-		scaling_M.at<float>(0,0) = Sx;
-		scaling_M.at<float>(0,1) = 0;
-		scaling_M.at<float>(0,2) = 0;
+			shear_M.at<float>(1,0) = ShearX;
+			shear_M.at<float>(1,1) = 1;
+			shear_M.at<float>(1,2) = 0;
+			cv::warpAffine( warped_img, warped_img, shear_M, warped_img.size());
 
-		scaling_M.at<float>(1,0) = 0;
-		scaling_M.at<float>(1,1) = Sy;
-		scaling_M.at<float>(1,2) = 0;
+			// Get ROI
+			float tl_row = warped_img.rows/2.0F - src.rows/2.0F;
+			float tl_col = warped_img.cols/2.0F - src.cols/2.0F;
+			float br_row = warped_img.rows/2.0F + src.rows/2.0F;
+			float br_col = warped_img.cols/2.0F + src.cols/2.0F;
+			cv::Point tl(tl_row, tl_col);
+			cv::Point br(br_row, br_col);
 
+			// Setup a rectangle to define region of interest
+			cv::Rect cellROI(tl, br);
+			cv::Mat final_img = warped_img(cellROI);	
 
-		cv::warpAffine( warped_img, warped_img, scaling_M, warped_img.size());
-		
-		// Get ROI
-		float tl_row = warped_img.rows/2.0F - src.rows/2.0F;
-		float tl_col = warped_img.cols/2.0F - src.cols/2.0F;
-		float br_row = warped_img.rows/2.0F - src.rows/2.0F;
-		float br_col = warped_img.cols/2.0F - src.cols/2.0F;
-		cv::Mat final_img = warped_img( cv::Rect(tl_row, tl_col, br_row, br_col) );
- 
-		// Accumulate
-		out_imgs.push_back(src);
-		out_imgs.push_back(final_img);
-		out_labels.push_back(label);
-		out_labels.push_back(label);
+			// Accumulate
+			out_imgs.push_back(final_img);
+			out_labels.push_back(label);
+		}
 
-		// Copy to buffer
+		out_imgs.push_back(imgs[k]);
+		out_labels.push_back(labels[k]);
 		copy_to_buffer(out_imgs, out_labels);
 
 		// Clean

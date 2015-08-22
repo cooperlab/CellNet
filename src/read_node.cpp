@@ -99,7 +99,6 @@ cv::Mat ReadNode::open_image_region(openslide_t *oslide, int layer_i, float w, f
 	// Declare buff
 	// Read region
 	uint32_t *buf = g_new(uint32_t, w * h);
-	uint32_t *out = g_new(uint32_t, w * h);
 
 	// Read region
 	openslide_read_region(oslide, buf, x, y, layer_i, w, h);
@@ -112,24 +111,24 @@ cv::Mat ReadNode::open_image_region(openslide_t *oslide, int layer_i, float w, f
 
 		if (a == 255) {
      	   // Common case.  Compiles to a shift and a BSWAP.
-			out[i] = GUINT32_TO_BE(pixel << 8);
+			buf[i] = GUINT32_TO_BE(pixel << 8);
 		} else if (a == 0) {
         	// Less common case.  Hardcode white pixel; could also
         	// use value from openslide.background-color property
         	// if it exists
-			out[i] = GUINT32_TO_BE(0xffffff00u);
+			buf[i] = GUINT32_TO_BE(0xffffff00u);
 		} else {
         	// Unusual case.
 			uint8_t r = 255 * ((pixel >> 16) & 0xff) / a;
 			uint8_t g = 255 * ((pixel >> 8) & 0xff) / a;
 			uint8_t b = 255 * (pixel & 0xff) / a;
-			out[i] = GUINT32_TO_BE(r << 24 | g << 16 | b << 8);
+			buf[i] = GUINT32_TO_BE(r << 24 | g << 16 | b << 8);
 		}
 	}
 	
 	// Convert to opencv
 	// Get XBGR channels
-	cv::Mat int_XBGR = cv::Mat(h, w, CV_8UC4, out);
+	cv::Mat int_XBGR = cv::Mat(h, w, CV_8UC4, buf);
 	cv::Mat entire_image;
 	std::vector<cv::Mat> XBRG_channels;
 	cv::split(int_XBGR, XBRG_channels);
@@ -142,7 +141,6 @@ cv::Mat ReadNode::open_image_region(openslide_t *oslide, int layer_i, float w, f
 
 	// Close openslide object
 	free(buf);
-	free(out);
 
 	return entire_image;
 }

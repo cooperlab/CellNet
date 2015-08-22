@@ -1,7 +1,7 @@
 #include "train_node.h"
 
 TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, float momentum, float gamma, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(), _base_lr(base_lr), _momentum(momentum), _gamma(gamma), _history(), _temp(), _iter(iter), _device_id(_device_id){
-	
+	_counter = 0;	
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	init_model();
@@ -76,6 +76,11 @@ void *TrainNode::run(){
 		// Save model
 		snapshot();
 
+		// DEBUG
+		for(int k=0; k < _data_buffer.size(); k++){
+
+			cv::imwrite("/home/nelson/CellNet/app/uia/img" + std::to_string(_counter++) + ".jpg", _data_buffer[k]);
+		}
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 			_out_edges.at(i)->set_in_node_done();

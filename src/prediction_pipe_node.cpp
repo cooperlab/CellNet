@@ -40,7 +40,7 @@ void *PredictionPipeNode::run(){
 		int res = read_from_pipe(_data_buffer, _labels_buffer);
 		if(res){
 			if(_batch_size <= _data_buffer.size()){
-
+				
 				// For each epoch feed the model with a mini-batch of samples
 				int epochs = _data_buffer.size()/_batch_size;
 				for(int i = 0; i < epochs; i++){	
@@ -60,7 +60,7 @@ void *PredictionPipeNode::run(){
 		else{
 			// Handle non-multiples
 			if(_data_buffer.size() > 0){
-				
+	
 				std::cout << "Remaining samples: " << std::to_string(_data_buffer.size()) << std::endl; 
 				step(0, _data_buffer.size());
 
@@ -105,12 +105,8 @@ int PredictionPipeNode::step(int first_idx, int batch_size){
 	batch_labels.reserve(batch_size);
 	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
 	
-	// DEBUG
-	for(int k=0; k < batch.size(); k++){
 
-		cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", batch[k]);
-	}
-	// DEBUG
+	std::cout << std::endl << std::endl;
 
 	// Get memory layer from net
 	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
@@ -184,7 +180,9 @@ int PredictionPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<i
         }
 
 		cv::Mat img(height, width, CV_8UC(channels));
-		memcpy(img.data, &buffer_data[0], height * width * channels * sizeof(uint8_t));
+		memcpy(img.data, &buffer_data[0], buffer_data.size() * sizeof(uint8_t));
+
+		cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", img);
 		std::vector<cv::Mat> vec_img;
 		vec_img.push_back(img);
 

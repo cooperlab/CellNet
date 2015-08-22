@@ -7,6 +7,7 @@
 #include "write_hdf5_node.h"
 #include "train_node.h"
 #include "prediction_node.h"
+#include "augmentation_node.h"
 #include "edge.h"
 #include "hdf5.h"
 #include "utils.h"
@@ -22,18 +23,19 @@
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1	
-#define NUMB_LAPLACIAN_NODE 2
+#define NUMB_LAPLACIAN_NODE 0
 #define NUMB_READ_NODE 1
+#define NUMB_AUGMENTATION_NODE 1
 #define GPU_ID 0
 #define SERIAL 0
 #define PARALLEL 1
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-//const static std::string LOCAL_HOME = "/home/nelson";
-//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
@@ -132,6 +134,11 @@ int main (int argc, char * argv[])
 		}
 	}
 
+	// Define augmentation nodes
+	for(int i=0; i < NUMB_AUGMENTATION_NODE; i++){
+		train_graph->add_node(new AugmentationNode("augmentation_node" + std::to_string(i), REPEAT_MODE, 4));
+	}
+
 	// Define train node
 	std::string trained_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
 	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
@@ -151,13 +158,15 @@ int main (int argc, char * argv[])
 			for(int l = 0; l < NUMB_READ_NODE; l++){
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
-				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(l), "train_node"));
-			}
-			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "augmentation_node" + std::to_string(i)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node"));
 
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
 			}
+			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+
+			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
+			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
+			//}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;
