@@ -22,20 +22,20 @@
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
-#define NUMB_GRAYSCALE_NODE 1	
-#define NUMB_LAPLACIAN_NODE 0
+#define NUMB_GRAYSCALE_NODE 1
+#define NUMB_LAPLACIAN_NODE 2
 #define NUMB_READ_NODE 1
-#define NUMB_AUGMENTATION_NODE 1
+#define NUMB_AUGMENTATION_NODE 0
 #define GPU_ID 0
 #define SERIAL 0
 #define PARALLEL 1
 
-//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
+//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+//const static std::string LOCAL_HOME = "/home/nelson";
+//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
@@ -46,8 +46,8 @@ int main (int argc, char * argv[])
 	/**************************************** Get Input Data  ***************************************/
 
 	// Define slides to use for training
-	std::vector<int> train_slides;
-	train_slides.push_back(0);
+	std::vector<int> train_slides = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46};
+
 
 	// Declare input data
 	std::vector<float> x_centroid;
@@ -158,15 +158,15 @@ int main (int argc, char * argv[])
 			for(int l = 0; l < NUMB_READ_NODE; l++){
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "augmentation_node" + std::to_string(i)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node"));
+				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "augmentation_node" + std::to_string(i)));
+				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node"));
 
 			}
-			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
-			//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
-			//}
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "train_node"));
+			}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;

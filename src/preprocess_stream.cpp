@@ -22,19 +22,18 @@
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
-#define NUMB_GRAYSCALE_NODE 1
-#define NUMB_LAPLACIAN_NODE 0
+#define NUMB_GRAYSCALE_NODE 4
+#define NUMB_LAPLACIAN_NODE 1
 #define NUMB_WRITE_PIPE_NODE 1
-#define NUMB_AUGMENTATION_NODE 1
 #define SERIAL 0
 #define PARALLEL 1
 
-//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
+//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+//const static std::string LOCAL_HOME = "/home/nelson";
+//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
@@ -127,11 +126,6 @@ int main (int argc, char * argv[])
 		prediction_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), REPEAT_MODE));
 	}
 
-	// Define augmentation nodes
-	for(int i=0; i < NUMB_AUGMENTATION_NODE; i++){
-		prediction_graph->add_node(new AugmentationNode("augmentation_node" + std::to_string(i), REPEAT_MODE, 1));
-	}
-
 	// Define laplacian nodes
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
@@ -160,14 +154,11 @@ int main (int argc, char * argv[])
 		for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 			
 			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node" + std::to_string(i)));
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "augmentation_node" + std::to_string(i)));
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node"+ std::to_string(i), "write_pipe_node" + std::to_string(i)));
+			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
 
-			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
-
-			//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
-			//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "write_pipe_node" + std::to_string(n_w++)));
-			//}
+				prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
+				prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "write_pipe_node" + std::to_string(n_w++)));
+			}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;

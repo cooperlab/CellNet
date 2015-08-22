@@ -7,7 +7,7 @@
 #include <vector>
 #include <ctime>
 #include <utils.h>
-#define NUMB_PIPES 1
+#define NUMB_PIPES 4
 
 extern char **environ;
 const static std::string LOCAL_HOME = "/home/nelson";

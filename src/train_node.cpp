@@ -76,11 +76,6 @@ void *TrainNode::run(){
 		// Save model
 		snapshot();
 
-		// DEBUG
-		for(int k=0; k < _data_buffer.size(); k++){
-
-			cv::imwrite("/home/nelson/CellNet/app/uia/img" + std::to_string(_counter++) + ".jpg", _data_buffer[k]);
-		}
 		// Notify it has finished
 		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
 			_out_edges.at(i)->set_in_node_done();
