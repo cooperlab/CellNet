@@ -110,12 +110,12 @@ int main (int argc, char * argv[])
 
 	utils::remove_slides(prediction_file_paths, prediction_cells_coordinates_set, prediction_labels, prediction_slides);
 	int total;
-	for(int k=0; k < train_cells_coordinates_set; k++){
+	for(int k=0; k < prediction_cells_coordinates_set.size(); k++){
 
-		std::cout << "Slide name: " << train_file_paths[k] << std::endl;
-		std::cout << "Slide #: "  << train_slides[k] << std::endl;
-		std::cout << "# of samples: " << train_cells_coordinates_set[k].size() << std::endl;
-		total += train_cells_coordinates_set[k].size();
+		std::cout << "Slide name: " << prediction_file_paths[k] << std::endl;
+		std::cout << "Slide #: "  << prediction_slides[k] << std::endl;
+		std::cout << "# of samples: " << prediction_cells_coordinates_set[k].size() << std::endl;
+		total += prediction_cells_coordinates_set[k].size();
 	}
 	std::cout << "Total # of samples" << total << std::endl;
 	/************************************************************************************************/

@@ -51,5 +51,7 @@ class PredictionPipeNode: public Node{
 		std::string _pipe_name;
 		std::vector<int> _stored_labels;
 		std::string _file_out;
+		boost::shared_ptr<caffe::MemoryDataLayer<float>> _data_layer;
+		boost::shared_ptr<caffe::Blob<float> > _out_layer;
 };
 #endif

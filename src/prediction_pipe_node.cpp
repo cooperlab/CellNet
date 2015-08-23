@@ -1,7 +1,7 @@
 #include "prediction_pipe_node.h"
 #include <fstream>
 
-PredictionPipeNode::PredictionPipeNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id, std::string pipe_name, std::string file_out): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id), _pipe(0), _pipe_name(pipe_name), _stored_labels(), _file_out(file_out){
+PredictionPipeNode::PredictionPipeNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id, std::string pipe_name, std::string file_out): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id), _pipe(0), _pipe_name(pipe_name), _stored_labels(), _file_out(file_out), _out_layer(), _data_layer(){
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	_pipe = open(_pipe_name.c_str(), O_RDONLY);
@@ -26,6 +26,8 @@ void PredictionPipeNode::init_model(){
   	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
   	_net->CopyTrainedLayersFrom(_params_file.c_str());
 
+  	_data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+	_out_layer = _net->blob_by_name("ip2");
   	std::cout << "Model loaded" << std::endl;
 }
 
@@ -105,37 +107,30 @@ int PredictionPipeNode::step(int first_idx, int batch_size){
 	batch_labels.reserve(batch_size);
 	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
 	
-
-	std::cout << std::endl << std::endl;
-
-	// Get memory layer from net
-	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-	
 	// Set batch size
-	data_layer->set_batch_size(batch_size);
+	_data_layer->set_batch_size(batch_size);
 
 	// Add matrices
-	data_layer->AddMatVector(batch, batch_labels);
+	_data_layer->AddMatVector(batch, batch_labels);
 
 	// Foward
 	float loss;
 	_net->ForwardPrefilled(&loss);
-	const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
 
-	const float* results = out_layer->cpu_data();
+	const float* results = _out_layer->cpu_data();
 
 	// Append outputs
-	for(int j=0; j < out_layer->shape(0); j++){
+	for(int j=0; j < _out_layer->shape(0); j++){
 		
 		int idx_max = 0;
-		float max = results[j*out_layer->shape(1) + 0];
+		float max = results[j*_out_layer->shape(1) + 0];
 
 		// Argmax
-		for(int k=0; k < out_layer->shape(1); k++){
+		for(int k=0; k < _out_layer->shape(1); k++){
 
-			if(results[j*out_layer->shape(1) + k] > max){
+			if(results[j*_out_layer->shape(1) + k] > max){
 
-				max = results[j*out_layer->shape(1) + k];
+				max = results[j*_out_layer->shape(1) + k];
 				idx_max = k;
 			}
 		}
@@ -147,6 +142,7 @@ int PredictionPipeNode::step(int first_idx, int batch_size){
 	// Clean variables
 	batch.clear();
 	batch_labels.clear();
+	delete results;
 	return first_idx;
 }
 

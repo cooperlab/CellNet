@@ -39,6 +39,8 @@ class TrainNode: public Node{
 		float _gamma;
 		std::vector<boost::shared_ptr<caffe::Blob<float>>> _history;
 		std::vector<boost::shared_ptr<caffe::Blob<float>>> _temp;
+		boost::shared_ptr<caffe::Blob<float> > _out_layer;
+		boost::shared_ptr<caffe::MemoryDataLayer<float>> _data_layer;
 		int _iter;
 		int _device_id;
 };
