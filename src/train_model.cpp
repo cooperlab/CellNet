@@ -93,8 +93,6 @@ int main (int argc, char * argv[])
 	utils::fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
 
 	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
-	std::cout << "train_size: " << num_elems << std::endl;
-
 	
 	/********************************    Setup Graphs     *******************************************/
 	
@@ -102,15 +100,21 @@ int main (int argc, char * argv[])
 	for(int k = 0; k < slides.size(); k++){
 
 		std::string img_name = utils::get_image_name(slides[k], IMAGE_PATH);
-		std::cout << img_name << std::endl;
 		train_file_paths.push_back(IMAGE_PATH + "/" + img_name);
-		std::cout << IMAGE_PATH << "/" << img_name << std::endl;
 	}
 
 	/********************************    Remove Slides   ********************************************/
 
 	utils::remove_slides(train_file_paths, train_cells_coordinates_set, train_labels, train_slides);
+	int total;
+	for(int k=0; k < train_cells_coordinates_set; k++){
 
+		std::cout << "Slide name: " << train_file_paths[k] << std::endl;
+		std::cout << "Slide #: "  << train_slides[k] << std::endl;
+		std::cout << "# of samples: " << train_cells_coordinates_set[k].size() << std::endl;
+		total += train_cells_coordinates_set[k].size();
+	}
+	std::cout << "Total # of samples" << total << std::endl;
 	/************************************************************************************************/
 
 	// Define Graphs

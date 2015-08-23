@@ -238,7 +238,6 @@ namespace utils{
 			int k = slides[i];
 
 			// Keep elements
-			std::cout << "test: " << file_paths.size() << std::endl; 
 			new_file_paths.push_back(file_paths[k]);
 			new_cells_coordinates_set.push_back(cells_coordinates_set[k]);
 			new_labels.push_back(labels[k]);
