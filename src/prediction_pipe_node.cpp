@@ -27,7 +27,7 @@ void PredictionPipeNode::init_model(){
   	_net->CopyTrainedLayersFrom(_params_file.c_str());
 
   	_data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-	_out_layer = _net->blob_by_name("ip2");
+	_out_layer = _net->blob_by_name("prob");
   	std::cout << "Model loaded" << std::endl;
 }
 
@@ -142,7 +142,7 @@ int PredictionPipeNode::step(int first_idx, int batch_size){
 	// Clean variables
 	batch.clear();
 	batch_labels.clear();
-	delete results;
+	//delete results;
 	return first_idx;
 }
 
@@ -178,7 +178,7 @@ int PredictionPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<i
 		cv::Mat img(height, width, CV_8UC(channels));
 		memcpy(img.data, &buffer_data[0], buffer_data.size() * sizeof(uint8_t));
 
-		cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", img);
+		//cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", img);
 		std::vector<cv::Mat> vec_img;
 		vec_img.push_back(img);
 

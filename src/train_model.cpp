@@ -6,6 +6,7 @@
 #include "grayscale_node.h"
 #include "write_hdf5_node.h"
 #include "train_node.h"
+#include "read_jpg_node.h"
 #include "prediction_node.h"
 #include "augmentation_node.h"
 #include "edge.h"
@@ -30,70 +31,42 @@
 #define SERIAL 0
 #define PARALLEL 1
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
-//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-//const static std::string LOCAL_HOME = "/home/nelson";
-//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
+	std::vector<int> train_slides;
+	std::string slides_str(argv[1]);
+	std::string word;
+    std::stringstream stream(slides_str);
+
+    // Define slides to use for training
+    while( getline(stream, word, ',') ){
+    	train_slides.push_back(atoi(word.c_str()));
+    }
 
 	// Start clock
 	double begin_time = utils::get_time();
 
 	/**************************************** Get Input Data  ***************************************/
-
-	// Define slides to use for training
-	std::vector<int> train_slides = {0, 1};
-
-
 	// Declare input data
-	std::vector<float> x_centroid;
-	std::vector<float> y_centroid;
-	std::vector<float> slide_idx;
-	std::vector<int> labels;
 	std::vector<std::string> slides;
 
 	// Get input data from HDF5
-	utils::get_data(fname, "x_centroid", x_centroid);
-	utils::get_data(fname, "y_centroid", y_centroid);
-	utils::get_data(fname, "slideIdx", slide_idx);
-	utils::get_data(fname, "labels", labels);
 	utils::get_data(fname, "slides", slides);
 
 	std::cout << "Time to read images: " << float( utils::get_time() - begin_time )  << std::endl;
 	/************************************ Create Train Dataset ************************************/
 	
 	// Declare Variables
-	long long unsigned int num_elems = x_centroid.size();
 	GraphNet *train_graph = new GraphNet(PARALLEL);
 	std::vector<std::string> train_file_paths;
-	std::vector<std::vector<std::tuple<float, float>>> train_cells_coordinates_set;
 	std::string train_dataset_name = "data";
-	std::vector<std::vector<int>> train_labels;
 
-	// Create input
-	for(int k = 0; k < slides.size(); k++){
-
-		// Create data for each slide
-		std::vector<std::tuple<float, float>> train_slide;
-		std::vector<int> label_slide;
-
-		// Append
-		train_cells_coordinates_set.push_back(train_slide);
-		train_labels.push_back(label_slide);
-	}
-	
-
-	/******************************** Shuffle & Split Data ******************************************/
-	
-	float begin_time_2 = utils::get_time();
-	utils::fill_data(num_elems, num_elems, train_cells_coordinates_set, train_labels, x_centroid, y_centroid, labels, slide_idx);
-
-	std::cout << "Time to fill data: " << float( utils::get_time() - begin_time_2)  << std::endl;
-	
 	/********************************    Setup Graphs     *******************************************/
 	
 	//Define paths
@@ -105,16 +78,8 @@ int main (int argc, char * argv[])
 
 	/********************************    Remove Slides   ********************************************/
 
-	utils::remove_slides(train_file_paths, train_cells_coordinates_set, train_labels, train_slides);
-	int total;
-	for(int k=0; k < train_cells_coordinates_set.size(); k++){
+	utils::remove_slides(train_file_paths, train_slides);
 
-		std::cout << "Slide name: " << train_file_paths[k] << std::endl;
-		std::cout << "Slide #: "  << train_slides[k] << std::endl;
-		std::cout << "# of samples: " << train_cells_coordinates_set[k].size() << std::endl;
-		total += train_cells_coordinates_set[k].size();
-	}
-	std::cout << "Total # of samples" << total << std::endl;
 	/************************************************************************************************/
 
 	// Define Graphs
@@ -123,7 +88,7 @@ int main (int argc, char * argv[])
 	// Add some Train Nodes
 	for(int i=0; i < NUMB_READ_NODE; i++){
 
-		train_graph->add_node(new ReadNode("read_node" + std::to_string(i), train_file_paths, train_cells_coordinates_set, train_labels, ALTERNATE_MODE));
+		train_graph->add_node(new ReadJPGNode("read_jpg_node" + std::to_string(i), slides, ALTERNATE_MODE));
 	}
 
 	// Define grayscale nodes
@@ -161,7 +126,7 @@ int main (int argc, char * argv[])
 			
 			for(int l = 0; l < NUMB_READ_NODE; l++){
 
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_jpg_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
 				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "augmentation_node" + std::to_string(i)));
 				//train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node"));
 

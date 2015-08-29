@@ -1,7 +1,6 @@
 name: "OnlineCellNet"
 debug_info: false
 
-
 # Train data layer
 layer {
   name: "data"
@@ -10,18 +9,18 @@ layer {
   top: "labels"
   memory_data_param {
    batch_size: 10
-   channels: 1
+   channels: 4
    height: 50
    width: 50
   }
 }
 
-# Convolution Layer - C1
+# Convolution Layer - C1_1
 layer {
-  name: "conv1"
+  name: "conv1_1"
   type: "Convolution"
   bottom: "data"
-  top: "conv1"
+  top: "conv1_1"
   param {
     lr_mult: 1
   }
@@ -29,8 +28,9 @@ layer {
     lr_mult: 2
   }
   convolution_param {
-    num_output: 20
-    kernel_size: 5
+    num_output: 64
+    pad: 1
+    kernel_size: 3
     weight_filler {
       type: "xavier"
     }
@@ -40,33 +40,66 @@ layer {
   }
 }
 
+# Relu1_1
+layer {
+  bottom: "conv1_1"
+  top: "conv1_1"
+  name: "relu1_1"
+  type: "ReLU"
+}
+
+# Convolution Layer - C1_2
+layer {
+  name: "conv1_2"
+  type: "Convolution"
+  bottom: "conv1_1"
+  top: "conv1_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 64
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu1_2
+layer {
+  bottom: "conv1_2"
+  top: "conv1_2"
+  name: "relu1_2"
+  type: "ReLU"
+}
 
 # Pooling Layer - P1
 layer {
   name: "pool1"
   type: "Pooling"
-  bottom: "conv1"
+  bottom: "conv1_1"
   top: "pool1"
   pooling_param {
     pool: MAX
     kernel_size: 2
+    stride: 2
   }
 }
 
-# Non-linear function
+# Convolution Layer - C2_1
 layer {
-  name: "act1"
-  bottom: "pool1"
-  top: "act1"
-  type: "TanH"
-}
-
-# Convolution Layer - C2
-layer {
-  name: "conv2"
+  name: "conv2_1"
   type: "Convolution"
-  bottom: "act1"
-  top: "conv2"
+  bottom: "pool1"
+  top: "conv2_1"
   param {
     lr_mult: 1
   }
@@ -74,8 +107,9 @@ layer {
     lr_mult: 2
   }
   convolution_param {
-    num_output: 50
-    kernel_size: 5
+    num_output: 128
+    pad: 1
+    kernel_size: 3
     weight_filler {
       type: "xavier"
     }
@@ -83,34 +117,404 @@ layer {
       type: "constant"
     }
   }
+}
+
+# Relu2_1
+layer {
+  bottom: "conv2_1"
+  top: "conv2_1"
+  name: "relu2_1"
+  type: "ReLU"
+}
+
+# Convolution Layer - C2_2
+layer {
+  name: "conv2_2"
+  type: "Convolution"
+  bottom: "conv2_1"
+  top: "conv2_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 128
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu2_2
+layer {
+  bottom: "conv2_2"
+  top: "conv2_2"
+  name: "relu2_2"
+  type: "ReLU"
 }
 
 # Pooling Layer - P2
 layer {
   name: "pool2"
   type: "Pooling"
-  bottom: "conv2"
+  bottom: "conv2_2"
   top: "pool2"
   pooling_param {
     pool: MAX
     kernel_size: 2
+    stride: 2
   }
 }
 
-# Non-linear function
+# Convolution Layer - C3_1
 layer {
-  name: "act2"
+  name: "conv3_1"
+  type: "Convolution"
   bottom: "pool2"
-  top: "act2"
-  type: "TanH"
+  top: "conv3_1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
 }
 
-# Fully Connected Layer - FC1
+# Relu3_1
 layer {
-  name: "ip1"
+  bottom: "conv3_1"
+  top: "conv3_1"
+  name: "relu3_1"
+  type: "ReLU"
+}
+
+# Convolution Layer - C3_2
+layer {
+  name: "conv3_2"
+  type: "Convolution"
+  bottom: "conv3_1"
+  top: "conv3_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu3_2
+layer {
+  bottom: "conv3_2"
+  top: "conv3_2"
+  name: "relu3_2"
+  type: "ReLU"
+}
+
+# Convolution Layer - C3_3
+layer {
+  name: "conv3_3"
+  type: "Convolution"
+  bottom: "conv3_2"
+  top: "conv3_3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu3_3
+layer {
+  bottom: "conv3_3"
+  top: "conv3_3"
+  name: "relu3_3"
+  type: "ReLU"
+}
+
+# Pooling Layer - P3
+layer {
+  name: "pool3"
+  type: "Pooling"
+  bottom: "conv3_3"
+  top: "pool3"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+# Convolution Layer - C4_1
+layer {
+  name: "conv4_1"
+  type: "Convolution"
+  bottom: "pool3"
+  top: "conv4_1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu4_1
+layer {
+  bottom: "conv4_1"
+  top: "conv4_1"
+  name: "relu4_1"
+  type: "ReLU"
+}
+
+# Convolution Layer - C4_2
+layer {
+  name: "conv4_2"
+  type: "Convolution"
+  bottom: "conv4_1"
+  top: "conv4_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu4_2
+layer {
+  bottom: "conv4_2"
+  top: "conv4_2"
+  name: "relu4_2"
+  type: "ReLU"
+}
+
+# Convolution Layer - C4_3
+layer {
+  name: "conv4_3"
+  type: "Convolution"
+  bottom: "conv4_2"
+  top: "conv4_3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu4_3
+layer {
+  bottom: "conv4_3"
+  top: "conv4_3"
+  name: "relu4_3"
+  type: "ReLU"
+}
+
+# Pooling Layer - P4
+layer {
+  name: "pool4"
+  type: "Pooling"
+  bottom: "conv4_3"
+  top: "pool4"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+# Convolution Layer - C5_1
+layer {
+  name: "conv5_1"
+  type: "Convolution"
+  bottom: "pool4"
+  top: "conv5_1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu5_1
+layer {
+  bottom: "conv5_1"
+  top: "conv5_1"
+  name: "relu5_1"
+  type: "ReLU"
+}
+
+# Convolution Layer - C5_2
+layer {
+  name: "conv5_2"
+  type: "Convolution"
+  bottom: "conv5_1"
+  top: "conv5_2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu5_2
+layer {
+  bottom: "conv5_2"
+  top: "conv5_2"
+  name: "relu5_2"
+  type: "ReLU"
+}
+
+# Convolution Layer - C5_3
+layer {
+  name: "conv5_3"
+  type: "Convolution"
+  bottom: "conv5_2"
+  top: "conv5_3"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu5_3
+layer {
+  bottom: "conv5_3"
+  top: "conv5_3"
+  name: "relu5_3"
+  type: "ReLU"
+}
+
+# Pooling Layer - P5
+layer {
+  name: "pool5"
+  type: "Pooling"
+  bottom: "conv5_3"
+  top: "pool5"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+# Fully Connected Layer - FC6
+layer {
+  name: "fc6"
   type: "InnerProduct"
-  bottom: "act2"
-  top: "ip1"
+  bottom: "pool5"
+  top: "fc6"
   param {
     lr_mult: 1
   }
@@ -118,7 +522,7 @@ layer {
     lr_mult: 2
   }
   inner_product_param {
-    num_output: 500
+    num_output: 4096
     weight_filler {
       type: "xavier"
     }
@@ -128,20 +532,73 @@ layer {
   }
 }
 
-# Non-linear function
+# Relu6
 layer {
-  name: "act3"
-  bottom: "ip1"
-  top: "act3"
-  type: "TanH"
+  bottom: "fc6"
+  top: "fc6"
+  name: "relu6"
+  type: "ReLU"
 }
 
-# Fully Connected Layer - FC2
+# Dropout6
 layer {
-  name: "ip2"
+  bottom: "fc6"
+  top: "fc6"
+  name: "drop6"
+  type: "Dropout"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+# Fully Connected Layer - FC7
+layer {
+  name: "fc7"
   type: "InnerProduct"
-  bottom: "act3"
-  top: "ip2"
+  bottom: "fc6"
+  top: "fc7"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu7
+layer {
+  bottom: "fc7"
+  top: "fc7"
+  name: "relu7"
+  type: "ReLU"
+}
+
+# Dropout7
+layer {
+  bottom: "fc7"
+  top: "fc7"
+  name: "drop7"
+  type: "Dropout"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+# Fully Connected Layer - FC8
+layer {
+  name: "fc8"
+  type: "InnerProduct"
+  bottom: "fc7"
+  top: "fc8"
   param {
     lr_mult: 1
   }
@@ -158,3 +615,12 @@ layer {
     }
   }
 }
+
+# Loss
+layer {
+  name: "prob"
+  type: "Softmax"
+  bottom: "fc8"
+  top: "prob"
+}
+

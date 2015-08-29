@@ -10,9 +10,9 @@ TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, st
 void TrainNode::init_model(){
 
 	// Setup GPU
-	//caffe::Caffe::SetDevice(_device_id);	
-	caffe::Caffe::set_mode(caffe::Caffe::CPU);
-	//caffe::Caffe::DeviceQuery();
+	caffe::Caffe::SetDevice(_device_id);	
+	caffe::Caffe::set_mode(caffe::Caffe::GPU);
+	caffe::Caffe::DeviceQuery();
 
 	// Initialize Net
 	_net.reset(new caffe::Net<float>(_model_path.c_str(), caffe::TRAIN));
@@ -29,7 +29,7 @@ void TrainNode::init_model(){
 	}
 
 	_data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-	_out_layer = _net->blob_by_name("ip2");
+	_out_layer = _net->blob_by_name("prob");
 }
 
 

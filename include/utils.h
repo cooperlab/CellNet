@@ -19,5 +19,7 @@ namespace utils{
 	bool has_prefix(const std::string& s, const std::string& prefix);
 	std::string get_image_name(std::string name, std::string image_path);
 	void remove_slides(std::vector<std::string> &file_paths, std::vector<std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector<std::vector<int>> &labels, std::vector<int> slides);
+	void remove_slides(std::vector<std::string> &file_paths, std::vector<int> slides);
+	std::vector<std::string> get_images_path(std::string path);
 }
 

@@ -227,6 +227,20 @@ namespace utils{
 	    return image_name;
 	}
 
+	std::vector<std::string> get_images_path(std::string path){
+		std::vector<std::string> images_path;
+        DIR *pDIR;
+        struct dirent *entry;
+        if( pDIR=opendir(path.c_str()) ){
+                while(entry = readdir(pDIR)){
+                        if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 )
+                        	images_path.push_back(entry->d_name);
+                }
+                closedir(pDIR);
+        }
+        return images_path;
+	}
+
 	void remove_slides(std::vector<std::string> &file_paths, std::vector< std::vector<std::tuple<float, float>>> &cells_coordinates_set, std::vector< std::vector<int>> &labels, std::vector<int> slides){
 		
 		std::vector<std::string> new_file_paths;
@@ -247,5 +261,20 @@ namespace utils{
 		file_paths = new_file_paths;
 		cells_coordinates_set = new_cells_coordinates_set; 
 		labels = new_labels;
+	}
+
+	void remove_slides(std::vector<std::string> &file_paths, std::vector<int> slides){
+		
+		std::vector<std::string> new_file_paths;
+		for(int i=0; i < slides.size(); i++){
+			
+			int k = slides[i];
+
+			// Keep elements
+			new_file_paths.push_back(file_paths[k]);
+		}
+
+		// Update vectors
+		file_paths = new_file_paths;
 	}
 }

@@ -22,27 +22,39 @@
 #define REPEAT_MODE  0
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
-#define NUMB_GRAYSCALE_NODE 4
+#define NUMB_GRAYSCALE_NODE 1
 #define NUMB_LAPLACIAN_NODE 1
 #define NUMB_WRITE_PIPE_NODE 1
 #define SERIAL 0
 #define PARALLEL 1
 
-const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
-const static std::string LOCAL_HOME = "/home/nnauata";
-const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
-//const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-//const static std::string LOCAL_HOME = "/home/nelson";
-//const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+//const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+//const static std::string fname = "/home/nnauata/LGG-test/LGG-features-2.h5";
+const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
+const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
 
 int main (int argc, char * argv[])
 {
+
+	std::vector<int> prediction_slides;
+	std::string slides_str(argv[1]);
+	std::string word;
+    std::stringstream stream(slides_str);
+
+    // Define slides to use for training
+    while( getline(stream, word, ',') ){
+    	prediction_slides.push_back(atoi(word.c_str()));
+    }
+
+    std::cout << "TESTEEEEEEEEEEEEEEEEEEEEEEE" << std::endl;
+    for(int k=0; k < prediction_slides.size(); k++){
+    	std::cout << prediction_slides[k] << std::endl;
+    }
+
 	// Start clock
 	double begin_time = utils::get_time();	
-
-	// Define slides to use for prediction
-	std::vector<int> prediction_slides;
-	prediction_slides.push_back(0);
 
 	/**************************************** Get Input Data  ***************************************/
 
@@ -57,12 +69,7 @@ int main (int argc, char * argv[])
 	utils::get_data(fname, "x_centroid", x_centroid);
 	utils::get_data(fname, "y_centroid", y_centroid);
 	utils::get_data(fname, "slideIdx", slide_idx);
-	//utils::get_data(fname, "labels", labels);
-	// Create fake labels
-	for(int k = 0; k < x_centroid.size(); k++){
-
-		labels.push_back(0);
-	}
+	utils::get_data(fname, "labels", labels);
 
 	utils::get_data(fname, "slides", slides);
 
@@ -109,7 +116,7 @@ int main (int argc, char * argv[])
 	/********************************    Remove Slides   ********************************************/
 
 	utils::remove_slides(prediction_file_paths, prediction_cells_coordinates_set, prediction_labels, prediction_slides);
-	int total;
+	int total = 0;
 	for(int k=0; k < prediction_cells_coordinates_set.size(); k++){
 
 		std::cout << "Slide name: " << prediction_file_paths[k] << std::endl;
@@ -117,7 +124,7 @@ int main (int argc, char * argv[])
 		std::cout << "# of samples: " << prediction_cells_coordinates_set[k].size() << std::endl;
 		total += prediction_cells_coordinates_set[k].size();
 	}
-	std::cout << "Total # of samples" << total << std::endl;
+	std::cout << "Total # of samples: " << total << std::endl;
 	/************************************************************************************************/
 
 	// Define Graphs

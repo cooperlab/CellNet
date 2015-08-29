@@ -25,8 +25,8 @@
 #define SERIAL 0
 #define PARALLEL 1
 
-const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string LOCAL_HOME = "/home/nelson";
+//const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string LOCAL_HOME = "/home/nelson";
 
 int main (int argc, char * argv[3])
 {

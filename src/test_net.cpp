@@ -7,19 +7,19 @@
 #include <vector>
 #include <ctime>
 #include <utils.h>
-#define NUMB_PIPES 4
+#define NUMB_PIPES 1
 
 extern char **environ;
 const static std::string LOCAL_HOME = "/home/nelson";
 
-int main(){
+int main(int argc, char * argv[]){
 	
 	// Start clock
 	double begin_time = utils::get_time();	
 
 	std::vector<pid_t> pids;
 	std::vector<int> status_vec;
-	std::string batch_size = "1500";
+	std::string batch_size = "10";
 	pid_t pid;
 
 	// Create pipes
@@ -35,7 +35,7 @@ int main(){
 	std::string preprocess_path = LOCAL_HOME + "/CellNet/app/preprocess_stream";
 	std::string prediction_path = LOCAL_HOME + "/CellNet/app/prediction_stream";
 
-	char* argV1[] = {&preprocess_path[0]};
+	char* argV1[] = {&preprocess_path[0], argv[1]};
 	int status = posix_spawn(&pid, preprocess_path.c_str(), NULL, NULL, argV1, environ);
 	pids.push_back(pid);
 	status_vec.push_back(status);
