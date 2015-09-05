@@ -70,7 +70,7 @@ void *TrainNode::run(){
 		// Goes thru the data over again
 		for(int k=0; k < _iter-1; k++){
 			
-			std::cout << "iter: " << k << std::endl; 
+//			std::cout << "iter: " << k << std::endl; 
 			train_step(0);
 		}
 
@@ -108,12 +108,12 @@ int TrainNode::train_step(int first_idx){
 
 		// Add matrices
 		_data_layer->AddMatVector(batch, batch_labels);
-		std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
+//		std::cout << "# of Inputed Images: " << std::to_string(batch.size()) << std::endl;
 
 		// Foward
 		float loss;
 		_net->ForwardPrefilled(&loss);
-		std::cout << "Loss: " << std::to_string(loss) << std::endl;
+//		std::cout << "Loss: " << std::to_string(loss) << std::endl;
 
 		// Backward
 		_net->Backward();
@@ -169,7 +169,7 @@ void TrainNode::cross_validate(std::vector<cv::Mat> batch, std::vector<int> batc
 	}
 
 	float acc = (float)hit/predictions.size();
-	std::cout << "Batch accuracy: " << acc << std::endl;
+//	std::cout << "Batch accuracy: " << acc << std::endl;
 }
 
 void TrainNode::snapshot(){

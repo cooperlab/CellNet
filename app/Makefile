@@ -1,6 +1,5 @@
-LOCAL_HOME = /usr
-SDK_HOME = /home/nelson/CellNet
-CAFFE_HOME = /home/nelson/caffe
+LOCAL_HOME = /usr/local/
+SDK_HOME = /home/nnauata/CellNet
 OBJ_DIR = $(SDK_HOME)/obj
 SRC_DIR = $(SDK_HOME)/src
 
@@ -11,22 +10,22 @@ CCC	          = /usr/bin/g++
 CFLAGS        = -Wall -c -O2
 
 # Define C++ compiler options
-CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS 
+CCCFLAGS      = -Wall -c -O2 -D__STDC_CONSTANT_MACROS
 
 # Define Includes
 CPPFLAGS =  -std=c++11
-CPPFLAGS += -I$(SDK_HOME)/include									# Include graph nodes and algorithms 
-CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv  					# Include OpenCV ...
-CPPFLAGS += -I$(LOCAL_HOME)/local/include/opencv2  					# Include OpenCV ...
-CPPFLAGS += -I$(LOCAL_HOME)/local/include/openslide   				# Include OpenSlide
-CPPFLAGS += -I$(LOCAL_HOME)/include/glib-2.0						# Include glib			
-CPPFLAGS += -I$(LOCAL_HOME)/lib/x86_64-linux-gnu/glib-2.0/include	# Include glib		
-CPPFLAGS += -I$(CAFFE_HOME)/include/		   						# Include Caffe
-CPPFLAGS += -I$(CAFFE_HOME)/build/include/		   					# Include Caffe
-CPPFLAGS += -I$(LOCAL_HOME)/local/cuda/include						# Include Cuda
+CPPFLAGS += -I$(SDK_HOME)/include                                       # Inclu$
+CPPFLAGS += -I$(LOCAL_HOME)/include
+CPPFLAGS += -I$(LOCAL_HOME)/include/opencv
+CPPFLAGS += -I$(LOCAL_HOME)/include/openslide                           # Inclu$
+CPPFLAGS += -I/usr/include/glib-2.0                             # Include glib $
+CPPFLAGS += -I/usr/lib/glib-2.0/include                 # Include glib
+CPPFLAGS += -I/usr/lib/x86_64-linux-gnu/glib-2.0/include                 # Incl$
+CPPFLAGS += -I$(LOCAL_HOME)/include/caffe/                              # Inclu$
+CPPFLAGS += -I$(LOCAL_HOME)/cuda-7.0/include
 
 # Define location of OpenCV
-CV_LIBS       = -L$(LOCAL_HOME)/lib/ -L$(LOCAL_HOME)/local/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_filesystem -lboost_thread -lhdf5 -lhdf5_cpp -lglog -L$(CAFFE_HOME)/build/lib -lcaffe
+CV_LIBS       = -L$(LOCAL_HOME)/lib/ -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgproc -lpthread -L$(LOCAL_HOME)/lib/x86_64-linux-gnu -lboost_system -lboost_thread -lboost_filesystem -lhdf5 -lcaffe -lglog
 
 # Define location of X Windows libraries and the X11 library names
 XLIBS         = -L/usr/X11R6/lib -L/usr/lib -lX11
@@ -34,8 +33,11 @@ XLIBS         = -L/usr/X11R6/lib -L/usr/lib -lX11
 # Define location of OpenSlide
 SLIDE_LIBS =    -L$(LOCAL_HOME)/lib/ -lglib-2.0 -lopenslide
 
+# Include cuda libs
+CUDA_LIBS =    -L$(LOCAL_HOME)/cuda/lib64 -lcudart -lcuda -lcublas
+
 # Define libraries to be linked with
-LIBS	      =  -lm $(XLIBS) $(CV_LIBS) $(SLIDE_LIBS) 
+LIBS	      =  -lm $(XLIBS) $(CV_LIBS) $(SLIDE_LIBS) $(CUDA_LIBS)
 
 # Define linker
 LINKER	      = g++
@@ -111,4 +113,3 @@ clean :
 	@rm -f $(PROGRAM3)
 	@rm -f $(PROGRAM4)
 	@rm -f $(PROGRAM5)
-

@@ -29,11 +29,9 @@
 #define SERIAL 0
 #define PARALLEL 1
 
-//const static std::string LOCAL_HOME = "/home/nnauata";
-//const static std::string fname = "/home/nnauata/LGG-test/LGG-Endothelial-Test-67-536.h5";
-const static std::string IMAGE_PATH = "/home/nelson/LGG-test";
-const static std::string LOCAL_HOME = "/home/nelson";
-const static std::string fname = "/home/nelson/LGG-test/LGG-Endothelial-small.h5";
+const static std::string IMAGE_PATH = "/home/lcoop22/Images/LGG";
+const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string fname = "/home/mnalisn/testsets/LGG-Endothelial-combined-fixed.h5";
 
 int main (int argc, char * argv[])
 {
@@ -44,7 +42,7 @@ int main (int argc, char * argv[])
 	/**************************************** Get Input Data  ***************************************/
 
 	// Define slides to use for converting
-	std::vector<int> convert_slides = {0};
+	std::vector<int> convert_slides = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87};
 
 
 	// Declare input data
@@ -63,7 +61,7 @@ int main (int argc, char * argv[])
 
 	std::cout << "Time to read images: " << float( utils::get_time() - begin_time )  << std::endl;
 	/************************************ Create convert Dataset ************************************/
-	
+
 	// Declare Variables
 	long long unsigned int num_elems = x_centroid.size();
 	GraphNet *convert_graph = new GraphNet(PARALLEL);

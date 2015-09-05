@@ -10,7 +10,7 @@
 #define NUMB_PIPES 1
 
 extern char **environ;
-const static std::string LOCAL_HOME = "/home/nelson";
+const static std::string LOCAL_HOME = "/home/nnauata";
 
 int main(int argc, char * argv[]){
 	

@@ -8,7 +8,7 @@ layer {
   top: "data"
   top: "labels"
   memory_data_param {
-   batch_size: 16
+   batch_size: 10
    channels: 4
    height: 50
    width: 50
@@ -272,11 +272,44 @@ layer {
   type: "ReLU"
 }
 
+# Convolution Layer - C3_4
+layer {
+  name: "conv3_3"
+  type: "Convolution"
+  bottom: "conv3_3"
+  top: "conv3_4"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 256
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu3_4
+layer {
+  bottom: "conv3_4"
+  top: "conv3_4"
+  name: "relu3_4"
+  type: "ReLU"
+}
+
 # Pooling Layer - P3
 layer {
   name: "pool3"
   type: "Pooling"
-  bottom: "conv3_3"
+  bottom: "conv3_4"
   top: "pool3"
   pooling_param {
     pool: MAX
@@ -384,11 +417,45 @@ layer {
   type: "ReLU"
 }
 
+# Convolution Layer - C4_4
+layer {
+  name: "conv4_4"
+  type: "Convolution"
+  bottom: "conv4_3"
+  top: "conv4_4"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu4_4
+layer {
+  bottom: "conv4_4"
+  top: "conv4_4"
+  name: "relu4_4"
+  type: "ReLU"
+}
+
+
 # Pooling Layer - P4
 layer {
   name: "pool4"
   type: "Pooling"
-  bottom: "conv4_3"
+  bottom: "conv4_4"
   top: "pool4"
   pooling_param {
     pool: MAX
@@ -496,11 +563,45 @@ layer {
   type: "ReLU"
 }
 
+# Convolution Layer - C5_4
+layer {
+  name: "conv5_4"
+  type: "Convolution"
+  bottom: "conv5_3"
+  top: "conv5_4"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 512
+    pad: 1
+    kernel_size: 3
+    weight_filler {
+      type: "xavier"
+    }
+    bias_filler {
+      type: "constant"
+    }
+  }
+}
+
+# Relu5_3
+layer {
+  bottom: "conv5_4"
+  top: "conv5_4"
+  name: "relu5_4"
+  type: "ReLU"
+}
+
+
 # Pooling Layer - P5
 layer {
   name: "pool5"
   type: "Pooling"
-  bottom: "conv5_3"
+  bottom: "conv5_4"
   top: "pool5"
   pooling_param {
     pool: MAX
@@ -616,7 +717,7 @@ layer {
   }
 }
 
-# Predictions
+# Loss
 layer {
   name: "prob"
   type: "Softmax"
@@ -624,11 +725,3 @@ layer {
   top: "prob"
 }
 
-# Loss
-layer {
-  name: "loss"
-  type: "SoftmaxWithLoss"
-  bottom: "fc8"
-  bottom: "labels"
-  top: "loss"
-}

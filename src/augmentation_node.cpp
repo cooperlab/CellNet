@@ -62,46 +62,40 @@ void AugmentationNode::augment_images(std::vector<cv::Mat> imgs, std::vector<int
 
 		for(int i=0; i < _aug_factor; i++){
 			_counter++;
+
 			// Define variables
 			cv::Mat src(imgs[k]);
 			cv::Mat rot_M(2, 3, CV_8U);
-			cv::Size double_size(src.rows * 1.8, src.cols * 1.8);
 
-			cv::Mat warped_img(double_size, src.type());
+			cv::Mat warped_img(src.size(), src.type());
 			int label = labels[k];
 
 	  		// construct a trivial random generator engine from a time-based seed:
 	  		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	  		std::default_random_engine generator (seed);
 
-			// Upsample
-			cv::resize(src, warped_img, warped_img.size(), 0.0, 0.0, CV_INTER_CUBIC);
-
 			// Rotation 
 			std::uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
 			float theta = 180 * uniform_dist(generator);
+			if(theta < -90.0){
+				theta = -180.0;
+			}
+			else if(theta < 0.0){
+				theta = -90.0;
+			}
+			else if(theta < 90.0){
+				theta = 0.0;
+			}
+			else{
+				theta = 90.0;
+			}
 
 			cv::Point2f warped_img_center(warped_img.cols/2.0F, warped_img.rows/2.0F);
 			rot_M = getRotationMatrix2D(warped_img_center, theta, 1.0);
-			cv::warpAffine( warped_img, warped_img, rot_M, warped_img.size());
-
-			// Translation
-			float Tx = 10*uniform_dist(generator);
-			float Ty = 10*uniform_dist(generator);
-
-			cv::Mat trans_M(2, 3, CV_32F);
-			trans_M.at<float>(0,0) = 1;
-			trans_M.at<float>(0,1) = 0;
-			trans_M.at<float>(0,2) = Tx;
-
-			trans_M.at<float>(1,0) = 0;
-			trans_M.at<float>(1,1) = 1;
-			trans_M.at<float>(1,2) = Ty;
-
-			cv::warpAffine( warped_img, warped_img, trans_M, warped_img.size());
+			cv::warpAffine( src, warped_img, rot_M, warped_img.size());
 
 			// Rescaling
-			std::uniform_real_distribution<double> sec_uniform_dist(1.0, 1.2);
+			std::uniform_real_distribution<double> sec_uniform_dist(1.0, 1.5);
 			int Sx = sec_uniform_dist(generator);
 			int Sy = sec_uniform_dist(generator);
 
@@ -124,34 +118,8 @@ void AugmentationNode::augment_images(std::vector<cv::Mat> imgs, std::vector<int
 				warped_img = flipped_img;
 			}
 
-			// Shearing 
-			cv::Mat shear_M(2, 3, CV_32F);
-			std::uniform_real_distribution<double> fth_uniform_dist(0.0, 0.10);
-			float ShearX = fth_uniform_dist(generator);
-			float ShearY = fth_uniform_dist(generator);
-			shear_M.at<float>(0,0) = 1;
-			shear_M.at<float>(0,1) = ShearY;
-			shear_M.at<float>(0,2) = 0;
-
-			shear_M.at<float>(1,0) = ShearX;
-			shear_M.at<float>(1,1) = 1;
-			shear_M.at<float>(1,2) = 0;
-			cv::warpAffine( warped_img, warped_img, shear_M, warped_img.size());
-
-			// Get ROI
-			float tl_row = warped_img.rows/2.0F - src.rows/2.0F;
-			float tl_col = warped_img.cols/2.0F - src.cols/2.0F;
-			float br_row = warped_img.rows/2.0F + src.rows/2.0F;
-			float br_col = warped_img.cols/2.0F + src.cols/2.0F;
-			cv::Point tl(tl_row, tl_col);
-			cv::Point br(br_row, br_col);
-
-			// Setup a rectangle to define region of interest
-			cv::Rect cellROI(tl, br);
-			cv::Mat final_img = warped_img(cellROI);	
-
 			// Accumulate
-			out_imgs.push_back(final_img);
+			out_imgs.push_back(warped_img);
 			out_labels.push_back(label);
 		}
 
