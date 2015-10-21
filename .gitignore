@@ -1,0 +1,7 @@
+*.h5
+*.o
+*~
+.cproject
+*.csv
+*.caffemodel
+
