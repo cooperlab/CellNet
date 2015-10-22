@@ -66,6 +66,21 @@ void WritePipeNode::write_to_pipe(){
 		byte_stream.insert(byte_stream.begin(), (uint8_t)img.cols );
 		byte_stream.insert(byte_stream.begin(), (uint8_t)img.rows );
 
+		// Debbug read data
+		// Read 
+                std::vector<uint8_t> buffer_data;
+                //cv::Mat img(height, width, CV_8UC(channels));
+                //std::cout << "Buffer" << std::endl;
+                //for(int y=0; y < buffer_data.size(); y++){
+                 //       std::cout << (int)buffer_data[y] << " ";
+                //}
+                //std::cout << std::endl;
+		cv::Mat img_debbug(height, width, CV_8UC1);
+                memcpy(img_debbug.data, &buffer_data[0], buffer_data.size());
+
+//              cv::imwrite("/home/nnauata/CellNet/app/GPU_" + std::to_string(_device_id) + "/img" + std::to_string(_counter++) + ".jpg", img);
+		//Debbug end
+
 		// Actually write out the data
 		int res = write(_pipe, &byte_stream[0], byte_stream.size());
 		while(res == 0){

@@ -20,6 +20,7 @@ class WritePipeNode: public Node{
 
 	public:
 		WritePipeNode(std::string id, std::string pipe_name);
+            
 		void *run();
 
   	private:

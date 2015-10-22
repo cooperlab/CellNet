@@ -14,8 +14,8 @@ PredictionPipeNode::PredictionPipeNode(std::string id, int mode, int batch_size,
 
 void PredictionPipeNode::init_model(){
 
-	// Set gpu
-	caffe::Caffe::SetDevice(_device_id);
+    // Set gpu
+    caffe::Caffe::SetDevice(_device_id);
     caffe::Caffe::set_mode(caffe::Caffe::GPU);
     caffe::Caffe::DeviceQuery();
     
@@ -176,9 +176,9 @@ int PredictionPipeNode::read_from_pipe(std::vector<cv::Mat> &outs, std::vector<i
         }
 
 		cv::Mat img(height, width, CV_8UC(channels));
-		memcpy(img.data, &buffer_data[0], buffer_data.size() * sizeof(uint8_t));
+		memcpy(img.data, &buffer_data[0], buffer_data.size());
 
-		//cv::imwrite("/home/nelson/CellNet/app/test/img" + std::to_string(_counter++) + ".jpg", img);
+//		cv::imwrite("/home/nnauata/CellNet/app/GPU_" + std::to_string(_device_id) + "/img" + std::to_string(_counter++) + ".jpg", img);
 		std::vector<cv::Mat> vec_img;
 		vec_img.push_back(img);
 

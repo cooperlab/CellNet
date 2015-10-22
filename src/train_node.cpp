@@ -10,7 +10,7 @@ TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, st
 void TrainNode::init_model(){
 
 	// Setup GPU
-	caffe::Caffe::SetDevice(_device_id);	
+	//caffe::Caffe::SetDevice(_device_id);	
 	caffe::Caffe::set_mode(caffe::Caffe::GPU);
 	caffe::Caffe::DeviceQuery();
 

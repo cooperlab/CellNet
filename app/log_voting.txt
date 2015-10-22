@@ -1,0 +1,25 @@
+Time to read images: 0.00219202
+Defining graph nodes...
+*Graph defined*
+Linking graph...
+Executing in parallel mode...
+All nodes started
+16
+576
+******************
+ReadJPGNode complete
+Total_time_first: 6.410124
+# of elements: 3114
+******************
+******************
+GrayScaleNode complete
+Total_time_first: 6.426278
+# of elements: 3114
+******************
+******************
+AugmentationNode
+Total_time_first: 15.262450
+# of elements: 34254
+******************
+13792
+34240

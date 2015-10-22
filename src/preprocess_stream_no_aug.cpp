@@ -24,7 +24,7 @@
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1
 #define NUMB_LAPLACIAN_NODE 0
-#define NUMB_WRITE_PIPE_NODE 4
+#define NUMB_WRITE_PIPE_NODE 1
 #define SERIAL 0
 #define PARALLEL 1
 
@@ -38,9 +38,9 @@ const static std::string fname = "/home/mnalisn/testsets/LGG-Endothelial-combine
 int main (int argc, char * argv[])
 {
 
-    std::vector<int> prediction_slides;
-    std::string slides_str(argv[1]);
-    std::string word;
+	std::vector<int> prediction_slides;
+	std::string slides_str(argv[1]);
+	std::string word;
     std::stringstream stream(slides_str);
 
     // Define slides to use for training
@@ -49,7 +49,7 @@ int main (int argc, char * argv[])
     }
 
 	// Start clock
-	double begin_time = utils::get_time();
+	double begin_time = utils::get_time();	
 
 	/**************************************** Get Input Data  ***************************************/
 
@@ -73,7 +73,7 @@ int main (int argc, char * argv[])
 	std::cout << "Defining graph nodes..." << std::endl;
 
 	// Add some prediction_Nodes
-	prediction_graph->add_node(new ReadJPGNode("read_node", slides, "../../dataset_large/", REPEAT_MODE));
+	prediction_graph->add_node(new ReadJPGNode("read_node", slides, "../../dataset_small/", CHUNK_MODE));
 
 	// Define grayscale nodes
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
@@ -81,45 +81,50 @@ int main (int argc, char * argv[])
 	}
 
 	// Define laplacian nodes
-	//for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
-	//	for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
-	//
-	//		prediction_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), REPEAT_MODE));
-	//	}
-	//}
+	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
+		for(int j = 0; j < NUMB_LAPLACIAN_NODE; j++){
+
+			prediction_graph->add_node(new LaplacianPyramidNode("laplacian_node" + std::to_string(i)+std::to_string(j), REPEAT_MODE));
+		}
+	}
 
 	// Define prediction nodes
+	std::string prediction_d_model_path = LOCAL_HOME + "/CellNet/app/cell_net.caffemodel";
+	std::string test_model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_test.prototxt";
+	std::string model_path = LOCAL_HOME + "/CellNet/online_caffe_model/cnn_prediction_val.prototxt";
 	int num_pipe = 0;
-	prediction_graph->add_node(new AugmentationNode("augmentation_node0", CHUNK_MODE, 3));
-        std::cout << "Define pipes" << std::endl;
+	
 	for(int i=0; i < NUMB_WRITE_PIPE_NODE; i++){
 
 		prediction_graph->add_node(new WritePipeNode("write_pipe_node" + std::to_string(i), LOCAL_HOME + "/CellNet/app/pipe" + std::to_string(num_pipe++)));
 	}
-
+	
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
+	int n_w =0;
 	for(int k=0; k < 1; k++){
 
 		for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
 			
 			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node" + std::to_string(i)));
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "augmentation_node" + std::to_string(i)));
-                   
- 			for(int d=0; d < NUMB_WRITE_PIPE_NODE; d++){
-				prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(i), "write_pipe_node" + std::to_string(d)));
-			}
-//			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "write_pipe_node" + std::to_string(n_w++)));
+
+			for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){
+
+                                
 				//prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node" + std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(j)));
 				//prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(j), "write_pipe_node" + std::to_string(n_w++)));
-//			}
+			}
 		}
 	}
 	std::cout << "*Graph defined*" << std::endl;
+	
 	/********************************************* Run Graphs ***************************************************/
+	
 	// Run graphs
 	prediction_graph->run();
+
 	/*********************************************    Clean   ***************************************************/
 	
 	// Release memory

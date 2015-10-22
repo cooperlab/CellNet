@@ -7,7 +7,7 @@
 #include <vector>
 #include <ctime>
 #include <utils.h>
-#define NUMB_PIPES 1
+#define NUMB_PIPES 4
 
 extern char **environ;
 const static std::string LOCAL_HOME = "/home/nnauata";
@@ -65,7 +65,13 @@ int main(int argc, char * argv[]){
 		std::cout << "Process: " << std::to_string(k) << " status: " << std::to_string(status_vec[k]) << std::endl;
 	}
     
+    for(int k=0; k < NUMB_PIPES; k++){
+        std::string command = "rm pipe"+std::to_string(k);
+        system(command.c_str());
+        printf("FIFO removed\n");
+     }
+
     // Stop clock
-	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
+    std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
     return 0;
 }

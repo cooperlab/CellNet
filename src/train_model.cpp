@@ -24,7 +24,7 @@
 #define ALTERNATE_MODE  1
 #define CHUNK_MODE 2
 #define NUMB_GRAYSCALE_NODE 1
-#define NUMB_LAPLACIAN_NODE 1
+#define NUMB_LAPLACIAN_NODE 0
 #define NUMB_READ_NODE 1
 #define NUMB_AUGMENTATION_NODE 1
 #define GPU_ID 0
@@ -78,12 +78,12 @@ int main (int argc, char * argv[])
 	// Add some Train Nodes
 	for(int i=0; i < NUMB_READ_NODE; i++){
 
-		train_graph->add_node(new ReadJPGNode("read_jpg_node" + std::to_string(i), slides, ALTERNATE_MODE));
+		train_graph->add_node(new ReadJPGNode("read_jpg_node" + std::to_string(i), slides, "../../dataset_large/", REPEAT_MODE));
 	}
 
 	// Define grayscale nodes
 	for(int i=0; i < NUMB_GRAYSCALE_NODE; i++){
-		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), ALTERNATE_MODE));
+		train_graph->add_node(new GrayScaleNode("grayscale_node" + std::to_string(i), REPEAT_MODE));
 	}
 	
 	// Define laplacian nodes
@@ -95,7 +95,7 @@ int main (int argc, char * argv[])
 
 	// Define augmentation nodes
 	for(int i=0; i < NUMB_AUGMENTATION_NODE; i++){
-		train_graph->add_node(new AugmentationNode("augmentation_node" + std::to_string(i), REPEAT_MODE, 5));
+		train_graph->add_node(new AugmentationNode("augmentation_node" + std::to_string(i), REPEAT_MODE, 10));
 	}
 
 	// Define train node
@@ -116,9 +116,9 @@ int main (int argc, char * argv[])
 			for(int l = 0; l < NUMB_READ_NODE; l++){
 
 				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_jpg_node" + std::to_string(l), "grayscale_node" + std::to_string(i)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "laplacian_node" + std::to_string(i)+std::to_string(i)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(i), "augmentation_node" + std::to_string(l)));
-				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node"));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node"+ std::to_string(i), "augmentation_node" + std::to_string(l)));
+				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "augmentation_node" + std::to_string(l), "train_node" ));
+//				train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "laplacian_node" + std::to_string(i)+std::to_string(i), "train_node"));
 
 			}
 			//for(int j=0; j < NUMB_LAPLACIAN_NODE; j++){

@@ -5,7 +5,7 @@
 #include <sys/stat.h>
 #include "utils.h"
 #include <boost/filesystem.hpp>
-#define SHIFT 25
+#define SHIFT 100
 
 ReadWriteNode::ReadWriteNode(std::string id, std::vector<std::string> image_names, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> cells_coordinates_set, std::vector<std::vector<int>> input_labels, int mode): Node(id, mode), _image_names(image_names), _image_paths(image_paths), _cells_coordinates_set(cells_coordinates_set), i_ptr(0), _input_labels(input_labels){
 	
@@ -50,12 +50,12 @@ void *ReadWriteNode::run(){
 void ReadWriteNode::save_images(std::vector<cv::Mat> extracted_images, std::vector<int> labels, std::string image_name){
 
 	// Create folder
-	boost::filesystem::create_directory("../dataset/" + image_name);
+	boost::filesystem::create_directory("../../dataset_large/" + image_name);
 
 	// Save cropped images
 	for(int k=0; k < extracted_images.size(); k++){
 
-		cv::imwrite("../dataset/" + image_name + "/sample_" + std::to_string(_counter++) + "_" + std::to_string(labels[k]) + ".jpg", extracted_images[k]);
+		cv::imwrite("../../dataset_large/" + image_name + "/sample_" + std::to_string(_counter++) + "_" + std::to_string(labels[k]) + ".jpg", extracted_images[k]);
 	}
 }
 

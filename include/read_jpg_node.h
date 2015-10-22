@@ -15,7 +15,7 @@
 class ReadJPGNode: public Node{
 
 	public:
-		ReadJPGNode(std::string id, std::vector<std::string> slides_name, int mode);
+		ReadJPGNode(std::string id, std::vector<std::string> slides_name, std::string path, int mode);
 		void *run();
 		void init();
 
@@ -23,6 +23,7 @@ class ReadJPGNode: public Node{
   		int get_input();
   		void open_images(std::string image_path);
   		std::vector<std::string> _slides_name;
+		std::string _path;
   		int i_ptr;
       std::vector<cv::Mat> _input_data;
   		std::vector<int> _input_labels;

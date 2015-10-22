@@ -5,7 +5,7 @@ std::string Node::get_id(){return _id;}
 void Node::insert_in_edge(Edge *edge_ptr){_in_edges.push_back(edge_ptr);}
 void Node::insert_out_edge(Edge *edge_ptr){_out_edges.push_back(edge_ptr);}
 void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
-
+//std::cout << _mode << std::endl;
 // Repeat Node
 // Copy everything to all output edges, repeating the images 
 	if(_mode == 0){	
@@ -41,43 +41,40 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 		}
 	}
 // Alternate mode
-// Copy everyting to a buffer alternating the outputs buffers
 	else if(_mode == 1){
+		// This code considers only one thread
+		int i = ctrl;
+		int l_size = labels.size();
 
-			// This code considers only one thread
-			int i = ctrl;
-			int l_size = labels.size();
+		boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
 
-			boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
+		/******* Restricted Access ********/
+		// Get current buffer
+		std::vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
+		std::vector<int> *curr_buffer_labels = _out_edges.at(i)->get_buffer_labels();
 
-			/******* Restricted Access ********/
-			// Get current buffer
-			std::vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
-			std::vector<int> *curr_buffer_labels = _out_edges.at(i)->get_buffer_labels();
+		// Concatenate buffers
+		std::vector<cv::Mat> new_buffer;
+		new_buffer.reserve(curr_buffer->size() + out.size());
+		new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
+		new_buffer.insert( new_buffer.end(), out.begin(), out.end());
 
-			// Concatenate buffers
-			std::vector<cv::Mat> new_buffer;
-			new_buffer.reserve(curr_buffer->size() + out.size());
-			new_buffer.insert( new_buffer.end(), curr_buffer->begin(), curr_buffer->end());
-			new_buffer.insert( new_buffer.end(), out.begin(), out.end());
+		std::vector<int> new_buffer_labels;
 
-			std::vector<int> new_buffer_labels;
-
-			new_buffer_labels.reserve(curr_buffer_labels->size() + out.size());
-			new_buffer_labels.insert( new_buffer_labels.end(), curr_buffer_labels->begin(), curr_buffer_labels->end());
-			new_buffer_labels.insert( new_buffer_labels.end(), labels.begin(), labels.begin() + out.size());
-			labels.erase(labels.begin(), labels.begin() + out.size());
+		new_buffer_labels.reserve(curr_buffer_labels->size() + out.size());
+		new_buffer_labels.insert( new_buffer_labels.end(), curr_buffer_labels->begin(), curr_buffer_labels->end());
+		new_buffer_labels.insert( new_buffer_labels.end(), labels.begin(), labels.begin() + out.size());
+		labels.erase(labels.begin(), labels.begin() + out.size());
  
-			// Set new buffer
-			_out_edges.at(i)->set_buffer(new_buffer, new_buffer_labels);
+		// Set new buffer
+		_out_edges.at(i)->set_buffer(new_buffer, new_buffer_labels);
 
-			// Update control
-			ctrl++;
-			if(ctrl >= _out_edges.size()){
-				ctrl = 0;
-			}
-			/******* Restricted Access ********/
-			
+		// Update control
+		ctrl++;
+		if(ctrl >= _out_edges.size()){
+			ctrl = 0;
+		}
+		/******* Restricted Access ********/
 	}
 // Chunk mode
 // Split the input images into N chunks and tranfer them to the output buffer
@@ -96,6 +93,7 @@ void Node::copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels){
 			// Get current buffer
 			std::vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
 			std::vector<int> *curr_buffer_labels = _out_edges.at(i)->get_buffer_labels();
+                        //std::cout << curr_buffer->size() << std::endl;
 
 			// Concatenate buffers
 			std::vector<cv::Mat> new_buffer;

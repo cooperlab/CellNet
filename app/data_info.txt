@@ -1,0 +1,616 @@
+Slide Name: TCGA-CS-4942-01Z-00-DX1
+SlideIdx: 0
+Negative Elements Count: 48
+Positive Elements Count: 10
+Total Elements Count: 58
+
+
+Slide Name: TCGA-CS-5390-01Z-00-DX1
+SlideIdx: 1
+Negative Elements Count: 20
+Positive Elements Count: 18
+Total Elements Count: 38
+
+
+Slide Name: TCGA-CS-5393-01Z-00-DX1
+SlideIdx: 2
+Negative Elements Count: 21
+Positive Elements Count: 19
+Total Elements Count: 40
+
+
+Slide Name: TCGA-CS-5394-01Z-00-DX1
+SlideIdx: 3
+Negative Elements Count: 26
+Positive Elements Count: 34
+Total Elements Count: 60
+
+
+Slide Name: TCGA-CS-6188-01Z-00-DX1
+SlideIdx: 4
+Negative Elements Count: 19
+Positive Elements Count: 26
+Total Elements Count: 45
+
+
+Slide Name: TCGA-CS-6290-01Z-00-DX1
+SlideIdx: 5
+Negative Elements Count: 19
+Positive Elements Count: 13
+Total Elements Count: 32
+
+
+Slide Name: TCGA-CS-6666-01Z-00-DX1
+SlideIdx: 6
+Negative Elements Count: 33
+Positive Elements Count: 31
+Total Elements Count: 64
+
+
+Slide Name: TCGA-DB-5274-01Z-00-DX1
+SlideIdx: 7
+Negative Elements Count: 26
+Positive Elements Count: 25
+Total Elements Count: 51
+
+
+Slide Name: TCGA-DB-5275-01Z-00-DX2
+SlideIdx: 8
+Negative Elements Count: 21
+Positive Elements Count: 22
+Total Elements Count: 43
+
+
+Slide Name: TCGA-DB-A4XB-01Z-00-DX1
+SlideIdx: 9
+Negative Elements Count: 27
+Positive Elements Count: 26
+Total Elements Count: 53
+
+
+Slide Name: TCGA-DB-A4XB-01Z-00-DX2
+SlideIdx: 10
+Negative Elements Count: 23
+Positive Elements Count: 26
+Total Elements Count: 49
+
+
+Slide Name: TCGA-DH-5141-01Z-00-DX1
+SlideIdx: 11
+Negative Elements Count: 25
+Positive Elements Count: 48
+Total Elements Count: 73
+
+
+Slide Name: TCGA-DH-5142-01Z-00-DX1
+SlideIdx: 12
+Negative Elements Count: 36
+Positive Elements Count: 86
+Total Elements Count: 122
+
+
+Slide Name: TCGA-DH-5143-01Z-00-DX1
+SlideIdx: 13
+Negative Elements Count: 15
+Positive Elements Count: 20
+Total Elements Count: 35
+
+
+Slide Name: TCGA-DH-A66F-01Z-00-DX1
+SlideIdx: 14
+Negative Elements Count: 31
+Positive Elements Count: 26
+Total Elements Count: 57
+
+
+Slide Name: TCGA-DU-5847-01Z-00-DX1
+SlideIdx: 15
+Negative Elements Count: 18
+Positive Elements Count: 12
+Total Elements Count: 30
+
+
+Slide Name: TCGA-DU-5851-01Z-00-DX1
+SlideIdx: 16
+Negative Elements Count: 16
+Positive Elements Count: 12
+Total Elements Count: 28
+
+
+Slide Name: TCGA-DU-7306-01Z-00-DX1
+SlideIdx: 17
+Negative Elements Count: 17
+Positive Elements Count: 19
+Total Elements Count: 36
+
+
+Slide Name: TCGA-F6-A8O3-01Z-00-DX1
+SlideIdx: 18
+Negative Elements Count: 56
+Positive Elements Count: 11
+Total Elements Count: 67
+
+
+Slide Name: TCGA-FG-5962-01Z-00-DX1
+SlideIdx: 19
+Negative Elements Count: 21
+Positive Elements Count: 34
+Total Elements Count: 55
+
+
+Slide Name: TCGA-FG-5965-01Z-00-DX1
+SlideIdx: 20
+Negative Elements Count: 16
+Positive Elements Count: 20
+Total Elements Count: 36
+
+
+Slide Name: TCGA-HT-7475-01Z-00-DX1
+SlideIdx: 21
+Negative Elements Count: 17
+Positive Elements Count: 15
+Total Elements Count: 32
+
+
+Slide Name: TCGA-HT-7475-01Z-00-DX4
+SlideIdx: 22
+Negative Elements Count: 17
+Positive Elements Count: 13
+Total Elements Count: 30
+
+
+Slide Name: TCGA-HT-7481-01Z-00-DX1
+SlideIdx: 23
+Negative Elements Count: 17
+Positive Elements Count: 18
+Total Elements Count: 35
+
+
+Slide Name: TCGA-HT-7481-01Z-00-DX3
+SlideIdx: 24
+Negative Elements Count: 17
+Positive Elements Count: 13
+Total Elements Count: 30
+
+
+Slide Name: TCGA-HW-7495-01Z-00-DX1
+SlideIdx: 25
+Negative Elements Count: 17
+Positive Elements Count: 16
+Total Elements Count: 33
+
+
+Slide Name: TCGA-HW-8319-01Z-00-DX1
+SlideIdx: 26
+Negative Elements Count: 18
+Positive Elements Count: 20
+Total Elements Count: 38
+
+
+Slide Name: TCGA-HW-8320-01Z-00-DX1
+SlideIdx: 27
+Negative Elements Count: 28
+Positive Elements Count: 32
+Total Elements Count: 60
+
+
+Slide Name: TCGA-HW-8321-01Z-00-DX1
+SlideIdx: 28
+Negative Elements Count: 23
+Positive Elements Count: 19
+Total Elements Count: 42
+
+
+Slide Name: TCGA-IK-8125-01Z-00-DX1
+SlideIdx: 29
+Negative Elements Count: 14
+Positive Elements Count: 18
+Total Elements Count: 32
+
+
+Slide Name: TCGA-KT-A7W1-01Z-00-DX1
+SlideIdx: 30
+Negative Elements Count: 23
+Positive Elements Count: 33
+Total Elements Count: 56
+
+
+Slide Name: TCGA-QH-A65S-01Z-00-DX1
+SlideIdx: 31
+Negative Elements Count: 17
+Positive Elements Count: 15
+Total Elements Count: 32
+
+
+Slide Name: TCGA-QH-A65V-01Z-00-DX1
+SlideIdx: 32
+Negative Elements Count: 19
+Positive Elements Count: 21
+Total Elements Count: 40
+
+
+Slide Name: TCGA-QH-A65X-01Z-00-DX1
+SlideIdx: 33
+Negative Elements Count: 25
+Positive Elements Count: 14
+Total Elements Count: 39
+
+
+Slide Name: TCGA-QH-A65Z-01Z-00-DX1
+SlideIdx: 34
+Negative Elements Count: 20
+Positive Elements Count: 16
+Total Elements Count: 36
+
+
+Slide Name: TCGA-R8-A6ML-01Z-00-DX3
+SlideIdx: 35
+Negative Elements Count: 19
+Positive Elements Count: 12
+Total Elements Count: 31
+
+
+Slide Name: TCGA-R8-A6ML-01Z-00-DX4
+SlideIdx: 36
+Negative Elements Count: 20
+Positive Elements Count: 17
+Total Elements Count: 37
+
+
+Slide Name: TCGA-R8-A6ML-01Z-00-DX6
+SlideIdx: 37
+Negative Elements Count: 19
+Positive Elements Count: 15
+Total Elements Count: 34
+
+
+Slide Name: TCGA-RY-A83Y-01Z-00-DX1
+SlideIdx: 38
+Negative Elements Count: 16
+Positive Elements Count: 17
+Total Elements Count: 33
+
+
+Slide Name: TCGA-RY-A840-01Z-00-DX1
+SlideIdx: 39
+Negative Elements Count: 18
+Positive Elements Count: 16
+Total Elements Count: 34
+
+
+Slide Name: TCGA-RY-A843-01Z-00-DX1
+SlideIdx: 40
+Negative Elements Count: 22
+Positive Elements Count: 15
+Total Elements Count: 37
+
+
+Slide Name: TCGA-RY-A845-01Z-00-DX1
+SlideIdx: 41
+Negative Elements Count: 20
+Positive Elements Count: 14
+Total Elements Count: 34
+
+
+Slide Name: TCGA-S9-A6TX-01Z-00-DX1
+SlideIdx: 42
+Negative Elements Count: 37
+Positive Elements Count: 24
+Total Elements Count: 61
+
+
+Slide Name: TCGA-S9-A6TY-01Z-00-DX1
+SlideIdx: 43
+Negative Elements Count: 22
+Positive Elements Count: 18
+Total Elements Count: 40
+
+
+Slide Name: TCGA-S9-A6U0-01Z-00-DX1
+SlideIdx: 44
+Negative Elements Count: 64
+Positive Elements Count: 66
+Total Elements Count: 130
+
+
+Slide Name: TCGA-S9-A6U2-01Z-00-DX1
+SlideIdx: 45
+Negative Elements Count: 21
+Positive Elements Count: 38
+Total Elements Count: 59
+
+
+Slide Name: TCGA-TM-A7C4-01Z-00-DX1
+SlideIdx: 46
+Negative Elements Count: 19
+Positive Elements Count: 15
+Total Elements Count: 34
+
+
+Slide Name: TCGA-TM-A7CA-01Z-00-DX1
+SlideIdx: 47
+Negative Elements Count: 19
+Positive Elements Count: 12
+Total Elements Count: 31
+
+
+Slide Name: TCGA-TM-A7CF-01Z-00-DX1
+SlideIdx: 48
+Negative Elements Count: 23
+Positive Elements Count: 12
+Total Elements Count: 35
+
+
+Slide Name: TCGA-TM-A7CF-01Z-00-DX2
+SlideIdx: 49
+Negative Elements Count: 28
+Positive Elements Count: 14
+Total Elements Count: 42
+
+
+Slide Name: TCGA-TQ-A7RF-01Z-00-DX1
+SlideIdx: 50
+Negative Elements Count: 24
+Positive Elements Count: 20
+Total Elements Count: 44
+
+
+Slide Name: TCGA-TQ-A7RG-01Z-00-DX1
+SlideIdx: 51
+Negative Elements Count: 23
+Positive Elements Count: 21
+Total Elements Count: 44
+
+
+Slide Name: TCGA-TQ-A7RH-01Z-00-DX1
+SlideIdx: 52
+Negative Elements Count: 15
+Positive Elements Count: 18
+Total Elements Count: 33
+
+
+Slide Name: TCGA-TQ-A7RK-01Z-00-DX1
+SlideIdx: 53
+Negative Elements Count: 24
+Positive Elements Count: 20
+Total Elements Count: 44
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX2
+SlideIdx: 54
+Negative Elements Count: 81
+Positive Elements Count: 57
+Total Elements Count: 138
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX3
+SlideIdx: 55
+Negative Elements Count: 40
+Positive Elements Count: 36
+Total Elements Count: 76
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX4
+SlideIdx: 56
+Negative Elements Count: 53
+Positive Elements Count: 43
+Total Elements Count: 96
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX5
+SlideIdx: 57
+Negative Elements Count: 41
+Positive Elements Count: 42
+Total Elements Count: 83
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX7
+SlideIdx: 58
+Negative Elements Count: 46
+Positive Elements Count: 31
+Total Elements Count: 77
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX9
+SlideIdx: 59
+Negative Elements Count: 60
+Positive Elements Count: 33
+Total Elements Count: 93
+
+
+Slide Name: TCGA-WY-A859-01Z-00-DX1
+SlideIdx: 60
+Negative Elements Count: 30
+Positive Elements Count: 32
+Total Elements Count: 62
+
+
+Slide Name: TCGA-WY-A85A-01Z-00-DX1
+SlideIdx: 61
+Negative Elements Count: 20
+Positive Elements Count: 17
+Total Elements Count: 37
+
+
+Slide Name: TCGA-DU-5849-01Z-00-DX1
+SlideIdx: 62
+Negative Elements Count: 16
+Positive Elements Count: 15
+Total Elements Count: 31
+
+
+Slide Name: TCGA-HT-7481-01Z-00-DX4
+SlideIdx: 63
+Negative Elements Count: 20
+Positive Elements Count: 15
+Total Elements Count: 35
+
+
+Slide Name: TCGA-R8-A6ML-01Z-00-DX5
+SlideIdx: 64
+Negative Elements Count: 24
+Positive Elements Count: 18
+Total Elements Count: 42
+
+
+Slide Name: TCGA-WY-A85C-01Z-00-DX1
+SlideIdx: 65
+Negative Elements Count: 15
+Positive Elements Count: 12
+Total Elements Count: 27
+
+
+Slide Name: TCGA-CS-6668-01Z-00-DX1
+SlideIdx: 66
+Negative Elements Count: 5
+Positive Elements Count: 5
+Total Elements Count: 10
+
+
+Slide Name: TCGA-DB-5275-01Z-00-DX1
+SlideIdx: 67
+Negative Elements Count: 5
+Positive Elements Count: 5
+Total Elements Count: 10
+
+
+Slide Name: TCGA-DH-5140-01Z-00-DX1
+SlideIdx: 68
+Negative Elements Count: 5
+Positive Elements Count: 5
+Total Elements Count: 10
+
+
+Slide Name: TCGA-DU-7309-01Z-00-DX1
+SlideIdx: 69
+Negative Elements Count: 5
+Positive Elements Count: 5
+Total Elements Count: 10
+
+
+Slide Name: TCGA-EZ-7264-01Z-00-DX1
+SlideIdx: 70
+Negative Elements Count: 13
+Positive Elements Count: 8
+Total Elements Count: 21
+
+
+Slide Name: TCGA-F6-A8O4-01Z-00-DX1
+SlideIdx: 71
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-FG-5964-01Z-00-DX1
+SlideIdx: 72
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-HT-7474-01Z-00-DX1
+SlideIdx: 73
+Negative Elements Count: 8
+Positive Elements Count: 12
+Total Elements Count: 20
+
+
+Slide Name: TCGA-HW-7490-01Z-00-DX1
+SlideIdx: 74
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-IK-7675-01Z-00-DX1
+SlideIdx: 75
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-KT-A74X-01Z-00-DX2
+SlideIdx: 76
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-QH-A65R-01Z-00-DX1
+SlideIdx: 77
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-R8-A6ML-01Z-00-DX1
+SlideIdx: 78
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-RY-A83X-01Z-00-DX1
+SlideIdx: 79
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-S9-A6TU-01Z-00-DX1
+SlideIdx: 80
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-TM-A7C3-01Z-00-DX1
+SlideIdx: 81
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-TQ-A7RI-01Z-00-DX1
+SlideIdx: 82
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-VM-A8CB-01Z-00-DX1
+SlideIdx: 83
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-W9-A837-01Z-00-DX1
+SlideIdx: 84
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-WH-A86K-01Z-00-DX1
+SlideIdx: 85
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-WY-A858-01Z-00-DX1
+SlideIdx: 86
+Negative Elements Count: 8
+Positive Elements Count: 8
+Total Elements Count: 16
+
+
+Slide Name: TCGA-WY-A85B-01Z-00-DX1
+SlideIdx: 87
+Negative Elements Count: 14
+Positive Elements Count: 11
+Total Elements Count: 25
+
+
