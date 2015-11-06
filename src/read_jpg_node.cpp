@@ -5,17 +5,27 @@
 #include "utils.h"
 #define SHIFT 25
 
-ReadJPGNode::ReadJPGNode(std::string id, std::vector<std::string> slides_name, int mode): Node(id, mode), _slides_name(slides_name), i_ptr(0){
+ReadJPGNode::ReadJPGNode(std::string id, std::vector<std::string> slides_name, int mode, std::string imagePath) : 
+Node(id, mode),
+_slides_name(slides_name), 
+i_ptr(0),
+_imagePath(imagePath)
+{
 	
 	 runtime_total_first = utils::get_time();
 }
 
+
+
+
+
 void *ReadJPGNode::run(){
 	
 	increment_threads();
-
+	
 	// Execute
 	int i = get_input();
+
 	while(i >= 0){
 
 		open_images(_slides_name[i]);
@@ -55,12 +65,15 @@ int ReadJPGNode::get_input(){
 void ReadJPGNode::open_images(std::string image_path){
 	
 	std::vector<std::string> images_name;
-	images_name = utils::get_images_path("../dataset/" + image_path);
+	images_name = utils::get_images_path(_imagePath + image_path);
+
+
 	for(int k=0; k < images_name.size(); k++){
 		int size = images_name[k].size();
 		int label = (images_name[k].at(size - 5) - '0');
 		_input_labels.push_back(label);
-		cv::Mat image = cv::imread("../dataset/" + image_path + "/" + images_name[k], CV_LOAD_IMAGE_COLOR);
+
+		cv::Mat image = cv::imread(_imagePath + image_path + "/" + images_name[k], CV_LOAD_IMAGE_COLOR);
 		_input_data.push_back(image);
 		_counter++;
 	}	

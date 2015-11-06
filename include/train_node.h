@@ -6,7 +6,7 @@
 #include "utils.h"
 #include <vector>
 #include <iostream>
-#include <glib.h>
+//#include <glib.h>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>
@@ -20,7 +20,9 @@
 class TrainNode: public Node{
 
 	public:
-		TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, float momentum, float gamma, int iter);
+		TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, 
+				  float base_lr, float momentum, float gamma, int iter, std::string trainedFileName);
+
 		void *run();
 		void init_model();
 		void compute_update_value();
@@ -31,6 +33,8 @@ class TrainNode: public Node{
 	protected:
 		int _batch_size;
 		std::string _model_path;
+		std::string _trainedFilename;
+
 		std::vector<cv::Mat> _data_buffer; 
 		std::vector<int> _labels_buffer;
 		boost::shared_ptr<caffe::Net<float>> _net;
@@ -43,5 +47,8 @@ class TrainNode: public Node{
 		boost::shared_ptr<caffe::MemoryDataLayer<float>> _data_layer;
 		int _iter;
 		int _device_id;
+		std::string 	_outFilename;
 };
+
+
 #endif

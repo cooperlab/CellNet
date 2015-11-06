@@ -1,2 +1,5 @@
-predict
-*.txt
+# Ignore everything in this directory
+*
+# Except this file
+!.gitignore
+

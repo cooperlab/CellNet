@@ -231,6 +231,9 @@ namespace utils{
 		std::vector<std::string> images_path;
         DIR *pDIR;
         struct dirent *entry;
+
+		std::cout << "Looking for images in " << path << std::endl;
+
         if( pDIR=opendir(path.c_str()) ){
                 while(entry = readdir(pDIR)){
                         if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 )

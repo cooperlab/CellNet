@@ -38,7 +38,8 @@ endif( NOT HDF5_FOUND )
 include_directories(${HDF5_INCLUDE_DIRS})
 set(LIBRARIES ${LIBRARIES} ${HDF5_LIBRARIES})
 set(LIBRARIES ${LIBRARIES} ${HDF5_HL_LIBRARIES})
-
+set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${HDF5_LIBRARIES})
+set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${HDF5_HL_LIBRARIES})
 
 
 
@@ -53,6 +54,7 @@ endif( NOT OpenCV_FOUND )
 
 include_directories(${OpenCV_INCLUDE_DIRS})
 set(LIBRARIES ${LIBRARIES} ${OpenCV_LIBS})
+set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${OpenCV_LIBS})
 
 add_definitions(-DUSE_OPENCV)
 
@@ -94,6 +96,20 @@ set(LIBRARIES ${LIBRARIES} ${Glog_LIBRARIES})
 
 
 #
+## Openslide
+#
+find_package( Openslide REQUIRED )
+
+if( NOT Openslide_FOUND ) 
+    message(FATAL_ERROR "Openslide libraries not found")
+endif( NOT Openslide_FOUND )
+
+include_directories(${Openslide_INCLUDE_DIRS})
+set(LIBRARIES ${LIBRARIES} ${Openslide_LIBRARIES})
+set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${Openslide_LIBRARIES})
+
+
+#
 ## Caffe 
 #
 find_package( Caffe REQUIRED )
@@ -109,14 +125,19 @@ set(LIBRARIES ${LIBRARIES} ${Caffe_LIBRARIES})
 
 
 #
-## Generate base_config.h
+## Generate base_config.h and add to include path
 # 
 configure_file("${PROJECT_SOURCE_DIR}/src/base_config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/base_config.h")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-
-include_directories(${CMAKE_SOURCE_DIR}/include)
 #
-## predict target
+## Include files are is a seperate directory
+#
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+
+#
+## cn_predict target
 #
 add_executable(PREDICT predict.cpp utils.cpp read_jpg_node.cpp graph_net.cpp node.cpp edge.cpp
 				grayscale_node.cpp prediction_node.cpp)
@@ -124,6 +145,26 @@ add_executable(PREDICT predict.cpp utils.cpp read_jpg_node.cpp graph_net.cpp nod
 
 target_link_libraries(PREDICT ${LIBRARIES})
 set_target_properties(PREDICT PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
-set_target_properties(PREDICT PROPERTIES OUTPUT_NAME predict${CMAKE_DEBUG_POSTFIX})
+set_target_properties(PREDICT PROPERTIES OUTPUT_NAME cn_predict${CMAKE_DEBUG_POSTFIX})
 
+
+#
+## cn_train target
+#
+add_executable(TRAIN train.cpp utils.cpp read_jpg_node.cpp graph_net.cpp node.cpp edge.cpp 
+			   grayscale_node.cpp train_node.cpp )
+
+target_link_libraries(TRAIN ${LIBRARIES})
+set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+set_target_properties(TRAIN PROPERTIES OUTPUT_NAME cn_train${CMAKE_DEBUG_POSTFIX})
+
+
+#
+## cn_convert_slide target
+#
+add_executable(CONVERT_SLIDE slide_convert.cpp )
+
+target_link_libraries(CONVERT_SLIDE ${CONVERT_SLIDE_LIBS})
+set_target_properties(CONVERT_SLIDE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+set_target_properties(CONVERT_SLIDE PROPERTIES OUTPUT_NAME cn_convert_slide${CMAKE_DEBUG_POSTFIX})
 

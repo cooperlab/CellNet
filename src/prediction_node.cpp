@@ -1,12 +1,33 @@
 #include "prediction_node.h"
 
-PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, std::string params_file, int device_id): Node(id, mode), _batch_size(batch_size), _data_buffer(), _labels_buffer(), _predictions(), _test_model_path(test_model_path),  _net(), _params_file(params_file), _device_id(device_id){
+PredictionNode::PredictionNode(std::string id, int mode, int batch_size, std::string test_model_path, 
+							   std::string params_file, int device_id, std::string outFilename) : 
+Node(id, mode), 
+_batch_size(batch_size), 
+_data_buffer(), 
+_labels_buffer(), 
+_predictions(), 
+_test_model_path(test_model_path),  
+_net(), 
+_params_file(params_file), 
+_device_id(device_id),
+_outFilename(outFilename),
+_out_layer(),
+_data_layer()
+{
+
+	std::cout << "In PredictionNode constructor" << std::endl;
+
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
-	init_model();
 }
 
+
+
+
 void PredictionNode::init_model(){
+
+	std::cout << "In PredictionNode::init_model" << std::endl;
 
 	// Set gpu
 	caffe::Caffe::SetDevice(_device_id);
@@ -20,13 +41,24 @@ void PredictionNode::init_model(){
   	const std::vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
   	_net->CopyTrainedLayersFrom(_params_file.c_str());
 
+  	_data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+	_out_layer = _net->blob_by_name("prob");
+
   	std::cout << "Model loaded" << std::endl;
 }
+
+
+
+
 
 void *PredictionNode::run(){
 
 	increment_threads();
 	int first_idx = 0;
+
+	init_model();
+
+
 	while(true){
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
 		if(first_idx + _batch_size <= _data_buffer.size()){
@@ -62,6 +94,7 @@ void *PredictionNode::run(){
 				// Print results
 				compute_accuracy();
 				print_out_labels();
+				write_to_file();
 				break;
 			}
 		}
@@ -92,34 +125,30 @@ int PredictionNode::step(int first_idx, int batch_size){
 	batch_labels.reserve(batch_size);
 	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
 	
-	// Get memory layer from net
-	const boost::shared_ptr<caffe::MemoryDataLayer<float>> data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
-	
 	// Set batch size
-	data_layer->set_batch_size(batch_size);
+	_data_layer->set_batch_size(batch_size);
 
 	// Add matrices
-	data_layer->AddMatVector(batch, batch_labels);
+	_data_layer->AddMatVector(batch, batch_labels);
 
 	// Foward
 	float loss;
 	_net->ForwardPrefilled(&loss);
-	const boost::shared_ptr<caffe::Blob<float> >& out_layer = _net->blob_by_name("ip2");
 
-	const float* results = out_layer->cpu_data();
+	const float* results = _out_layer->cpu_data();
 
 	// Append outputs
-	for(int j=0; j < out_layer->shape(0); j++){
+	for(int j=0; j < _out_layer->shape(0); j++){
 		
 		int idx_max = 0;
-		float max = results[j*out_layer->shape(1) + 0];
+		float max = results[j*_out_layer->shape(1) + 0];
 
 		// Argmax
-		for(int k=0; k < out_layer->shape(1); k++){
+		for(int k=0; k < _out_layer->shape(1); k++){
 
-			if(results[j*out_layer->shape(1) + k] > max){
+			if(results[j*_out_layer->shape(1) + k] > max){
 
-				max = results[j*out_layer->shape(1) + k];
+				max = results[j*_out_layer->shape(1) + k];
 				idx_max = k;
 			}
 		}
@@ -127,6 +156,11 @@ int PredictionNode::step(int first_idx, int batch_size){
 		_predictions.push_back(idx_max);
 	}
 	first_idx += batch_size;
+
+	// Clean variables
+	batch.clear();
+	batch_labels.clear();
+
 	return first_idx;
 }
 
@@ -171,6 +205,26 @@ void PredictionNode::compute_accuracy(){
 	std:: cout << "Accuracy: " << acc <<  " Hits: " << hit << std::endl;
 }
 
+
+
+
+
+void PredictionNode::write_to_file(){
+
+	std::ofstream out;
+	out.open(_outFilename, std::ofstream::out  | std::ios::app);
+
+	for(int i=0; i < _predictions.size(); i++){
+
+		 out <<  _predictions[i] << ";" << _labels_buffer[i] << std::endl;
+	}
+	out.close();
+}
+
+
+
+
+
 void PredictionNode::print_out_labels(){
 
 	for(int i=0; i < _predictions.size(); i++){
@@ -178,9 +232,9 @@ void PredictionNode::print_out_labels(){
 		std::cout << "out: " << _predictions[i] << " target: " << _labels_buffer[i] << std::endl;
 		std::vector<cv::Mat> input;
 		split(_data_buffer[i], input);
-		for(int k = 0; k < input.size(); k++){
+//		for(int k = 0; k < input.size(); k++){
 
-			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
-		}
+//			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
+//		}
 	}
 }

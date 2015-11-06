@@ -9,6 +9,9 @@
 class Node : private boost::noncopyable{
 	
 	public:
+
+		enum Mode {Repeat, Alternate, Chunk};
+
 		Node(std::string id, int mode);
 		~Node();
 		virtual void *run(){return NULL;};
@@ -19,16 +22,19 @@ class Node : private boost::noncopyable{
 		int _mode;
 		std::vector<Edge *> _in_edges;
 		std::vector<Edge *> _out_edges;
-		long long unsigned int _counter;
 		double runtime_total_first;
 		boost::mutex _mutex;
 		boost::mutex _mutex_counter;
 		boost::mutex _mutex_ctrl;
 		long long unsigned int _counter_threads;
 		int ctrl;
-		std::vector<int> _labels;
 		
   	protected:
+
+		long long unsigned int _counter;
+		std::vector<int> _labels;
+
+
 		void copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels);
   		void copy_from_buffer(std::vector<cv::Mat> &, std::vector<int> &labels);
   		void copy_chunk_from_buffer(std::vector<cv::Mat> &out, std::vector<int> &labels);

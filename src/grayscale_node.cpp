@@ -31,8 +31,10 @@ void *GrayScaleNode::run(){
 				cv::cvtColor(out.at(i), gray_img, CV_BGR2GRAY);
 				cv::equalizeHist(gray_img, equilized_img);
 
+
 				// Push to vector
 				gray_out.push_back(equilized_img);
+//				gray_out.push_back(gray_img);
 
 				// Copy to buffer
 				copy_to_buffer(gray_out, _labels);

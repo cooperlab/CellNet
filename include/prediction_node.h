@@ -6,7 +6,7 @@
 #include "utils.h"
 #include <vector>
 #include <iostream>
-#include <glib.h>
+//#include <glib.h>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>
@@ -21,7 +21,8 @@
 class PredictionNode: public Node{
 
 	public:
-		PredictionNode(std::string id, int mode, int batch_size, std::string model_path, std::string params_file, int device_id);
+		PredictionNode(std::string id, int mode, int batch_size, std::string model_path, 
+					   std::string params_file, int device_id, std::string outFile);
 		void *run();
 		void init_model();
 		void compute_accuracy();
@@ -37,5 +38,12 @@ class PredictionNode: public Node{
 		std::string _test_model_path;
 		boost::shared_ptr<caffe::Net<float>> _net;
 		int _device_id;
+		std::string _outFilename;
+		void write_to_file();
+
+		boost::shared_ptr<caffe::MemoryDataLayer<float>> _data_layer;
+		boost::shared_ptr<caffe::Blob<float> > _out_layer;
+
+
 };
 #endif

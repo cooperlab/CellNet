@@ -16,7 +16,7 @@ find_path(Glog_INCLUDE_DIRS glog/logging.h
 
 
 set(GLOG_NAMES ${GLOG_NAMES} glog )
-find_library(GLOG_LIBRARY
+find_library(Glog_LIBRARIES
     NAMES ${GLOG_NAMES}
     PATHS
     /usr/lib64/
@@ -27,12 +27,8 @@ find_library(GLOG_LIBRARY
 
 
 
-if (GLOG_LIBRARY AND Glog_INCLUDE_DIRS )
-    set(Glog_LIBRARIES ${GLOG_LIBRARY})
+if (Glog_LIBRARIES AND Glog_INCLUDE_DIRS )
     set(Glog_FOUND true)
-endif (GLOG_LIBRARY AND Glog_INCLUDE_DIRS )
+endif (Glog_LIBRARIES AND Glog_INCLUDE_DIRS )
 
 
-
-# Hide in the cmake cache
-mark_as_advanced(Glog_LIBRARIES)

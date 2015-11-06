@@ -1,15 +1,38 @@
 #include "train_node.h"
 
-TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, float base_lr, float momentum, float gamma, int iter): Node(id, mode), _batch_size(batch_size), _model_path(model_path), _data_buffer(), _labels_buffer(), _net(), _base_lr(base_lr), _momentum(momentum), _gamma(gamma), _history(), _temp(), _iter(iter), _device_id(_device_id), _out_layer(), _data_layer(){
+
+
+TrainNode::TrainNode(std::string id, int mode, int batch_size, int device_id, std::string model_path, 
+					 float base_lr, float momentum, float gamma, int iter, std::string outFilename): 
+Node(id, mode), 
+_batch_size(batch_size), 
+_model_path(model_path), 
+_data_buffer(), 
+_labels_buffer(), 
+_net(), 
+_base_lr(base_lr), 
+_momentum(momentum), 
+_gamma(gamma), 
+_history(), 
+_temp(), 
+_iter(iter), 
+_device_id(_device_id), 
+_out_layer(), _data_layer()
+{
 	_counter = 0;	
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
-	init_model();
 }
+
+
+
+
 
 void TrainNode::init_model(){
 
-	// Setup GPU
+	// Setup GPU - Make sure this is done in the thread the node will 
+	// be running under. 
+	//
 	caffe::Caffe::SetDevice(_device_id);	
 	caffe::Caffe::set_mode(caffe::Caffe::GPU);
 	caffe::Caffe::DeviceQuery();
@@ -33,10 +56,16 @@ void TrainNode::init_model(){
 }
 
 
+
+
+
 void *TrainNode::run(){
 
 	increment_threads();
 	int first_idx = 0;
+
+	init_model();
+
 
 	while(true){
 
@@ -88,6 +117,13 @@ void *TrainNode::run(){
 	return NULL;
 }
 
+
+
+
+
+
+
+
 int TrainNode::train_step(int first_idx){
 
 	int epochs = (_data_buffer.size() - first_idx)/_batch_size;
@@ -126,6 +162,12 @@ int TrainNode::train_step(int first_idx){
 
 	return first_idx;
 }
+
+
+
+
+
+
 
 void TrainNode::cross_validate(std::vector<cv::Mat> batch, std::vector<int> batch_labels){
 
@@ -172,6 +214,13 @@ void TrainNode::cross_validate(std::vector<cv::Mat> batch, std::vector<int> batc
 //	std::cout << "Batch accuracy: " << acc << std::endl;
 }
 
+
+
+
+
+
+
+
 void TrainNode::snapshot(){
 	caffe::NetParameter net_param;
 
@@ -185,6 +234,13 @@ void TrainNode::snapshot(){
 	std::cout << "Snapshotting to " << model_filename << std::endl;
 	caffe::WriteProtoToBinaryFile(net_param, model_filename.c_str());
 }
+
+
+
+
+
+
+
 
 void TrainNode::compute_update_value(){
 

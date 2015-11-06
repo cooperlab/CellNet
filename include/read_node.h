@@ -4,9 +4,9 @@
 #include "node.h"
 #include <vector>
 #include <tuple>
-#include <openslide.h>
+#include <openslide/openslide.h>
 #include <iostream>
-#include <glib.h>
+//#include <glib.h>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>

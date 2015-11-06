@@ -47,7 +47,7 @@ void GraphNet::link(){
 	}
 
 	/************************* Debug *******************************/
-	/*
+
 	// Print Graph 
 	for(std::vector<Node>::size_type i=0; i < _nodes.size(); i++){
 
@@ -80,7 +80,7 @@ void GraphNet::link(){
 			std::cout << "out: none" << std::endl;
 		}
 	}
-	*/
+
 }
 
 void GraphNet::start_parallel(){
@@ -121,5 +121,7 @@ void GraphNet::add_node(Node *node){
 }
 
 void GraphNet::add_edge(Edge *edge){
+	std::cout << "Adding edge: " << edge->get_in_node_id() << " -> " << edge->get_out_node_id() << std::endl;
+
 	_edges.push_back(edge);	
 }

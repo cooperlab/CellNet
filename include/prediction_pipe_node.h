@@ -6,7 +6,7 @@
 #include "utils.h"
 #include <vector>
 #include <iostream>
-#include <glib.h>
+//#include <glib.h>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>

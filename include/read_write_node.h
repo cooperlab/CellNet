@@ -3,10 +3,10 @@
 
 #include "node.h"
 #include <vector>
-#include <tuple>
-#include <openslide.h>
+//#include <tuple>
+#include <openslide/openslide.h>
 #include <iostream>
-#include <glib.h>
+//#include <glib.h>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 
 #include <opencv2/core/core.hpp>
@@ -15,7 +15,9 @@
 class ReadWriteNode: public Node{
 
 	public:
-		ReadWriteNode(std::string id, std::vector<std::string> image_names, std::vector<std::string> image_paths, std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set, std::vector<std::vector<int>> input_labels, int mode);
+		ReadWriteNode(std::string id, std::vector<std::string> image_names, std::vector<std::string> image_paths, 
+					  std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set, 
+					  std::vector<std::vector<int>> input_labels, int mode, std::string savePath);
 		void show_entire_image(cv::Mat);
 		void show_cropped_cells(std::vector<cv::Mat> extracted_images);
 		std::vector<cv::Mat> crop_cells(cv::Mat entire_image, std::vector<std::tuple<float, float>> cells_coordinates, int64_t offset_x, int64_t offset_y);
@@ -35,5 +37,6 @@ class ReadWriteNode: public Node{
   		std::vector<std::vector<std::tuple<float, float>>> _cells_coordinates_set;
   		int i_ptr;
   		std::vector<std::vector<int>> _input_labels;
+		std::string _savePath;
 };
 #endif
