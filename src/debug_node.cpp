@@ -1,9 +1,19 @@
-#include "debug_node.h"
-#include "edge.h"
 #include <iostream>
 
-DebugNode::DebugNode(std::string id, int mode): Node(id, mode){
+#include "graph_net.h"
+
+
+using namespace std;
+
+
+
+DebugNode::DebugNode(std::string id, int mode) : 
+Node(id, mode)
+{
 }
+
+
+
 
 void *DebugNode::run(){
 	int counter = 0;
@@ -12,9 +22,19 @@ void *DebugNode::run(){
 
 		std::vector<cv::Mat> out; 
 		copy_chunk_from_buffer(out, _labels);
-		if(!out.empty()){
 
-			//std::cout << "DebugNode start" << std::endl; 
+		if( !out.empty() ){
+
+			cout << "DebugNode: buffer has " << out.size() << " objects" << endl;
+			string name; 
+
+			for(int i = 0; i < out.size(); i++) {
+				
+				name = "Test" + to_string(i) + "_" + to_string(_labels[i]) + ".jpg";
+				cv::imwrite(name.c_str(), out[i]);
+
+
+			}
 			//cv::imshow("img " + std::to_string(counter), out);
 			//std::cout << std::to_string(counter++) << std::endl;
 			// Debugger

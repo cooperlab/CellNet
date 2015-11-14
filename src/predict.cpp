@@ -34,70 +34,62 @@
 
 
 
+using namespace std;
+
+
+
+
+
 int main (int argc, char * argv[])
 {
 
-	if( argc != 6 ) {
-		std::cerr << "Usage: " << argv[0] << " <dataset.h5> <trained model> <net model> <image path> <out file>" << std::endl;
+	if( argc != 5 ) {
+		cerr << "Usage: " << argv[0] << " <dataset.h5> <trained model> <net model> <out file>" << endl;
 		exit(-1);
 	}
 	FLAGS_alsologtostderr = 1;
  	caffe::GlobalInit(&argc, &argv);
 
-	std::vector<int> prediction_slides;
-	std::string fname = argv[1];
-	std::string trainedFilename = argv[2];
-	std::string netModelFilename = argv[3];
-	std::string imagePath = argv[4];
-	std::string outFilename = argv[5];
+
+	string trainedFilename = argv[2];
+	string netModelFilename = argv[3];
+	string outFilename = argv[4];
+
 
 	int batch_size = 10, gpu_id = 0;
 
-	std::vector<std::string> slideNames;
-	utils::get_data(fname, "slides", slideNames);
-	for(int i = 0; i < slideNames.size(); i++) {
-		prediction_slides.push_back(i);
-	}
 
 	// Start clock
 	double begin_time = utils::get_time();	
-
-	/**************************************** Get Input Data  ***************************************/
-
-	// Declare input data
-	std::vector<std::string> slides;
-
-	// Get input data from HDF5
-	utils::get_data(fname, "slides", slides);
-
-	std::cout << "Time to read HDF5: " << float( utils::get_time() - begin_time )  << std::endl;
-	/************************************* Create prediction_Dataset ************************************/
-
-	// Declare Variables
 	GraphNet *prediction_graph = new GraphNet(GraphNet::Parallel);
-
-	/********************************    Remove Slides   ********************************************/
-	utils::remove_slides(slides, prediction_slides);
 
 	// Define Graphs
 	std::cout << "Defining graph nodes..." << std::endl;
 
-	// Add some prediction_Nodes
-	prediction_graph->add_node(new ReadJPGNode("read_node", slides, Node::Chunk, imagePath));
 
-	// Define grayscale nodes
-	prediction_graph->add_node(new GrayScaleNode("grayscale_node", Node::Repeat));
+	// Currently we only pass 1 file on the command line. Ww will add
+	// the option to pass a directory so we can glob the files and process
+	// all of them.
+	//
+	vector<string>	files;
+	files.push_back(argv[1]);
+	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, false));
 
-	// Prediction Node
-	prediction_graph->add_node(new PredictionNode("prediction_node", Node::Repeat, batch_size, netModelFilename, trainedFilename, gpu_id, outFilename));
+
+	prediction_graph->add_node(new DebugNode("debug_node", Node::Repeat));
+//	prediction_graph->add_node(new GrayScaleNode("grayscale_node", Node::Repeat));
+
+//	prediction_graph->add_node(new PredictionNode("prediction_node", Node::Repeat, batch_size, netModelFilename, trainedFilename, gpu_id, outFilename));
 
 		
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
+
+	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "debug_node"));
 			
-	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
-	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "prediction_node"));
+//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
+//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "prediction_node"));
 
 	std::cout << "Preproccess Graph defined*" << std::endl;
 	

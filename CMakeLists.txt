@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.0)
 project(CellNet)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11")
+#
+# Needed to add -Wl,--no-as-needed to allow std::threads to work. Not
+# sure why, al_serverd from the active learning project works without the
+# flags. 
+#
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11  -Wl,--no-as-needed")
 
 if( CMAKE_BUILD_TYPE STREQUAL Debug ) 
 	set(CellNet_DEBUG 1)

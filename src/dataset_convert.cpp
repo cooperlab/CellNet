@@ -33,6 +33,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <ctime>
+#include <glob.h>
 
 #include "utils.h"
 #include "base_config.h"
@@ -42,8 +43,9 @@
 using namespace std;
 
 
-#define SAMPLE_WIDTH  	50
-#define SAMPLE_HEIGHT	50
+#define SAMPLE_WIDTH  		50
+#define SAMPLE_HEIGHT		50
+#define BYTES_PER_PIXEL		3
 
 
 struct Cent {
@@ -56,52 +58,11 @@ struct Cent {
 
 
 
-
-int ParseCentroids(vector<Cent>& centroids, char *filename)
-{
-	int 		result = 0;
-	Cent		centroid;
-	string		line;
-	size_t		pos;
-
-	ifstream inFile(filename, ios::in);
-	
-	if( !inFile.is_open() ) {
-		cerr << "Unable to open " << filename << endl;
-		result = -10;
-	}
-
-	if( result == 0 ) {
-		while( inFile ) {
-			getline(inFile, line);
-			
-			if( line.length() > 0 ) {
-				pos = line.find_first_of(",");
-			
-				centroid.x = (int)stof(line.substr(0, pos));
-				centroid.y = (int)stof(line.substr(pos + 1));	
-
-				centroids.push_back(centroid);
-			}
-		}
-	}
-	
-	if( inFile.is_open() ) {
-		inFile.close();
-	}
-	return result;
-}
-
-
-
-
-
-
-int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename)
+int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char *filename)
 {
 	int		result = 0;
 	openslide_t	*img = NULL;
-	int64_t		offset = 0, chunkSize = SAMPLE_WIDTH * SAMPLE_HEIGHT * 3;
+	int64_t		chunkSize = SAMPLE_WIDTH * SAMPLE_HEIGHT * 3;
 
 	if( images == NULL ) {
 		result = -10;
@@ -159,7 +120,7 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename)
 				// Pop X channels
 				channels.pop_back();
 
-				// Merge channels BGR back to image
+				// Merge RGB channels back to image Mat
 				merge(channels, outImg);
 				if( outImg.isContinuous() ) {
 					uint8_t	*data = outImg.ptr();
@@ -176,6 +137,60 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename)
 		openslide_close(img);
 	}
 
+	return result;
+}
+
+
+
+
+
+int CropCells(uint8_t *images, vector<Cent>& centroids, vector<int>& labels, 
+			  vector<int>& slideIdx, char **slideNames, int numSlides, string imageDir)
+{
+	int		result = 0;
+	glob_t	globBuff;
+	string	path;
+	vector< vector<Cent> > slideCentroids;
+	vector< vector<int> > slideLabels;
+	int64_t	offset = 0;
+
+	// Collect centroids belonging to the same slide. This way
+	// we can go slide by slide to extract the images. We will 
+	// reorder the labels and centroids afterwards.
+	//
+	slideCentroids.resize(numSlides);
+	slideLabels.resize(numSlides);
+	for(int i = 0; i < centroids.size(); i++) {
+		slideCentroids[slideIdx[i]].push_back(centroids[i]);
+		slideLabels[slideIdx[i]].push_back(labels[i]);
+	}
+
+
+	for(int i = 0; i < numSlides; i++) {
+		path = imageDir + slideNames[i] + "*";
+		glob(path.c_str(), GLOB_TILDE, NULL, &globBuff);
+		if( globBuff.gl_pathc == 0 ) {
+			cerr << "Unable to find image for " << slideNames[i] << endl;
+		} else {
+			cout << "Extracting " << slideCentroids[i].size() << " cell images from " << globBuff.gl_pathv[0] << endl;
+			result = GetSlideCells(slideCentroids[i], images, offset, globBuff.gl_pathv[0]);
+		}						
+
+	}
+
+	// Reorder slideIdx & labels to match the order of the images in the biffer.
+	//
+	offset = 0;
+	for(int slide = 0; slide < numSlides; slide++) {
+		for(int obj = 0; obj < slideCentroids[slide].size(); obj++) {
+
+			centroids[offset] = slideCentroids[slide][obj];
+			slideIdx[offset] = slide;
+			labels[offset] = slideLabels[slide][obj];
+
+			offset++;
+		}
+	}
 	return result;
 }
 
@@ -314,7 +329,44 @@ int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages)
 
 
 
-int SaveData(vector<Cent>& centroids, uint8_t *images, string filename, string commandLine)
+
+int SaveSlidenames(hid_t fileId, char **slideNames, int numSlides)
+{
+	int		result = 0;
+	hsize_t	dims[2], size = numSlides;
+	herr_t	status;
+	hid_t	dset, dataType, slideSpace, slideMemType;
+
+	slideSpace = H5Screate_simple(1, &size, NULL);
+	if( slideSpace < 0 ) {
+		cerr << "Unable to create slide name dataspace" << endl;
+		result = -60;
+	}
+
+	if( result == 0 ) {
+		dataType = H5Tcopy(H5T_C_S1);
+		H5Tset_size(dataType, H5T_VARIABLE);
+		dset = H5Dcreate(fileId, "/slides", dataType, slideSpace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		if( dset < 0 ) {
+			cerr << "Unable to create slides dataset" << endl;
+			result = -61;
+		} else {
+
+			H5Dwrite(dset, dataType, slideSpace, H5S_ALL, H5P_DEFAULT, slideNames);
+			H5Dclose(dset);
+			H5Sclose(slideSpace);
+			H5Tclose(dataType);
+		}
+ 	}
+	return result;
+}
+
+
+
+
+int SaveData(vector<Cent>& centroids, vector<int> labels, vector<int> slideIdx, 
+			char **slideNames, int numSlides, uint8_t *images, string filename, 
+			string commandLine)
 {
 	int		result = 0;
 	hid_t	fileId;
@@ -344,16 +396,201 @@ int SaveData(vector<Cent>& centroids, uint8_t *images, string filename, string c
 	}
 
 	if( result == 0 ) {
+
+		dims[0] = labels.size();
+		dims[1] = 1;
+		status = H5LTmake_dataset(fileId, "/labels", 2, dims, H5T_NATIVE_INT, labels.data());
+		if( status < 0 ) {
+			cerr << "Unable to create labels dataset" << endl;
+			result = -33;
+		}
+	}
+
+	if( result == 0 ) {
+
+		dims[0] = slideIdx.size();
+		dims[1] = 1;
+		status = H5LTmake_dataset(fileId, "/slideIdx", 2, dims, H5T_NATIVE_INT, slideIdx.data());
+		if( status < 0 ) {
+			cerr << "Unable to create slideIdx dataset" << endl;
+			result = -34;
+		}
+	}
+
+	if( result == 0 ) {
+		result = SaveSlidenames(fileId, slideNames, numSlides);
+	}
+
+	if( result == 0 ) {
 		result = SaveProvenance(fileId, commandLine);
 	}
 
 	if( fileId >= 0 ) {
 		H5Fclose(fileId);
 	}	
-	
+
 	return result;
 }
 
+
+
+
+
+int	ReadCentroidData(hid_t fileId, vector<Cent>& centroids)
+{
+	int 		result = 0;
+	hsize_t		dims[2];
+	herr_t		status;
+	float		*centX = NULL, *centY = NULL;
+
+	
+	status = H5LTget_dataset_info(fileId, "/x_centroid", dims, NULL, NULL);
+	if( status < 0 ) {
+		cerr << "Unable to get dataset info" << endl;
+		result = -20;
+	} else {
+
+		centX = (float*)malloc(dims[0] * sizeof(float));
+		centY = (float*)malloc(dims[0] * sizeof(float));
+
+		if( centX == NULL || centY == NULL ) {
+			cerr << "Unable to allocate centroid buffer" << endl;
+			result = -21;
+		}
+	}
+	
+	if( result == 0 ) {
+
+		status = H5LTread_dataset_float(fileId, "/x_centroid", centX);
+		if( status < 0 ) {
+			cerr << "Unable ro read X centroids" << endl;
+			result = -22;
+		}
+	}
+
+	if( result == 0 ) {
+
+		status = H5LTread_dataset_float(fileId, "/y_centroid", centY);
+		if( status < 0 ) {
+			cerr << "Unable ro read Y centroids" << endl;
+			result = -23;
+		}
+	}
+
+	if( result == 0 ) {
+		Cent	sample;
+		
+		for(int i = 0; i < dims[0]; i++) {
+			sample.x = centX[i];
+			sample.y = centY[i];
+
+			centroids.push_back(sample);
+		}
+	}
+	
+	if( centX ) {
+		free(centX);
+	}
+	if( centY ) {
+		free(centY);
+	}
+	return result;
+}
+
+
+
+
+
+int ReadSlideNames(hid_t fileId, char **&slideNames, int& numSlides)
+{	
+	int			result = 0;
+	hid_t		dset, fileType, slideSpace, slideMemType;
+	hsize_t		dims[2];
+	herr_t		status;
+
+	dset = H5Dopen(fileId, "/slides", H5P_DEFAULT);
+	if( dset < 0 ) {
+		cerr << "Unable to open slides dataset" << endl;
+		result = -30;
+	}
+
+	if( result == 0 ) {
+		fileType = H5Dget_type(dset);
+		slideSpace = H5Dget_space(dset);
+		H5Sget_simple_extent_dims(slideSpace, dims, NULL);
+
+		slideNames = (char**)malloc(dims[0] * sizeof(char*));
+		if( slideNames == NULL ) {
+			cerr << "Unable to allocate slide name buffer" << endl;
+			result = -31;
+		} else {
+			slideMemType = H5Tcopy(H5T_C_S1);
+			H5Tset_size(slideMemType, H5T_VARIABLE);
+			status = H5Dread(dset, slideMemType, H5S_ALL, H5S_ALL, H5P_DEFAULT, slideNames);
+			if( status < 0 ) {
+				cerr << "Unable to read slide names" << endl;
+				result = -32;
+			} else { 
+				numSlides = dims[0];
+				H5Dclose(dset);
+				H5Tclose(fileType);
+			}
+		} 
+	}
+	return result;
+}
+
+
+
+
+
+int ReadDatafile(string filename, vector<Cent>& centroids, vector<int>& labels, 
+			 vector<int>&slideIdx, char **&slideNames, int& numSlides)
+{
+	int		result = 0;
+	hid_t		fileId;
+	hsize_t		dims[2];
+	herr_t		status;
+	float		*centX = NULL, *centY = NULL;
+
+	fileId = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+	if( fileId < 0 ) {
+		cerr << "Unable to open " << filename << endl;
+		result = -10;
+	}
+
+	if( result == 0 ) {
+		result = ReadCentroidData(fileId, centroids);
+	}
+
+	if( result == 0 ) {
+		labels.resize(centroids.size());
+		status = H5LTread_dataset_int(fileId, "/labels", labels.data());
+		if( status < 0 ) {
+			cerr << "Unable to read labels" << endl;
+			result = -11;
+		}
+	}
+
+	if( result == 0 ) {
+		slideIdx.resize(centroids.size());
+		status = H5LTread_dataset_int(fileId, "/slideIdx", slideIdx.data());
+		if( status < 0 ) {
+			cerr << "Unable to read slide indices" << endl;
+			result = -12;
+		}
+	}
+
+	if( result == 0 ) {
+		result = ReadSlideNames(fileId, slideNames, numSlides);
+	}
+
+	if( fileId >= 0 ) {
+		H5Fclose(fileId);
+	} 
+
+	return result;
+}
 
 
 
@@ -364,9 +601,9 @@ int main(int argc, char *argv[])
 	int result = 0;
 	double	startTime;
 
-	if( argc != 3 ) {
+	if( argc != 4 ) {
 
-		cerr << "Usage: " << argv[0] << " <image file> <centroid list>" << endl;
+		cerr << "Usage: " << argv[0] << " <dataset file .h5> <slide image dir> <outfile>" << endl;
 		exit(-1);
 	}
 	cout << "Using: " << endl;
@@ -374,16 +611,21 @@ int main(int argc, char *argv[])
 	cout << "  OpenCV       " << CV_VERSION << endl;
 
 
+	vector<int>		labels, slideIdx;
 	vector<Cent>	centroids;
-	uint8_t	*imagesBuffer = NULL;
+	char			**slideNames = NULL;
+	uint8_t			*imagesBuffer = NULL;
+	int				numSlides;
 
-	cout << "Parsing cell list..." << endl;
-	startTime = utils::get_time();
-	result = ParseCentroids(centroids, argv[2]);
-	cout << "ParseCentroids took: " << utils::get_time() - startTime << endl;
+
+	result = ReadDatafile(argv[1], centroids, labels, slideIdx, slideNames, numSlides);
 
 	if( result == 0 ) {
-		imagesBuffer = (uint8_t*)malloc(centroids.size() * SAMPLE_WIDTH * SAMPLE_HEIGHT * 3);
+		cout << "Read " << centroids.size() << " centroids in " << numSlides << " slides" << endl;
+	}
+
+	if( result == 0 ) {
+		imagesBuffer = (uint8_t*)malloc(centroids.size() * SAMPLE_WIDTH * SAMPLE_HEIGHT * BYTES_PER_PIXEL);
 		if( imagesBuffer == NULL ) {
 			cerr << "Unable to allocate buffer for images" << endl;
 			result = -2;
@@ -393,21 +635,12 @@ int main(int argc, char *argv[])
 	if( result == 0 ) {
 		cout << "Cropping cells..." << endl;
 		startTime = utils::get_time();
-		result = CropCells(centroids, imagesBuffer, argv[1]);
+		result = CropCells(imagesBuffer, centroids, labels, slideIdx, slideNames, numSlides, argv[2]);
 		cout << "CropCells took: " << utils::get_time() - startTime << endl;
 	}
 
-
 	if( result == 0 ) {
-		string	imageFilename = argv[1], outFilename;
-		size_t	pos = imageFilename.find_last_of("/");
-		
-		if( pos == string::npos ) {
-			outFilename = argv[1];
-		} else {
-			outFilename = imageFilename.substr(pos + 1);
-		}
-		outFilename += ".h5";
+		string	outFilename = argv[3];
 
 		string cmdline;
 		for(int i = 0; i < argc; i++) {
@@ -416,7 +649,8 @@ int main(int argc, char *argv[])
 		}
 		cout << "Writing HDF5 file..." << endl;
 		startTime = utils::get_time();
-		result = SaveData(centroids, imagesBuffer, outFilename, cmdline);
+		result = SaveData(centroids, labels, slideIdx, slideNames, numSlides, 
+						  imagesBuffer, outFilename, cmdline);
 		cout << "SaveData took: " << utils::get_time() - startTime << endl;
 	}
 

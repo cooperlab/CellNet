@@ -139,8 +139,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 #
 ## cn_predict target
 #
-add_executable(PREDICT predict.cpp utils.cpp read_jpg_node.cpp graph_net.cpp node.cpp edge.cpp
-				grayscale_node.cpp prediction_node.cpp)
+add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
+				grayscale_node.cpp prediction_node.cpp debug_node.cpp)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -151,8 +151,8 @@ set_target_properties(PREDICT PROPERTIES OUTPUT_NAME cn_predict${CMAKE_DEBUG_POS
 #
 ## cn_train target
 #
-add_executable(TRAIN train.cpp utils.cpp read_jpg_node.cpp graph_net.cpp node.cpp edge.cpp 
-			   grayscale_node.cpp train_node.cpp )
+add_executable(TRAIN train.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp 
+			   grayscale_node.cpp train_node.cpp debug_node.cpp)
 
 target_link_libraries(TRAIN ${LIBRARIES})
 set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
@@ -162,9 +162,19 @@ set_target_properties(TRAIN PROPERTIES OUTPUT_NAME cn_train${CMAKE_DEBUG_POSTFIX
 #
 ## cn_convert_slide target
 #
-add_executable(CONVERT_SLIDE slide_convert.cpp )
+add_executable(CONVERT_SLIDE slide_convert.cpp utils.cpp)
 
 target_link_libraries(CONVERT_SLIDE ${CONVERT_SLIDE_LIBS})
 set_target_properties(CONVERT_SLIDE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
 set_target_properties(CONVERT_SLIDE PROPERTIES OUTPUT_NAME cn_convert_slide${CMAKE_DEBUG_POSTFIX})
+
+
+#
+## cn_dataset_convert target
+#
+add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp)
+
+target_link_libraries(CONVERT_DATASET ${CONVERT_SLIDE_LIBS})
+set_target_properties(CONVERT_DATASET PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+set_target_properties(CONVERT_DATASET PROPERTIES OUTPUT_NAME cn_convert_dataset${CMAKE_DEBUG_POSTFIX})
 
