@@ -140,7 +140,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## cn_predict target
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
-				grayscale_node.cpp prediction_node.cpp debug_node.cpp)
+				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp )
 
 
 target_link_libraries(PREDICT ${LIBRARIES})

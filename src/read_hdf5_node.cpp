@@ -60,7 +60,7 @@ Node(id, mode),
 _fileNames(fileNames),
 _hasLabels(labels)
 {
-
+	runtime_total_first = utils::get_time();
 
 }
 
@@ -71,9 +71,12 @@ void *ReadHDF5Node::run()
 	vector<string>::iterator	fileIt;
 	
 	increment_threads();
+	double 	start = utils::get_time();
+
+	cout << "ReadHDF5Node running" << endl;
 
 	for(fileIt = _fileNames.begin(); fileIt != _fileNames.end(); fileIt++) {
-		
+		cout << "." << flush;		
 		if( !ReadImages(*fileIt) ) {
 			cerr << "Unable to read images from " << *fileIt << endl;
 		} else {
@@ -86,8 +89,14 @@ void *ReadHDF5Node::run()
 	if( check_finished() == true ) {
 		vector<Edge*>::iterator	edgeIt;
 
-		for(edgeIt = _out_edges.begin(); edgeIt != _out_edges.end(); edgeIt++) {
+		cout << "******************" << endl
+			 << "ReadHDF5Node" << endl 
+			 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+			 << "# of elements: " << to_string(_counter) << endl 
+			 << "******************" << endl;
+		cout << "ReadHDF5Node runtime: " << utils::get_time() - start << endl;
 
+		for(edgeIt = _out_edges.begin(); edgeIt != _out_edges.end(); edgeIt++) {
 			(*edgeIt)->set_in_node_done();
 		}
 	}
@@ -177,7 +186,6 @@ bool ReadHDF5Node::ReadImages(string filename)
 
 		while( imagesRead < _numImages ) {
 			imagesToRead = min(_numImages - imagesRead, MAX_IMAGES_PER_READ);
-			cout << "Reading " << imagesToRead << " images out of " << _numImages << endl;
 
 			ptr = (uint8_t*)malloc(imagesToRead * _imageHeight * _imageWidth);
 			if( ptr == NULL ) {
@@ -185,7 +193,7 @@ bool ReadHDF5Node::ReadImages(string filename)
 				result = false;
 				break;
 			}
-			
+
 			get<0>(curBuffer) = ptr;
 			get<1>(curBuffer) = imagesToRead;
 
@@ -247,10 +255,10 @@ void ReadHDF5Node::FormatImages(void)
 		_imageSem.Decrement();	// Wait for next block
 
 		curBuffer = _imagePipe.front();
+		_imagePipe.pop_front();
 		ptr = get<0>(curBuffer);
 
 		for(int i = 0; i < get<1>(curBuffer); i++) {
-
 			memcpy(img.ptr(), &ptr[bufferOffset], stride);
 			_input_data.push_back(img.clone());
 			if( !_hasLabels ) {
@@ -258,8 +266,11 @@ void ReadHDF5Node::FormatImages(void)
 				_labels.push_back(imagesFormatted + i);
 			}
 			bufferOffset += stride;
+			_counter++;
 		}
+
 		imagesFormatted += get<1>(curBuffer);
+		bufferOffset = 0;
 		free(ptr);
 	}
 }

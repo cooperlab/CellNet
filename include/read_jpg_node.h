@@ -3,7 +3,6 @@
 
 #include "node.h"
 #include <vector>
-//#include <tuple>
 #include <iostream>
 #include <cv.h>
 #include <opencv2/highgui/highgui.hpp> 

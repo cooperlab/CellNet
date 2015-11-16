@@ -74,29 +74,53 @@ int main (int argc, char * argv[])
 	vector<string>	files;
 	files.push_back(argv[1]);
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, false));
+	prediction_graph->add_node(new GrayScaleNode("grayscale_node", Node::Repeat));
+	prediction_graph->add_node(new AugmentationNode("augmentation_node", Node::Chunk, 3));
 
+	size_t 	pos;
+	string 	baseName, extension;
 
-	prediction_graph->add_node(new DebugNode("debug_node", Node::Repeat));
-//	prediction_graph->add_node(new GrayScaleNode("grayscale_node", Node::Repeat));
+	pos = outFilename.find_last_of(".");
+	if( pos != string::npos ) {
+		baseName = outFilename.substr(0, pos);
+		extension = outFilename.substr(pos + 1);
+	} else {
+		baseName = outFilename;
+		extension = ".txt";
+	}
 
-//	prediction_graph->add_node(new PredictionNode("prediction_node", Node::Repeat, batch_size, netModelFilename, trainedFilename, gpu_id, outFilename));
-
+	for(int i = 0; i < 4; i++ ) {
+		prediction_graph->add_node(new PredictionNode("prediction_node" + to_string(i), 
+													  Node::Repeat, 
+													  batch_size, 
+													  netModelFilename, 
+													  trainedFilename, i, 
+													  baseName + "_" + to_string(i) + extension));
+	}
 		
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
 
-	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "debug_node"));
-			
-//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
-//	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "prediction_node"));
+	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
+	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "augmentation_node"));
+
+	for(int i = 0; i < 4; i++) {
+		prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
+											"augmentation_node", 
+											"prediction_node" + to_string(i)));
+	}
+		
 
 	std::cout << "Preproccess Graph defined*" << std::endl;
 	
 	/********************************************* Run Graphs ***************************************************/
 	
 	// Run graphs
+	double start = utils::get_time();
 	prediction_graph->run();
+	cout << "Total runtime: " << utils::get_time() - start << endl;
+
 
 	/*********************************************    Clean   ***************************************************/
 	

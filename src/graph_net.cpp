@@ -1,5 +1,11 @@
-#include "graph_net.h"
 #include <iostream>
+
+#include "graph_net.h"
+#include "base_config.h"
+
+
+
+
 /* Define the number of threads running for each node
 NOTE: At some nodes (e.g writing nodes), the graph considers only one thread for each node.
 To include more threads working at the same node, we would have to control the access at some nodes (e.g writing nodes),
