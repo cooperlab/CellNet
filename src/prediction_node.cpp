@@ -24,6 +24,9 @@
 //	DAMAGE.
 //
 //
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include "prediction_node.h"
 
 
@@ -87,73 +90,68 @@ void PredictionNode::init_model()
 void *PredictionNode::run()
 {
 
-	double 	start = utils::get_time();
-	int first_idx = 0;
-
-	increment_threads();
-
-	// Need to initialize the model in the running thread. Constructor is called
-	// from another thread.
-	//
-	init_model();
+	double	loop, start = utils::get_time();
+	int 	pid, epochs, first_idx = 0;
+	bool	done;
+	vector<Edge *>::iterator it;
 
 
-	while(true){
+	while( true ) {
+
+		// Keep copying data until we get it all.
+		//
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
-		if(first_idx + _batch_size <= _data_buffer.size()){
 
-			// For each epoch feed the model with a mini-batch of samples
-			int epochs = (_data_buffer.size() - first_idx)/_batch_size;
-			for(int i = 0; i < epochs; i++){	
-
-				first_idx = step(first_idx, _batch_size);
-			}	
-		}
-		else{
-
-			// Check if all input nodes have already finished
-			bool is_all_done = true;
-			for(vector<int>::size_type i=0; i < _in_edges.size(); i++){
-
-				if(!_in_edges.at(i)->is_in_node_done()){
-					is_all_done = false;
-				}
-			}
-
-			// All input nodes have finished
-			if(is_all_done){
-
-				// Handle non-multiples
-				if(first_idx != _data_buffer.size()-1){
-					
-					cout << "Remaining samples: " << to_string(_data_buffer.size()-first_idx) << endl; 
-					step(first_idx, _data_buffer.size()-first_idx);
-				}
-
-				// Print results
-//				compute_accuracy();
-//				print_out_labels();
-				write_to_file();
+		done = true;
+		for(it = _in_edges.begin(); it != _in_edges.end(); it++) {
+			if( (*it)->is_in_node_done() == false ) {
+				done = false;
 				break;
 			}
 		}
-	}
 
-	if(check_finished() == true){
+		if( done ) {
 
-		cout << "******************" << endl 
-			 << "Prediction" << endl 
-			 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
-			 << "# of elements: " << to_string(_labels_buffer.size()) << endl 
-			 << "******************" << endl;
-		cout << "PredictionNode runtime: " << utils::get_time() - start << endl;
+			pid = fork();
+			
+			if( pid == 0 ) {
+				init_model();
 
-		// Notify it has finished
-		for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
-			_out_edges.at(i)->set_in_node_done();
+				epochs = _data_buffer.size() / _batch_size;
+				for(int i = 0; i < epochs; i++) {
+					first_idx = step(first_idx, _batch_size);
+				}
+
+				if( first_idx != _data_buffer.size() ) {
+					step(first_idx, _data_buffer.size() - first_idx);
+				}
+
+				write_to_file();
+
+				cout << "******************" << endl 
+					 << "Prediction" << endl 
+					 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+					 << "# of elements: " << to_string(_labels_buffer.size()) << endl 
+					 << "******************" << endl;
+				cout << "PredictionNode runtime: " << utils::get_time() - start << endl;
+
+				// Notify it has finished
+				for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
+					_out_edges.at(i)->set_in_node_done();
+				}
+				
+				// No need for this process 
+				exit(0);
+			} else {
+				_data_buffer.clear();
+				waitpid(pid, NULL, 0);
+			}
+			break;
+			
+		} else {
+			sleep(1);
 		}
 	}
-
 	return NULL;
 }
 
@@ -177,12 +175,17 @@ int PredictionNode::step(int first_idx, int batch_size)
 	// Set batch size
 	_data_layer->set_batch_size(batch_size);
 
+//	double timing = utils::get_time();
 	// Add matrices
 	_data_layer->AddMatVector(batch, batch_labels);
+//	cout <<_id << " - AddMatVector took: " << utils::get_time() - timing << endl;
 
 	// Foward
 	float loss;
+
+//	timing = utils::get_time();
 	_net->ForwardPrefilled(&loss);
+//	cout <<_id << " - ForwardPrefilled took: " << utils::get_time() - timing << endl;
 
 	const float* results = _out_layer->cpu_data();
 
@@ -269,7 +272,7 @@ void PredictionNode::print_out_labels()
 		split(_data_buffer[i], input);
 //		for(int k = 0; k < input.size(); k++){
 
-//			cv::imwrite("/home/nelson/CellNet/src/teste/img" + std::to_string(i)+std::to_string(k) + ".jpg", input[k]);
+//			cv::imwrite("/home/nelson/CellNet/src/teste/img" + to_string(i)+to_string(k) + ".jpg", input[k]);
 //		}
 	}
 }

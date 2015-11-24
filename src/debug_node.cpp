@@ -42,20 +42,20 @@ Node(id, mode)
 
 
 void *DebugNode::run(){
+
 	int counter = 0;
+	std::vector<cv::Mat> out; 
 
 	while(true){
 
-		std::vector<cv::Mat> out; 
 		copy_chunk_from_buffer(out, _labels);
 
-		if( !out.empty() ){
+		if( /*!out.empty() */ out.size() >= 1000 ){
 
 			cout << "DebugNode: buffer has " << out.size() << " objects" << endl;
 			string name; 
 
 			for(int i = 0; i < out.size(); i++) {
-				
 				name = "Test" + to_string(counter++) + "_" + to_string(_labels[i]) + ".jpg";
 				cv::imwrite(name.c_str(), out[i]);
 
@@ -64,6 +64,9 @@ void *DebugNode::run(){
 			//std::cout << std::to_string(counter++) << std::endl;
 			// Debugger
 			//std::cout << "DebugNode complete" << std::endl;
+			out.clear();
+			_labels.clear();
+
 		}
 		else if(_in_edges.at(0)->is_in_node_done()){
 			std::cout << "Stopping DebuggerNode" << std::endl;
@@ -71,7 +74,6 @@ void *DebugNode::run(){
 			// Some debug
 			break;
 		}
-		out.clear();
 	}
 
 	// Notify it has finished

@@ -140,7 +140,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## cn_predict target
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
-				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp )
+				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp debug_node.cpp)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -177,4 +177,5 @@ add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp)
 target_link_libraries(CONVERT_DATASET ${CONVERT_SLIDE_LIBS})
 set_target_properties(CONVERT_DATASET PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
 set_target_properties(CONVERT_DATASET PROPERTIES OUTPUT_NAME cn_convert_dataset${CMAKE_DEBUG_POSTFIX})
+
 

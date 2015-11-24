@@ -37,6 +37,7 @@
 using namespace std;
 
 
+#define PREDICTION_NODES 4
 
 
 
@@ -56,7 +57,7 @@ int main (int argc, char * argv[])
 	string outFilename = argv[4];
 
 
-	int batch_size = 10, gpu_id = 0;
+	int batch_size = 1000;
 
 
 	// Start clock
@@ -74,8 +75,9 @@ int main (int argc, char * argv[])
 	vector<string>	files;
 	files.push_back(argv[1]);
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, false));
-	prediction_graph->add_node(new GrayScaleNode("grayscale_node", Node::Repeat));
-	prediction_graph->add_node(new AugmentationNode("augmentation_node", Node::Chunk, 3));
+	prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));
+	prediction_graph->add_node(new AugmentationNode("augmentation_node", batch_size, Node::Chunk, 3));
+
 
 	size_t 	pos;
 	string 	baseName, extension;
@@ -83,18 +85,19 @@ int main (int argc, char * argv[])
 	pos = outFilename.find_last_of(".");
 	if( pos != string::npos ) {
 		baseName = outFilename.substr(0, pos);
-		extension = outFilename.substr(pos + 1);
+		extension = outFilename.substr(pos);
 	} else {
 		baseName = outFilename;
 		extension = ".txt";
 	}
 
-	for(int i = 0; i < 4; i++ ) {
+	for(int i = 0; i < PREDICTION_NODES; i++ ) {
 		prediction_graph->add_node(new PredictionNode("prediction_node" + to_string(i), 
 													  Node::Repeat, 
 													  batch_size, 
 													  netModelFilename, 
-													  trainedFilename, i, 
+													  trainedFilename, 
+													  i, 
 													  baseName + "_" + to_string(i) + extension));
 	}
 		
@@ -105,12 +108,11 @@ int main (int argc, char * argv[])
 	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
 	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "augmentation_node"));
 
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < PREDICTION_NODES; i++) {
 		prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
 											"augmentation_node", 
 											"prediction_node" + to_string(i)));
 	}
-		
 
 	std::cout << "Preproccess Graph defined*" << std::endl;
 	

@@ -66,6 +66,8 @@ _hasLabels(labels)
 
 
 
+
+
 void *ReadHDF5Node::run()
 {
 	vector<string>::iterator	fileIt;
@@ -236,7 +238,6 @@ bool ReadHDF5Node::ReadImages(string filename)
 	}
 	return result;
 }
-
 
 
 

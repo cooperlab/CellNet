@@ -24,10 +24,11 @@
 //	DAMAGE.
 //
 //
+#include <iostream>
+
 #include "grayscale_node.h"
 #include "edge.h"
 #include "utils.h"
-#include <iostream>
 
 
 
@@ -37,8 +38,9 @@ using namespace std;
 
 
 
-GrayScaleNode::GrayScaleNode(string id, int mode) : 
-Node(id, mode)
+GrayScaleNode::GrayScaleNode(string id, int transferSize, int mode) : 
+Node(id, mode),
+_transferSize(transferSize)
 {
 	runtime_total_first = utils::get_time();
 }
@@ -52,22 +54,26 @@ Node(id, mode)
 void *GrayScaleNode::run()
 {
 
-	double 	start = utils::get_time();
+	double 	loop, start = utils::get_time();
 
 	increment_threads();
 
-	while(true){
+	while( true ) {
 
-		vector<cv::Mat> out; 
+		vector<cv::Mat> out, gray_out;
+ 
 		copy_chunk_from_buffer(out, _labels);
+		int		loopSize;
 
-		if(!out.empty()){
+
+		if( out.size() >= _transferSize ) {
+			loopSize = out.size(); 
 
 			//std::cout << "total labels in gray: " << std::to_string(_labels.size()) << std::endl;
+			loop = utils::get_time();
 
 			for(vector<cv::Mat>::size_type i=0; i < out.size(); i++) {
 				increment_counter();
-				vector<cv::Mat> gray_out;
 
 				// Convert to grayscale and equalize
 				cv::Mat gray_img;
@@ -79,18 +85,23 @@ void *GrayScaleNode::run()
 				// Push to vector
 				gray_out.push_back(equilized_img);
 
-				// Copy to buffer
-				copy_to_buffer(gray_out, _labels);
 			}
-		}
+			// Copy to buffer
+			copy_to_buffer(gray_out, _labels);
 
-		else if(_in_edges.at(0)->is_in_node_done()){
+			gray_out.clear();
+			cout << "grey loop took: " << utils::get_time() - loop << " size: " << loopSize << endl;
+
+		} else if( _in_edges.at(0)->is_in_node_done() ) {
+
+			// TODO - Add check to see if there is data in the buffer. 
 			break;
 		}
 		out.clear();
+		_labels.clear();
 	}
 
-	if(check_finished() == true){
+	if( check_finished() == true ) {
 
 		cout << "******************" << endl 
 			 << "GrayScaleNode complete" << endl 
@@ -105,6 +116,5 @@ void *GrayScaleNode::run()
 			_out_edges.at(i)->set_in_node_done();
 		}
 	}
-
 	return NULL;
 }

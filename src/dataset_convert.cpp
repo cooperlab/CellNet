@@ -296,7 +296,7 @@ int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages)
 		pList = H5Pcreate(H5P_DATASET_CREATE);
 		H5Pset_layout(pList, H5D_CHUNKED);
 		H5Pset_chunk(pList, 3, chunkDims);
-		//H5Pset_deflate(pList, 8);
+
 		datasetId = H5Dcreate(fileId, "/images", H5T_NATIVE_UCHAR, fileSpaceId, H5P_DEFAULT,
 								pList, H5P_DEFAULT);
 		if( datasetId < 0 ) {
@@ -548,10 +548,10 @@ int ReadDatafile(string filename, vector<Cent>& centroids, vector<int>& labels,
 			 vector<int>&slideIdx, char **&slideNames, int& numSlides)
 {
 	int		result = 0;
-	hid_t		fileId;
-	hsize_t		dims[2];
-	herr_t		status;
-	float		*centX = NULL, *centY = NULL;
+	hid_t	fileId;
+	hsize_t	dims[2];
+	herr_t	status;
+	float	*centX = NULL, *centY = NULL;
 
 	fileId = H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
 	if( fileId < 0 ) {

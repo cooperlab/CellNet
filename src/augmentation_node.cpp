@@ -26,24 +26,24 @@
 //
 #define PI 3.1415926535897932
 #include <cmath>
+#include <random>
+#include <chrono>
 #include "augmentation_node.h"
 #include "edge.h"
 #include "utils.h"
-#include <random>
-#include <chrono>
-
-
-using namespace std;
 
 
 
 
-AugmentationNode::AugmentationNode(string id, int mode, int aug_factor) : 
+
+
+AugmentationNode::AugmentationNode(string id, int transferSize, int mode, int aug_factor) : 
 Node(id, mode), 
 _counter(0), 
 _data_buffer(), 
 _labels_buffer(), 
-_aug_factor(aug_factor)
+_aug_factor(aug_factor),
+_transferSize(transferSize)
 {
 	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
@@ -53,36 +53,44 @@ _aug_factor(aug_factor)
 
 
 
-void *AugmentationNode::run(){
 
-	double 	start = utils::get_time();
+void *AugmentationNode::run()
+{
 
-	while(true){
+	double 	loop, start = utils::get_time();
+
+	while(true) {
 
 		copy_chunk_from_buffer(_data_buffer, _labels_buffer);
-		if(!_data_buffer.empty()){
 
+		if( _data_buffer.size() >= _transferSize ) {
+
+			loop = utils::get_time();
 			// Augment data
 			augment_images(_data_buffer, _labels_buffer);
 
 			// Clean buffers
 			_data_buffer.clear();
 			_labels_buffer.clear();
-		}
-		else{
+
+		} else {
 
 			// Check if all input nodes have already finished
 			bool is_all_done = true;
 
-			for(vector<int>::size_type i=0; i < _in_edges.size(); i++){
+			for(vector<int>::size_type i=0; i < _in_edges.size(); i++) {
 
-				if(!_in_edges.at(i)->is_in_node_done()){
+				if( !_in_edges.at(i)->is_in_node_done() ) {
 					is_all_done = false;
+					break;
 				}
 			}			
 
 			// All input nodes have finished
-			if(is_all_done){
+			if( is_all_done ) {
+
+				// TODO - Add check to see if data still in buffer
+	
 				cout << "******************" << endl 
 					 << "AugmentationNode" << endl 
 					 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
@@ -92,7 +100,7 @@ void *AugmentationNode::run(){
 				cout << "AugmentationNode runtime: " << utils::get_time() - start << endl;
 
 				// Notify it has finished
-				for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
+				for(vector<int>::size_type i=0; i < _out_edges.size(); i++) {
 					_out_edges.at(i)->set_in_node_done();
 				}
 				break;
@@ -106,14 +114,19 @@ void *AugmentationNode::run(){
 
 
 
-void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels){
+void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
+{
 
-	vector<cv::Mat> out_imgs;
-	vector<int> out_labels;
-	for(int k=0; k < imgs.size(); k++){
+	vector< vector<cv::Mat> > 	out_imgs;
+	vector< vector<int> > 		out_labels;
+
+	out_imgs.resize(_aug_factor + 1);
+	out_labels.resize(_aug_factor + 1);
+
+	for(int k=0; k < imgs.size(); k++) {
 		_counter++;
 
-		for(int i=0; i < _aug_factor; i++){
+		for(int i=0; i < _aug_factor; i++) {
 			_counter++;
 
 			// Define variables
@@ -130,16 +143,13 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels){
 			// Rotation 
 			uniform_real_distribution<double> uniform_dist(-1.0, 1.0);
 			float theta = 180 * uniform_dist(generator);
-			if(theta < -90.0){
+			if( theta < -90.0 ) {
 				theta = -180.0;
-			}
-			else if(theta < 0.0){
+			} else if( theta < 0.0 ) {
 				theta = -90.0;
-			}
-			else if(theta < 90.0){
+			} else if( theta < 90.0 ) {
 				theta = 0.0;
-			}
-			else{
+			} else {
 				theta = 90.0;
 			}
 
@@ -165,23 +175,39 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels){
 
 			// Flip image
 			uniform_real_distribution<double> th_uniform_dist(0.0, 1.0);
-			if(th_uniform_dist(generator) > 0.5){
+			if(th_uniform_dist(generator) > 0.5) {
 				cv::Mat flipped_img;
 				cv::flip(warped_img, flipped_img, 1);
 				warped_img = flipped_img;
 			}
 
 			// Accumulate
-			out_imgs.push_back(warped_img);
-			out_labels.push_back(label);
+			out_imgs[i].push_back(warped_img);
+			out_labels[i].push_back(label);
 		}
 
-		out_imgs.push_back(imgs[k]);
-		out_labels.push_back(labels[k]);
-		copy_to_buffer(out_imgs, out_labels);
+		out_imgs[_aug_factor].push_back(imgs[k]);
+		out_labels[_aug_factor].push_back(labels[k]);
 
-		// Clean
-		out_imgs.clear();
-		out_labels.clear();
+		if( out_imgs[0].size() > _transferSize ) {
+
+			for(int e = 0; e < out_imgs.size(); e++) {
+			
+				copy_to_edge(out_imgs[e], out_labels[e], e);
+				// Clean
+				out_imgs[e].clear();
+				out_labels[e].clear();
+			}
+		}
+	}
+
+
+	if( out_imgs[0].size() > 0 ) {
+		for(int e = 0; e < out_imgs.size(); e++) {
+			copy_to_edge(out_imgs[e], out_labels[e], e);
+			// Clean
+			out_imgs[e].clear();
+			out_labels[e].clear();
+		}
 	}
 }
