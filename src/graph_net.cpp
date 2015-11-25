@@ -107,24 +107,29 @@ void GraphNet::link()
 		    cout << _nodes.at(i).get_id() << " " << it->second << endl;
 		}
 	}
-		
+	
+	vector<Edge *> inEdges, outEdges;
+
 	// Print all connections
 	for( vector<Node>::size_type i=0; i < _nodes.size(); i++ ) {
 
 		cout << _nodes.at(i).get_id() << endl;
-
-		if( !_nodes.at(i)._in_edges.empty() ) {
-			
-			for(int k = 0; k < _nodes.at(i)._in_edges.size(); k++){
-				cout << "in: "<< _nodes.at(i)._in_edges.at(k)->_id << endl;
+		
+		inEdges = _nodes[i].get_in_edges();
+		if( !inEdges.empty() ) {
+				
+			for(int k = 0; k < inEdges.size(); k++) {
+				cout << "in: "<< inEdges[k]->_id << endl;
 			}
 		} else {
 			cout << "in: none" << endl;
 		}
 
-		if( !_nodes.at(i)._out_edges.empty() ) {
-			for(int k = 0; k < _nodes.at(i)._out_edges.size(); k++) {
-				cout << "out: "<< _nodes.at(i)._out_edges.at(k)->_id << endl;
+
+		outEdges = _nodes[i].get_out_edges();
+		if( !outEdges.empty() ) {
+			for(int k = 0; k < outEdges.size(); k++) {
+				cout << "out: "<< outEdges[k]->_id << endl;
 			}
 		} else {
 			cout << "out: none" << endl;

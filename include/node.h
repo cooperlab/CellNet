@@ -50,22 +50,27 @@ class Node : private boost::noncopyable{
 		string get_id() {  return _id;	}
 		void insert_in_edge(Edge *edge);
 		void insert_out_edge(Edge *edge);
-		std::vector<Edge *> _in_edges;
-		std::vector<Edge *> _out_edges;
-		double runtime_total_first;
-		boost::mutex _mutex;
-		boost::mutex _mutex_counter;
-		boost::mutex _mutex_ctrl;
-		long long unsigned int _counter_threads;
-		int ctrl;
 		
+		vector<Edge *>	get_in_edges(void) { return _in_edges;	}
+ 		vector<Edge *>	get_out_edges(void) { return _out_edges;  }
+
   	protected:
 		
 		int 		_mode;
 		string 		_id;
 		vector<int> _labels;
+		int			_curSendEdge;
 
+		double runtime_total_first;
+		boost::mutex _mutex;
+		boost::mutex _mutex_counter;
+		boost::mutex _mutex_ctrl;
+		long long unsigned int _counter_threads;
 		long long unsigned int _counter;
+		
+		vector<Edge *> _in_edges;
+		vector<Edge *> _out_edges;
+
 
 
 		void 	copy_to_buffer(std::vector<cv::Mat> out, std::vector<int> &labels);

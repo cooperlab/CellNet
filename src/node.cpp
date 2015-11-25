@@ -34,11 +34,11 @@ Node::Node(string id, int mode) :
 _id(id), 
 _mode(mode), 
 _in_edges(), 
-_out_edges(), 
+_out_edges(),
+_curSendEdge(0), 
 _counter(0), 
 runtime_total_first(0), 
 _counter_threads(0), 
-ctrl(0), 
 _labels()
 {
 
@@ -112,20 +112,19 @@ void Node::copy_to_buffer(vector<cv::Mat> out, vector<int> &labels)
 
 		}
 	}
-// Alternate mode
-// Copy everyting to a buffer alternating the outputs buffers
+	// Alternate mode
+	// Copy everyting to an edge, cycling through edges for each call
 	else if( _mode == Node::Alternate ) {
 
 			// This code considers only one thread
-			int i = ctrl;
-			int l_size = labels.size();
+			int 	l_size = labels.size();
 
-			boost::mutex::scoped_lock lk(_out_edges.at(i)->_mutex);
+			boost::mutex::scoped_lock lk(_out_edges[_curSendEdge]->_mutex);
 
 			/******* Restricted Access ********/
 			// Get current buffer
-			vector<cv::Mat> *curr_buffer = _out_edges.at(i)->get_buffer();
-			vector<int> *curr_buffer_labels = _out_edges.at(i)->get_buffer_labels();
+			vector<cv::Mat> *curr_buffer = _out_edges[_curSendEdge]->get_buffer();
+			vector<int> *curr_buffer_labels = _out_edges[_curSendEdge]->get_buffer_labels();
 
 			// Concatenate buffers
 			vector<cv::Mat> new_buffer;
@@ -141,13 +140,11 @@ void Node::copy_to_buffer(vector<cv::Mat> out, vector<int> &labels)
 			labels.erase(labels.begin(), labels.begin() + out.size());
  
 			// Set new buffer
-			_out_edges.at(i)->set_buffer(new_buffer, new_buffer_labels);
+			_out_edges[_curSendEdge]->set_buffer(new_buffer, new_buffer_labels);
 
-			// Update control
-			ctrl++;
-			if(ctrl >= _out_edges.size()){
-				ctrl = 0;
-			}
+			// Next time this function is called we should write to the next edge
+			_curSendEdge = (_curSendEdge + 1) % _out_edges.size();
+
 			/******* Restricted Access ********/
 			
 	}
