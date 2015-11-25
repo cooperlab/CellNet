@@ -75,13 +75,12 @@ void *ReadHDF5Node::run()
 	increment_threads();
 	double 	start = utils::get_time();
 
-	cout << "ReadHDF5Node running" << endl;
-
 	for(fileIt = _fileNames.begin(); fileIt != _fileNames.end(); fileIt++) {
 		cout << "." << flush;		
 		if( !ReadImages(*fileIt) ) {
 			cerr << "Unable to read images from " << *fileIt << endl;
 		} else {
+
 			copy_to_buffer(_input_data, _labels);
 			_input_data.clear();
 			_labels.clear();
@@ -93,10 +92,9 @@ void *ReadHDF5Node::run()
 
 		cout << "******************" << endl
 			 << "ReadHDF5Node" << endl 
-			 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+			 << "Run time: " << to_string(utils::get_time() - start) << endl 
 			 << "# of elements: " << to_string(_counter) << endl 
 			 << "******************" << endl;
-		cout << "ReadHDF5Node runtime: " << utils::get_time() - start << endl;
 
 		for(edgeIt = _out_edges.begin(); edgeIt != _out_edges.end(); edgeIt++) {
 			(*edgeIt)->set_in_node_done();
@@ -271,6 +269,7 @@ void ReadHDF5Node::FormatImages(void)
 		}
 
 		imagesFormatted += get<1>(curBuffer);
+
 		bufferOffset = 0;
 		free(ptr);
 	}

@@ -53,63 +53,38 @@ _transferSize(transferSize)
 
 void *GrayScaleNode::run()
 {
-
-	double 	loop, start = utils::get_time();
+	vector<cv::Mat> out; 
+	double	start = utils::get_time();
 
 	increment_threads();
 
 	while( true ) {
 
-		vector<cv::Mat> out, gray_out;
- 
 		copy_chunk_from_buffer(out, _labels);
-		int		loopSize;
-
 
 		if( out.size() >= _transferSize ) {
-			loopSize = out.size(); 
 
-			//std::cout << "total labels in gray: " << std::to_string(_labels.size()) << std::endl;
-			loop = utils::get_time();
-
-			for(vector<cv::Mat>::size_type i=0; i < out.size(); i++) {
-				increment_counter();
-
-				// Convert to grayscale and equalize
-				cv::Mat gray_img;
-				cv::Mat equilized_img;
-				cv::cvtColor(out.at(i), gray_img, CV_BGR2GRAY);
-				cv::equalizeHist(gray_img, equilized_img);
-
-
-				// Push to vector
-				gray_out.push_back(equilized_img);
-
-			}
-			// Copy to buffer
-			copy_to_buffer(gray_out, _labels);
-
-			gray_out.clear();
-			cout << "grey loop took: " << utils::get_time() - loop << " size: " << loopSize << endl;
+			Convert(out);
+			out.clear();
+			_labels.clear();
 
 		} else if( _in_edges.at(0)->is_in_node_done() ) {
 
-			// TODO - Add check to see if there is data in the buffer. 
+			// Sending node is done, check for remaining data.
+			if( out.size() > 0 ) {
+				Convert(out);
+			} 
 			break;
 		}
-		out.clear();
-		_labels.clear();
 	}
 
 	if( check_finished() == true ) {
 
 		cout << "******************" << endl 
 			 << "GrayScaleNode complete" << endl 
-			 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+			 << "Run time: " << to_string(utils::get_time() - start) << endl 
 			 << "# of elements: " << to_string(_counter) << endl 
 			 << "******************" << endl;
-
-		cout << "GrayScaleNode runtime: " << utils::get_time() - start << endl;
 
 		// Notify it has finished
 		for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
@@ -117,4 +92,28 @@ void *GrayScaleNode::run()
 		}
 	}
 	return NULL;
+}
+
+
+
+
+
+void GrayScaleNode::Convert(vector<cv::Mat> images) 
+{
+	vector<cv::Mat> 			grayOut; 
+	vector<cv::Mat>::iterator	it;
+
+	for(it = images.begin(); it != images.end(); it++) {
+		increment_counter();
+
+		// Convert to grayscale and equalize
+		cv::Mat gray_img;
+		cv::Mat equilized_img;
+		cv::cvtColor(*it, gray_img, CV_BGR2GRAY);
+		cv::equalizeHist(gray_img, equilized_img);
+
+		grayOut.push_back(equilized_img);
+	}
+	// Copy to buffer
+	copy_to_buffer(grayOut, _labels);
 }

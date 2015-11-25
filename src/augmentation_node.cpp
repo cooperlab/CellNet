@@ -24,7 +24,6 @@
 //	DAMAGE.
 //
 //
-#define PI 3.1415926535897932
 #include <cmath>
 #include <random>
 #include <chrono>
@@ -33,6 +32,8 @@
 #include "utils.h"
 
 
+
+#define PI 3.1415926535897932
 
 
 
@@ -56,8 +57,7 @@ _transferSize(transferSize)
 
 void *AugmentationNode::run()
 {
-
-	double 	loop, start = utils::get_time();
+	double 	start = utils::get_time();
 
 	while(true) {
 
@@ -65,11 +65,9 @@ void *AugmentationNode::run()
 
 		if( _data_buffer.size() >= _transferSize ) {
 
-			loop = utils::get_time();
-			// Augment data
 			augment_images(_data_buffer, _labels_buffer);
 
-			// Clean buffers
+			// Clear buffers for next block of data
 			_data_buffer.clear();
 			_labels_buffer.clear();
 
@@ -89,15 +87,18 @@ void *AugmentationNode::run()
 			// All input nodes have finished
 			if( is_all_done ) {
 
-				// TODO - Add check to see if data still in buffer
-	
+				if( _data_buffer.size() > 0 ) {
+					augment_images(_data_buffer, _labels_buffer);
+					_data_buffer.clear();
+					_labels_buffer.clear();
+				}
+
+			
 				cout << "******************" << endl 
 					 << "AugmentationNode" << endl 
-					 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+					 << "Run time: " << to_string(utils::get_time() - start) << endl 
 					 << "# of elements: " << to_string(_counter) << endl 
 					 << "******************" << endl;
-
-				cout << "AugmentationNode runtime: " << utils::get_time() - start << endl;
 
 				// Notify it has finished
 				for(vector<int>::size_type i=0; i < _out_edges.size(); i++) {
@@ -193,7 +194,7 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 
 			for(int e = 0; e < out_imgs.size(); e++) {
 			
-				copy_to_edge(out_imgs[e], out_labels[e], e);
+				copy_to_edge(out_imgs[e], out_labels[e], e % _out_edges.size());
 				// Clean
 				out_imgs[e].clear();
 				out_labels[e].clear();
@@ -204,7 +205,7 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 
 	if( out_imgs[0].size() > 0 ) {
 		for(int e = 0; e < out_imgs.size(); e++) {
-			copy_to_edge(out_imgs[e], out_labels[e], e);
+			copy_to_edge(out_imgs[e], out_labels[e], e % _out_edges.size());
 			// Clean
 			out_imgs[e].clear();
 			out_labels[e].clear();

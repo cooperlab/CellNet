@@ -27,6 +27,7 @@
 #ifndef _GRAYSCALE_NODE_H
 #define _GRAYSCALE_NODE_H
 
+
 #include "node.h"
 
 
@@ -39,6 +40,7 @@ public:
 private:
 
 		int		_transferSize;
-	
+
+		void 	Convert(vector<cv::Mat> images);	
 };
 #endif

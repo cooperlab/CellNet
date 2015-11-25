@@ -33,9 +33,11 @@ using namespace std;
 
 
 
-DebugNode::DebugNode(std::string id, int mode) : 
-Node(id, mode)
+DebugNode::DebugNode(std::string id, int transferSize, int mode) : 
+Node(id, mode),
+_transferSize(transferSize)
 {
+
 }
 
 
@@ -43,43 +45,63 @@ Node(id, mode)
 
 void *DebugNode::run(){
 
-	int counter = 0;
 	std::vector<cv::Mat> out; 
+	double	start = utils::get_time();
 
-	while(true){
+	while( true ) {
 
 		copy_chunk_from_buffer(out, _labels);
 
-		if( /*!out.empty() */ out.size() >= 1000 ){
+		if( out.size() >= _transferSize ) {
 
-			cout << "DebugNode: buffer has " << out.size() << " objects" << endl;
-			string name; 
+			SaveImages(out);
 
-			for(int i = 0; i < out.size(); i++) {
-				name = "Test" + to_string(counter++) + "_" + to_string(_labels[i]) + ".jpg";
-				cv::imwrite(name.c_str(), out[i]);
-
-			}
-			//cv::imshow("img " + std::to_string(counter), out);
-			//std::cout << std::to_string(counter++) << std::endl;
-			// Debugger
-			//std::cout << "DebugNode complete" << std::endl;
 			out.clear();
 			_labels.clear();
 
-		}
-		else if(_in_edges.at(0)->is_in_node_done()){
-			std::cout << "Stopping DebuggerNode" << std::endl;
-			//cv::waitKey(0);
-			// Some debug
+		} else if( _in_edges.at(0)->is_in_node_done() ) {
+
+			// Check for any data leftover
+			if( out.size() > 0 ) {
+
+				SaveImages(out);
+
+				out.clear();
+				_labels.clear();
+			}
 			break;
 		}
 	}
 
+	
 	// Notify it has finished
-	for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-		_out_edges.at(i)->set_in_node_done();
+	vector<Edge *>::iterator	it;
+
+	for(it = _out_edges.begin(); it != _out_edges.end(); it++) {
+		(*it)->set_in_node_done();
 	}
+
+	cout << "******************" << endl 
+		 << "DebugNode complete" << endl 
+		 << "Run time: " << to_string(utils::get_time() - start) << endl 
+		 << "# of elements: " << to_string(_counter) << endl 
+		 << "******************" << endl;
 
 	return NULL;
 }
+
+
+
+
+
+void DebugNode::SaveImages(vector<cv::Mat> images)
+{
+	string name; 
+	
+	for(int i = 0; i < images.size(); i++) {
+		name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) + ".jpg";
+		cv::imwrite(name.c_str(), images[i]);
+		increment_counter();
+	}
+}
+
