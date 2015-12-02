@@ -57,59 +57,48 @@ int main (int argc, char * argv[])
 	double begin_time = utils::get_time();
 
 	// Declare Variables
-	GraphNet *train_graph = new GraphNet(GraphNet::Parallel);
-	std::string train_dataset_name = "data";
+	GraphNet	*train_graph = new GraphNet(GraphNet::Parallel);
+	string 		train_dataset_name = "data";
 
 	// Define Graphs
-	std::cout << "Defining graph nodes..." << std::endl;
+	cout << "Defining graph nodes..." << endl;
+
+	int	transferSize = 1000;
 
 	// The ReadHDF5Node object takes a list of files. For training we only
 	// use one file, so we just put in into a vector.
 	//
-	vector<string>	filenames;
-	filenames.push_back(fname);
+	vector<string>	files;
+	files.push_back(argv[1]);
+	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, true));
+	train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
+	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Chunk, 10));
 
-	// Add some Train Nodes
-	train_graph->add_node(new ReadHDF5Node("read_node", 
-										  filenames, 
-										  Node::Repeat, 
-										  true) );
-
-	train_graph->add_node(new DebugNode("debug_node", Node::Repeat));
-
-	// Define grayscale nodes
-//	train_graph->add_node(new GrayScaleNode("grayscale_node", Node::Alternate));
+	int batch_size = 16;
+	float momentum = 0.9;
+	float gamma = 0.0005;
+	float base_lr = 0.0001;
+	train_graph->add_node(new TrainNode("train_node", 
+										Node::Repeat, 
+										batch_size, 
+										GPU_ID, 
+										netModel, 
+										base_lr, 
+										momentum, 
+										gamma, 
+										100,
+										outFilename));
 	
-
-//	int batch_size = 16;
-//	float momentum = 0.9;
-//	float gamma = 0.0005;
-//	float base_lr = 0.0001;
-//	train_graph->add_node(new TrainNode("train_node", 
-//										Node::Repeat, 
-//										batch_size, 
-//										GPU_ID, 
-//										netModel, 
-//										base_lr, 
-//										momentum, 
-//										gamma, 
-//										100,
-//										outFilename));
-
-	// Add train edges
+	std::cout << "Defining edges" << std::endl;
+	// Add edges
 	int n_edges = 0;
 
-	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
-								   "read_node", 
-								   "debug_node"));
-
-//	train_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
-//								   "grayscale_node", 
-//								   "train_node"));
+	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "grayscale_node"));
+	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
+	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
 
 	std::cout << "*Graph defined*" << std::endl;
 
-	
 	/********************************************* Run Graphs ***************************************************/
 	
 	// Run graphs in parallel
@@ -120,7 +109,7 @@ int main (int argc, char * argv[])
 	/*********************************************    Clean   ***************************************************/
 	
 	// Stop clock
-	std::cout << "Elapsed Time: " << double( utils::get_time() - begin_time )  << std::endl;
+	cout << "Elapsed Time: " << double( utils::get_time() - begin_time ) << endl;
 	
 	// Release memory
 	delete train_graph;

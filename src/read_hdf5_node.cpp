@@ -111,11 +111,19 @@ bool ReadHDF5Node::ReadLabels(hid_t fileId)
 	bool	result = true;
 	herr_t	status;
 
+	cout << "Reading labels" << endl;
 	_labels.resize(_numImages);
 	status = H5LTread_dataset_int(fileId, "/labels", _labels.data());
 	if( status < 0 ) {
 		cerr << "Unable to read labels" << endl;
 		result = false;
+	} else {
+		vector<int>::iterator it;
+		for(it = _labels.begin(); it != _labels.end(); it++) {
+			if( *it == -1 ) {
+				*it = 0;
+			}
+		}
 	}
 	
 	return result;
