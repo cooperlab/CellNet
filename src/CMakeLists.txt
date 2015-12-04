@@ -1,6 +1,6 @@
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
-set(CellNet_VERSION_MAJOR 0)
-set(CellNet_VERSION_MINOR 1)
+set(TissueNet_VERSION_MAJOR 0)
+set(TissueNet_VERSION_MINOR 2)
 
 
 
@@ -122,6 +122,60 @@ include_directories(${Caffe_INCLUDE_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Caffe_LIBRARIES})
 
 
+#
+## gengetopt - for generating command line options
+#
+find_program(GENGETOPT gengetopt)
+if( GENGETOPT STREQUAL "GENGETOPT-NOTFOUND" )
+	message(FATAL_ERROR "Unable to find gengetopt")
+endif( GENGETOPT STREQUAL "GENGETOPT-NOTFOUND" )
+
+
+
+#
+## Generate gengetopt files for each target
+#
+configure_file("${PROJECT_SOURCE_DIR}/src/train-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo")
+configure_file("${PROJECT_SOURCE_DIR}/src/predict-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo")
+configure_file("${PROJECT_SOURCE_DIR}/src/data-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo")
+configure_file("${PROJECT_SOURCE_DIR}/src/slide-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo")
+
+
+
+#
+##	Generate commandline .c & .h files for each target
+#
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.h
+	COMMAND ${GENGETOPT}
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo -F train-cmd
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo
+)
+
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.h
+	COMMAND ${GENGETOPT}
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo -F predict-cmd
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo
+)
+
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.h
+	COMMAND ${GENGETOPT}
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo -F data-conv-cmd
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo
+)
+
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.h
+	COMMAND ${GENGETOPT}
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo -F slide-conv-cmd
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo
+)
+
 
 
 #
@@ -140,7 +194,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## tn_predict target
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
-				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp)
+				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp 
+				${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -152,7 +207,8 @@ set_target_properties(PREDICT PROPERTIES OUTPUT_NAME tn_predict${CMAKE_DEBUG_POS
 ## tn_train target
 #
 add_executable(TRAIN train.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp 
-			   grayscale_node.cpp train_node.cpp augmentation_node.cpp)
+			   grayscale_node.cpp train_node.cpp augmentation_node.cpp
+				${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c)
 
 target_link_libraries(TRAIN ${LIBRARIES})
 set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
@@ -162,7 +218,7 @@ set_target_properties(TRAIN PROPERTIES OUTPUT_NAME tn_train${CMAKE_DEBUG_POSTFIX
 #
 ## tn_convert_slide target
 #
-add_executable(CONVERT_SLIDE slide_convert.cpp utils.cpp)
+add_executable(CONVERT_SLIDE slide_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c)
 
 target_link_libraries(CONVERT_SLIDE ${CONVERT_SLIDE_LIBS})
 set_target_properties(CONVERT_SLIDE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
@@ -172,7 +228,7 @@ set_target_properties(CONVERT_SLIDE PROPERTIES OUTPUT_NAME tn_convert_slide${CMA
 #
 ## tn_dataset_convert target
 #
-add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp)
+add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c)
 
 target_link_libraries(CONVERT_DATASET ${CONVERT_SLIDE_LIBS})
 set_target_properties(CONVERT_DATASET PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)

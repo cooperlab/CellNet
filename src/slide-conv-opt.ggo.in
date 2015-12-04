@@ -1,0 +1,9 @@
+package "tn_convert_slide"
+version "@TissueNet_VERSION_MAJOR@.@TissueNet_VERSION_MINOR@"
+
+description "Tool to extracte cell images and save them in TisueNet format"
+
+option "image" 			i	"Image file" string required
+option "centroids"		c	"Text file containing the centroids of images to extract" string required	 
+option "magnification"	m 	"Magnification level" float default="40.0" optional
+

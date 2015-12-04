@@ -1,0 +1,10 @@
+package "tn_predict"
+version "@TissueNet_VERSION_MAJOR@.@TissueNet_VERSION_MINOR@"
+
+description "TissueNet prediction tool"
+
+option "dataset" d    "HDF file of dataset" string required
+option "model"   m    "Trained .caffemodel" string required
+option "params"  p    "Network model .prototxt" string required
+option "output"  o    "Output filename" string required
+

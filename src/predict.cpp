@@ -31,6 +31,7 @@
 
 #include "graph_net.h"
 #include "base_config.h"
+#include "predict-cmd.h"
 
 
 
@@ -41,20 +42,24 @@ using namespace std;
 
 
 
-int main (int argc, char * argv[])
+int main (int argc, char *argv[])
 {
+	gengetopt_args_info	args;
 
-	if( argc != 5 ) {
-		cerr << "Usage: " << argv[0] << " <dataset.h5> <trained model> <net model> <out file>" << endl;
+	if( cmdline_parser(argc, argv, &args) != 0 ) {
 		exit(-1);
 	}
+
 	FLAGS_alsologtostderr = 1;
- 	caffe::GlobalInit(&argc, &argv);
+	// Need to fake args to caffe.
+	//
+	int	caffeArgs = 1;
+ 	caffe::GlobalInit(&caffeArgs, &argv);
 
 
-	string trainedFilename = argv[2];
-	string netModelFilename = argv[3];
-	string outFilename = argv[4];
+	string trainedFilename = args.model_arg;
+	string netModelFilename = args.params_arg;
+	string outFilename = args.output_arg;
 
 
 	int batch_size = 1000;
@@ -73,7 +78,7 @@ int main (int argc, char * argv[])
 	// all of them.
 	//
 	vector<string>	files;
-	files.push_back(argv[1]);
+	files.push_back(args.dataset_arg);
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, false));
 	prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));
 	prediction_graph->add_node(new AugmentationNode("augmentation_node", batch_size, Node::Chunk, 3));

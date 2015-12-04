@@ -30,9 +30,8 @@
 #include <dirent.h>
 
 #include "graph_net.h"
+#include "train-cmd.h"
 
-
-#define GPU_ID 0
 
 
 using namespace std;
@@ -41,24 +40,23 @@ using namespace std;
 
 int main (int argc, char * argv[])
 {
+	gengetopt_args_info		args;
 
-	if( argc != 4 ) {
-		cerr << "Usage: " << argv[0] << " <training set> <cnn proto> <out file>" << endl;
+	if( cmdline_parser(argc, argv, &args) != 0 ) {
 		exit(-1);
 	}
-	FLAGS_alsologtostderr = 1;
- 	caffe::GlobalInit(&argc, &argv);
 
-	string	fname = argv[1],
-			netModel = argv[2],
-			outFilename = argv[3];
+	FLAGS_alsologtostderr = 1;
+	// Need to fake no args to caffe
+	int caffeArgc = 1;
+ 	caffe::GlobalInit(&caffeArgc, &argv);
 
 	// Start clock
 	double begin_time = utils::get_time();
 
 	// Declare Variables
 	GraphNet	*train_graph = new GraphNet(GraphNet::Parallel);
-	string 		train_dataset_name = "data";
+
 
 	// Define Graphs
 	cout << "Defining graph nodes..." << endl;
@@ -69,11 +67,11 @@ int main (int argc, char * argv[])
 	// use one file, so we just put in into a vector.
 	//
 	vector<string>	files;
-	files.push_back(argv[1]);
+	files.push_back(args.training_set_arg);
 	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, true));
 	train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
-	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Chunk, 10));
-
+	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Chunk, 
+												args.aug_factor_arg));
 	int batch_size = 16;
 	float momentum = 0.9;
 	float gamma = 0.0005;
@@ -81,14 +79,14 @@ int main (int argc, char * argv[])
 	train_graph->add_node(new TrainNode("train_node", 
 										Node::Repeat, 
 										batch_size, 
-										GPU_ID, 
-										netModel, 
+										args.gpu_dev_arg, 
+										args.params_arg, 
 										base_lr, 
 										momentum, 
 										gamma, 
 										100,
-										outFilename));
-	
+										args.output_arg));	
+
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
@@ -96,6 +94,7 @@ int main (int argc, char * argv[])
 	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "grayscale_node"));
 	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
 	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
+
 
 	std::cout << "*Graph defined*" << std::endl;
 

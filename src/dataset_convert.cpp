@@ -37,7 +37,7 @@
 
 #include "utils.h"
 #include "base_config.h"
-
+#include "data-conv-cmd.h"
 
 
 using namespace std;
@@ -58,7 +58,8 @@ struct Cent {
 
 
 
-int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char *filename)
+int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, float reqPower, 
+				  char *filename)
 {
 	int		result = 0;
 	openslide_t	*img = NULL;
@@ -77,8 +78,27 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char
 	}
 
 	if( result == 0 ) {
-		uint32_t	*buffer = (uint32_t*)malloc(SAMPLE_WIDTH * SAMPLE_HEIGHT * sizeof(uint32_t));
 		uint8_t		alpha;
+		float		objPower, scaleFactor;
+		int			sampleSize; 
+
+		objPower = stof(openslide_get_property_value(img, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER));	
+
+		// Don't allow scaling up
+		//
+		if( objPower < reqPower ) {
+			reqPower = objPower;
+		}
+
+		scaleFactor = objPower / reqPower;
+		sampleSize = SAMPLE_WIDTH * scaleFactor;
+
+		cout << "Slide objective power: " << objPower
+			 << ", Requested power: " << reqPower
+			 << ", Scale factor: " << scaleFactor 
+			 << ", sample size: " << sampleSize << endl;
+
+		uint32_t	*buffer = (uint32_t*)malloc(sampleSize * sampleSize * sizeof(uint32_t));
 
 		if( buffer != NULL ) {
 
@@ -86,18 +106,18 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char
 
 				openslide_read_region(img, 
 									  buffer, 
-									  centroids[cell].x - (SAMPLE_WIDTH / 2), 
-									  centroids[cell].y - (SAMPLE_HEIGHT / 2), 
+									  centroids[cell].x - (sampleSize / 2), 
+									  centroids[cell].y - (sampleSize / 2), 
 									  0, 
-									  SAMPLE_WIDTH, 
-									  SAMPLE_HEIGHT);
+									  sampleSize, 
+									  sampleSize);
 
 				// Some scanners format pixels in paculiar ways. Need
 				// to handle them here. See Openslide docs on premultiplied RGB.
 				// Note! The OpenSlide example code has a byte swap, this seems
 				// to not be needed. (Images written to jpeg are correct without it)
 				//
-				for(int64_t i = 0; i < 2500; i++) {
+				for(int64_t i = 0; i < sampleSize * sampleSize; i++) {
 					alpha = (buffer[i] >> 24);
 
 					if( alpha == 255 ) {
@@ -113,7 +133,7 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char
 					}
 				}
 
-				cv::Mat		outImg, abgrImg = cv::Mat(SAMPLE_WIDTH, SAMPLE_HEIGHT, CV_8UC4, buffer);
+				cv::Mat		outImg, abgrImg = cv::Mat(sampleSize, sampleSize, CV_8UC4, buffer);
 				vector<cv::Mat> channels;
 				cv::split(abgrImg, channels);
 
@@ -122,8 +142,21 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char
 
 				// Merge RGB channels back to image Mat
 				merge(channels, outImg);
-				if( outImg.isContinuous() ) {
-					uint8_t	*data = outImg.ptr();
+				
+				if( scaleFactor == 1.0f ) {
+					if( outImg.isContinuous() ) {
+						uint8_t	*data = outImg.ptr();
+					
+						memcpy(&images[offset], data, chunkSize);
+						offset += chunkSize;
+					} 
+				} else {
+					cv::Mat		reSized;
+
+					cv::resize(outImg, reSized, cv::Size(), 1.0f / scaleFactor, 
+								1.0f / scaleFactor, cv::INTER_CUBIC);
+
+					uint8_t	*data = reSized.ptr();
 					
 					memcpy(&images[offset], data, chunkSize);
 					offset += chunkSize;
@@ -145,7 +178,8 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, char
 
 
 int CropCells(uint8_t *images, vector<Cent>& centroids, vector<int>& labels, 
-			  vector<int>& slideIdx, char **slideNames, int numSlides, string imageDir)
+			  vector<int>& slideIdx, char **slideNames, int numSlides, string imageDir,
+			  float reqPower)
 {
 	int		result = 0;
 	glob_t	globBuff;
@@ -173,12 +207,11 @@ int CropCells(uint8_t *images, vector<Cent>& centroids, vector<int>& labels,
 			cerr << "Unable to find image for " << slideNames[i] << endl;
 		} else {
 			cout << "Extracting " << slideCentroids[i].size() << " cell images from " << globBuff.gl_pathv[0] << endl;
-			result = GetSlideCells(slideCentroids[i], images, offset, globBuff.gl_pathv[0]);
-		}						
-
+			result = GetSlideCells(slideCentroids[i], images, offset, reqPower, globBuff.gl_pathv[0]);
+		}
 	}
 
-	// Reorder slideIdx & labels to match the order of the images in the biffer.
+	// Reorder slideIdx & labels to match the order of the images in the buffer.
 	//
 	offset = 0;
 	for(int slide = 0; slide < numSlides; slide++) {
@@ -198,7 +231,7 @@ int CropCells(uint8_t *images, vector<Cent>& centroids, vector<int>& labels,
 
 
 
-int SaveProvenance(hid_t fileId, string commandLine)
+int SaveProvenance(hid_t fileId, string commandLine, float reqPower)
 {
 	int		result = 0;
 	hsize_t	dims[2];
@@ -228,7 +261,7 @@ int SaveProvenance(hid_t fileId, string commandLine)
 	}
 
 	if( result == 0 ) {
-		int	ver[2] = {CELL_NET_VERSION_MAJOR, CELL_NET_VERSION_MINOR};
+		int	ver[2] = {TISSUE_NET_VERSION_MAJOR, TISSUE_NET_VERSION_MINOR};
 
 		status = H5LTset_attribute_int(fileId, "/", "version", ver, 2);
 		if( status < 0 ) {
@@ -257,6 +290,16 @@ int SaveProvenance(hid_t fileId, string commandLine)
 		if( status < 0 ) {
 			cerr << "Unable to save command line info" << endl;
 			result = -41;
+		}
+	}
+
+	if( result == 0 ) {
+		string mag = to_string(reqPower) + "x";
+		
+		status = H5LTset_attribute_string(fileId, "/", "magnification", mag.c_str());
+		if( status < 0 ) {
+			cerr << "Unable to save magnification" << endl;
+			result = -42;
 		}
 	}
 	return result;
@@ -366,7 +409,7 @@ int SaveSlidenames(hid_t fileId, char **slideNames, int numSlides)
 
 int SaveData(vector<Cent>& centroids, vector<int> labels, vector<int> slideIdx, 
 			char **slideNames, int numSlides, uint8_t *images, string filename, 
-			string commandLine)
+			string commandLine, float reqPower)
 {
 	int		result = 0;
 	hid_t	fileId;
@@ -422,7 +465,7 @@ int SaveData(vector<Cent>& centroids, vector<int> labels, vector<int> slideIdx,
 	}
 
 	if( result == 0 ) {
-		result = SaveProvenance(fileId, commandLine);
+		result = SaveProvenance(fileId, commandLine, reqPower);
 	}
 
 	if( fileId >= 0 ) {
@@ -598,14 +641,14 @@ int ReadDatafile(string filename, vector<Cent>& centroids, vector<int>& labels,
 
 int main(int argc, char *argv[])
 {
-	int result = 0;
-	double	startTime;
+	int 				result = 0;
+	double				startTime;
+	gengetopt_args_info	args;
 
-	if( argc != 4 ) {
-
-		cerr << "Usage: " << argv[0] << " <dataset file .h5> <slide image dir> <outfile>" << endl;
+	if( cmdline_parser(argc, argv, &args) != 0 ) {
 		exit(-1);
 	}
+
 	cout << "Using: " << endl;
 	cout << "  OpenSlide    " << openslide_get_version() << endl;
 	cout << "  OpenCV       " << CV_VERSION << endl;
@@ -618,7 +661,7 @@ int main(int argc, char *argv[])
 	int				numSlides;
 
 
-	result = ReadDatafile(argv[1], centroids, labels, slideIdx, slideNames, numSlides);
+	result = ReadDatafile(args.dataset_arg, centroids, labels, slideIdx, slideNames, numSlides);
 
 	if( result == 0 ) {
 		cout << "Read " << centroids.size() << " centroids in " << numSlides << " slides" << endl;
@@ -635,14 +678,14 @@ int main(int argc, char *argv[])
 	if( result == 0 ) {
 		cout << "Cropping cells..." << endl;
 		startTime = utils::get_time();
-		result = CropCells(imagesBuffer, centroids, labels, slideIdx, slideNames, numSlides, argv[2]);
+		result = CropCells(imagesBuffer, centroids, labels, slideIdx, slideNames, 
+						   numSlides, args.image_dir_arg, args.maginfication_arg);
 		cout << "CropCells took: " << utils::get_time() - startTime << endl;
 	}
 
 	if( result == 0 ) {
-		string	outFilename = argv[3];
-
 		string cmdline;
+
 		for(int i = 0; i < argc; i++) {
 			cmdline += argv[i];
 			cmdline += " ";
@@ -650,7 +693,7 @@ int main(int argc, char *argv[])
 		cout << "Writing HDF5 file..." << endl;
 		startTime = utils::get_time();
 		result = SaveData(centroids, labels, slideIdx, slideNames, numSlides, 
-						  imagesBuffer, outFilename, cmdline);
+						  imagesBuffer, args.output_arg, cmdline, args.maginfication_arg);
 		cout << "SaveData took: " << utils::get_time() - startTime << endl;
 	}
 
