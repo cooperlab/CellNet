@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(CellNet)
+project(TissueNet)
 
 #
 # Needed to add -Wl,--no-as-needed to allow std::threads to work. Not
@@ -9,10 +9,10 @@ project(CellNet)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++11  -Wl,--no-as-needed")
 
 if( CMAKE_BUILD_TYPE STREQUAL Debug ) 
-	set(CellNet_DEBUG 1)
+	set(TissueNet_DEBUG 1)
     set(CMAKE_DEBUG_POSTFIX "_d")
 else( CMAKE_BUILD_TYPE STREQUAL Debug)
-	set(CellNet_DEBUG 0)
+	set(TissueNet_DEBUG 0)
     set(CMAKE_DEBUG_POSTFIX "")
 endif( CMAKE_BUILD_TYPE STREQUAL Debug )
 
