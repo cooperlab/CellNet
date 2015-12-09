@@ -41,15 +41,7 @@
 #include "grayscale_node.h"
 #include "augmentation_node.h"
 #include "laplacian_pyramid_node.h"
-#include "prediction_pipe_node.h"
-#include "read_jpg_node.h"
-#include "read_node.h"
-#include "read_pipe_node.h"
-#include "read_write_node.h"
 #include "read_hdf5_node.h"
-#include "write_hdf5_node.h"
-#include "write_pipe_node.h"
-#include "write_png_node.h"
 
 
 
@@ -64,7 +56,7 @@ class GraphNet {
 		enum Mode {Serial, Parallel};
 
 		GraphNet(int mode);
-		void *run();
+		void run();
 		void add_node(Node *node);
 		void add_edge(Edge *edge);
 

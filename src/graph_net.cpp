@@ -54,7 +54,7 @@ _node_map()
 
 
 
-void *GraphNet::run()
+void GraphNet::run()
 {
 
 	cout << "Linking graph..." << endl;
@@ -67,6 +67,7 @@ void *GraphNet::run()
 		cout << "Executing in parallel mode..." << endl;
 		start_parallel();
 	}
+	
 }
 
 

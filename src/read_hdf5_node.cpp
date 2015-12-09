@@ -100,6 +100,7 @@ void *ReadHDF5Node::run()
 			(*edgeIt)->set_in_node_done();
 		}
 	}
+	return NULL;
 }
 
 

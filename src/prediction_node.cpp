@@ -62,12 +62,16 @@ _data_layer()
 
 void PredictionNode::init_model()
 {
+
+#if !defined(CPU_ONLY)
 	// Set gpu
 	caffe::Caffe::SetDevice(_device_id);
-    caffe::Caffe::set_mode(caffe::Caffe::GPU);
-//    caffe::Caffe::DeviceQuery();
-    
+	caffe::Caffe::set_mode(caffe::Caffe::GPU);
 	cout << _id << " using GPU device " << _device_id << endl;
+#else
+    caffe::Caffe::set_mode(caffe::Caffe::CPU);
+	cout << "CPU only mode" << endl;
+#endif    
 
     // Create Net
     _net = boost::make_shared<caffe::Net<float>>(_test_model_path.c_str(), caffe::TEST);
@@ -76,7 +80,8 @@ void PredictionNode::init_model()
   	const vector<boost::shared_ptr<caffe::Blob<float> > >& net_params = _net->params();
   	_net->CopyTrainedLayersFrom(_params_file.c_str());
 
-  	_data_layer = boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
+  	_data_layer = 
+			boost::static_pointer_cast<caffe::MemoryDataLayer<float>>(_net->layer_by_name("data"));
 	_out_layer = _net->blob_by_name("prob");
 
   	cout << _id << ": Model loaded" << endl;
@@ -168,24 +173,21 @@ int PredictionNode::step(int first_idx, int batch_size)
 
 	// Reserve space
 	batch.reserve(batch_size);
-	batch.insert(batch.end(), _data_buffer.begin() + first_idx, _data_buffer.begin() + first_idx + batch_size);
+	batch.insert(batch.end(), _data_buffer.begin() + first_idx, 
+				 _data_buffer.begin() + first_idx + batch_size);
 	batch_labels.reserve(batch_size);
-	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, _labels_buffer.begin() + first_idx + batch_size);
+	batch_labels.insert(batch_labels.end(), _labels_buffer.begin() + first_idx, 
+						_labels_buffer.begin() + first_idx + batch_size);
 	
 	// Set batch size
 	_data_layer->set_batch_size(batch_size);
 
-//	double timing = utils::get_time();
 	// Add matrices
 	_data_layer->AddMatVector(batch, batch_labels);
-//	cout <<_id << " - AddMatVector took: " << utils::get_time() - timing << endl;
 
 	// Foward
 	float loss;
-
-//	timing = utils::get_time();
 	_net->ForwardPrefilled(&loss);
-//	cout <<_id << " - ForwardPrefilled took: " << utils::get_time() - timing << endl;
 
 	const float* results = _out_layer->cpu_data();
 
@@ -195,18 +197,6 @@ int PredictionNode::step(int first_idx, int batch_size)
 		int idx_max = 0;
 		float max = results[j*_out_layer->shape(1) + 0], prob = 0.0f;
 		
-		// Argmax
-//		for(int k=0; k < _out_layer->shape(1); k++){
-
-//			if(results[j*_out_layer->shape(1) + k] > max){
-
-//				max = results[j*_out_layer->shape(1) + k];
-//				idx_max = k;
-//			}
-//		}
-
-//		_predictions.push_back(idx_max);
-
 		prob = results[j * _out_layer->shape(1) + 1];
 		_predictions.push_back(prob);
 	}
@@ -268,11 +258,6 @@ void PredictionNode::print_out_labels()
 	for(int i=0; i < _predictions.size(); i++){
 
 		cout << "out: " << _predictions[i] << " target: " << _labels_buffer[i] << endl;
-		vector<cv::Mat> input;
-		split(_data_buffer[i], input);
-//		for(int k = 0; k < input.size(); k++){
-
-//			cv::imwrite("/home/nelson/CellNet/src/teste/img" + to_string(i)+to_string(k) + ".jpg", input[k]);
-//		}
 	}
 }
+

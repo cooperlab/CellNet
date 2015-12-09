@@ -214,7 +214,7 @@ namespace utils{
 	    dirent *entry;
 	    std::string image_name;
 
-	    while(entry = readdir(dir))
+	    while( (entry = readdir(dir)) )
 	    {
 	        if(has_prefix(entry->d_name, name))
 	        {
@@ -234,8 +234,8 @@ namespace utils{
 
 		std::cout << "Looking for images in " << path << std::endl;
 
-        if( pDIR=opendir(path.c_str()) ){
-                while(entry = readdir(pDIR)){
+        if( (pDIR = opendir(path.c_str())) ){
+                while( (entry = readdir(pDIR)) ){
                         if( strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0 )
                         	images_path.push_back(entry->d_name);
                 }

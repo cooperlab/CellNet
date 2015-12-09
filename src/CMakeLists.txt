@@ -1,27 +1,53 @@
+#
+#	Copyright (c) 2015, Emory University
+#	All rights reserved.
+#
+#	Redistribution and use in source and binary forms, with or without modification, are
+#	permitted provided that the following conditions are met:
+#
+#	1. Redistributions of source code must retain the above copyright notice, this list of
+#	conditions and the following disclaimer.
+#
+#	2. Redistributions in binary form must reproduce the above copyright notice, this list
+# 	of conditions and the following disclaimer in the documentation and/or other materials
+#	provided with the distribution.
+#
+#	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+#	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+#	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+#	SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+#	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+#	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+#	BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+#	WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+#	DAMAGE.
+#
+#
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 set(TissueNet_VERSION_MAJOR 0)
 set(TissueNet_VERSION_MINOR 2)
 
 
 
-
 #
 ### CUDA
 #
-find_package( CUDA REQUIRED )
+find_package( CUDA )
 
 if( NOT CUDA_FOUND ) 
-    message(FATAL_ERROR "CUDA libraries not found")
+    message(WARNING "CUDA libraries not found - building CPU only")
+else( NOT CUDA_FOUND )
+
+	if( CUDA_VERSION_STRING VERSION_LESS "7.0" )
+		message(FATAL_ERROR "TissueNet requires CUDA version 7.0 or greater")
+	endif( CUDA_VERSION_STRING VERSION_LESS "7.0" )
+
+	set(LIBRARIES ${LIBRARIES} ${CUDA_LIBRARIES})
+	set(LIBRARIES ${LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
+	include_directories(${CUDA_INCLUDE_DIRS})
+
 endif( NOT CUDA_FOUND )
-
-if( CUDA_VERSION_STRING VERSION_LESS "7.0" )
-	message(FATAL_ERROR "CellNet requires CUDA version 7.0 or greater")
-endif( CUDA_VERSION_STRING VERSION_LESS "7.0" )
-
-include_directories(${CUDA_INCLUDE_DIRS})
-set(LIBRARIES ${LIBRARIES} ${CUDA_LIBRARIES})
-set(LIBRARIES ${LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
-
 
 
 
@@ -60,7 +86,6 @@ add_definitions(-DUSE_OPENCV)
 
 
 
-
 #
 ### Boost
 #
@@ -79,7 +104,6 @@ set(LIBRARIES ${LIBRARIES} ${Boost_LIBRARIES})
 
 
 
-
 #
 ## Glog
 #
@@ -94,19 +118,21 @@ set(LIBRARIES ${LIBRARIES} ${Glog_LIBRARIES})
 
 
 
-
 #
 ## Openslide
 #
-find_package( Openslide REQUIRED )
+find_package( Openslide )
 
 if( NOT Openslide_FOUND ) 
-    message(FATAL_ERROR "Openslide libraries not found")
+    message(WARNING "Openslide libraries not found - Not building convert tools")
+else( NOT Openslide_FOUND )
+
+	include_directories(${Openslide_INCLUDE_DIRS})
+	set(LIBRARIES ${LIBRARIES} ${Openslide_LIBRARIES})
+	set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${Openslide_LIBRARIES})
+
 endif( NOT Openslide_FOUND )
 
-include_directories(${Openslide_INCLUDE_DIRS})
-set(LIBRARIES ${LIBRARIES} ${Openslide_LIBRARIES})
-set(CONVERT_SLIDE_LIBS ${CONVERT_SLIDE_LIBS} ${Openslide_LIBRARIES})
 
 
 #
@@ -122,6 +148,7 @@ include_directories(${Caffe_INCLUDE_DIRS})
 set(LIBRARIES ${LIBRARIES} ${Caffe_LIBRARIES})
 
 
+
 #
 ## gengetopt - for generating command line options
 #
@@ -133,18 +160,12 @@ endif( GENGETOPT STREQUAL "GENGETOPT-NOTFOUND" )
 
 
 #
-## Generate gengetopt files for each target
+## Generate gengetopt files and commandline .c & .h for each target
 #
 configure_file("${PROJECT_SOURCE_DIR}/src/train-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo")
 configure_file("${PROJECT_SOURCE_DIR}/src/predict-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo")
-configure_file("${PROJECT_SOURCE_DIR}/src/data-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo")
-configure_file("${PROJECT_SOURCE_DIR}/src/slide-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo")
 
 
-
-#
-##	Generate commandline .c & .h files for each target
-#
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.h
 	COMMAND ${GENGETOPT}
@@ -160,21 +181,32 @@ ADD_CUSTOM_COMMAND(
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo
 )
 
+#
+## Also for convert targets if openslide installed
+#
+if( Openslide_FOUND ) 
+	configure_file("${PROJECT_SOURCE_DIR}/src/data-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo")
+	configure_file("${PROJECT_SOURCE_DIR}/src/slide-conv-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo")
 
-ADD_CUSTOM_COMMAND(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.h
-	COMMAND ${GENGETOPT}
-	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo -F data-conv-cmd
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo
-)
+
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.h
+		COMMAND ${GENGETOPT}
+		ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo -F data-conv-cmd
+		DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/data-conv-opt.ggo
+	)
 
 
-ADD_CUSTOM_COMMAND(
-	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.h
-	COMMAND ${GENGETOPT}
-	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo -F slide-conv-cmd
-	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo
-)
+	ADD_CUSTOM_COMMAND(
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.h
+		COMMAND ${GENGETOPT}
+		ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo -F slide-conv-cmd
+		DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-opt.ggo
+	)
+
+endif( Openslide_FOUND )
+
+
 
 
 
@@ -215,28 +247,51 @@ set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_D
 set_target_properties(TRAIN PROPERTIES OUTPUT_NAME tn_train${CMAKE_DEBUG_POSTFIX})
 
 
-#
-## tn_convert_slide target
-#
-add_executable(CONVERT_SLIDE slide_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c)
-
-target_link_libraries(CONVERT_SLIDE ${CONVERT_SLIDE_LIBS})
-set_target_properties(CONVERT_SLIDE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
-set_target_properties(CONVERT_SLIDE PROPERTIES OUTPUT_NAME tn_convert_slide${CMAKE_DEBUG_POSTFIX})
-
 
 #
-## tn_dataset_convert target
+#	Set train & predict to CPU only if CUDA libraries not found
 #
-add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c)
-
-target_link_libraries(CONVERT_DATASET ${CONVERT_SLIDE_LIBS})
-set_target_properties(CONVERT_DATASET PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
-set_target_properties(CONVERT_DATASET PROPERTIES OUTPUT_NAME tn_convert_dataset${CMAKE_DEBUG_POSTFIX})
-
+if( NOT CUDA_FOUND )
+	target_compile_options(TRAIN PUBLIC "-DCPU_ONLY")
+	target_compile_options(PREDICT PUBLIC "-DCPU_ONLY")
+endif( NOT CUDA_FOUND)
 
 
-install(TARGETS TRAIN PREDICT CONVERT_SLIDE CONVERT_DATASET
-		RUNTIME DESTINATION bin)
+
+if( Openslide_FOUND ) 
+	#
+	## tn_convert_slide target
+	#
+	add_executable(CONVERT_SLIDE slide_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/slide-conv-cmd.c)
+
+	target_link_libraries(CONVERT_SLIDE ${CONVERT_SLIDE_LIBS})
+	set_target_properties(CONVERT_SLIDE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+	set_target_properties(CONVERT_SLIDE PROPERTIES OUTPUT_NAME tn_convert_slide${CMAKE_DEBUG_POSTFIX})
 
 
+	#
+	## tn_dataset_convert target
+	#
+	add_executable(CONVERT_DATASET dataset_convert.cpp utils.cpp ${CMAKE_CURRENT_BINARY_DIR}/data-conv-cmd.c)
+
+	target_link_libraries(CONVERT_DATASET ${CONVERT_SLIDE_LIBS})
+	set_target_properties(CONVERT_DATASET PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+	set_target_properties(CONVERT_DATASET PROPERTIES OUTPUT_NAME tn_convert_dataset${CMAKE_DEBUG_POSTFIX})
+
+
+	#
+	## Install all targets
+	#
+	install(TARGETS TRAIN PREDICT CONVERT_SLIDE CONVERT_DATASET
+			RUNTIME DESTINATION bin)
+
+elseif( NOT Openslide_FOUND ) 
+
+
+	#
+	## Only install train and predict targets
+	#
+	install(TARGETS TRAIN PREDICT
+			RUNTIME DESTINATION bin)
+			
+endif( Openslide_FOUND ) 
