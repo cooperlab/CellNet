@@ -65,7 +65,7 @@ void TrainNode::init_model()
 	caffe::Caffe::set_mode(caffe::Caffe::GPU);
 	caffe::Caffe::DeviceQuery();
 #else
-	caffe::Caffe::set_mode(caffe::Caffe::GPU);
+	caffe::Caffe::set_mode(caffe::Caffe::CPU);
 #endif
 
 	// Initialize Net

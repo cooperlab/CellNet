@@ -76,7 +76,7 @@ void *ReadHDF5Node::run()
 	double 	start = utils::get_time();
 
 	for(fileIt = _fileNames.begin(); fileIt != _fileNames.end(); fileIt++) {
-		cout << "." << flush;		
+
 		if( !ReadImages(*fileIt) ) {
 			cerr << "Unable to read images from " << *fileIt << endl;
 		} else {
@@ -194,8 +194,8 @@ bool ReadHDF5Node::ReadImages(string filename)
 		blockSize[2] = _imageWidth;
 
 		while( imagesRead < _numImages ) {
-			imagesToRead = min(_numImages - imagesRead, MAX_IMAGES_PER_READ);
-
+			imagesToRead = min(_numImages - imagesRead, (1024 * 1024 * 1024) / (_imageHeight * _imageWidth));
+			
 			ptr = (uint8_t*)malloc(imagesToRead * _imageHeight * _imageWidth);
 			if( ptr == NULL ) {
 				cerr << "Unable to allocate buffer for images" << endl;
@@ -228,6 +228,15 @@ bool ReadHDF5Node::ReadImages(string filename)
 			ptr = NULL;				// Buffer is now on the imagePipe queue			
 		} 
 		
+		if( result == false ) {
+			// An error occured somewhere in the previous loop. Send a flag to
+			// the formatting thread so it knows to stop.
+			get<0>(curBuffer) = NULL;
+			get<1>(curBuffer) = -1;
+			_imagePipe.push_back(curBuffer);
+			_imageSem.Increment();
+		}
+
 		formatter.join();
 	}
  
@@ -265,22 +274,26 @@ void ReadHDF5Node::FormatImages(void)
 		curBuffer = _imagePipe.front();
 		_imagePipe.pop_front();
 		ptr = get<0>(curBuffer);
-
-		for(int i = 0; i < get<1>(curBuffer); i++) {
-			memcpy(img.ptr(), &ptr[bufferOffset], stride);
-			_input_data.push_back(img.clone());
-			if( !_hasLabels ) {
-				// Use index into dataset as an id
-				_labels.push_back(imagesFormatted + i);
+		if( ptr == NULL ) {
+			// An error occured, stop
+			break;
+		} else {
+			for(int i = 0; i < get<1>(curBuffer); i++) {
+				memcpy(img.ptr(), &ptr[bufferOffset], stride);
+				_input_data.push_back(img.clone());
+				if( !_hasLabels ) {
+					// Use index into dataset as an id
+					_labels.push_back(imagesFormatted + i);
+				}
+				bufferOffset += stride;
+				_counter++;
 			}
-			bufferOffset += stride;
-			_counter++;
+
+			imagesFormatted += get<1>(curBuffer);
+
+			bufferOffset = 0;
+			free(ptr);
 		}
-
-		imagesFormatted += get<1>(curBuffer);
-
-		bufferOffset = 0;
-		free(ptr);
 	}
 }
 

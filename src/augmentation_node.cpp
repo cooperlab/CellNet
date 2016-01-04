@@ -113,9 +113,6 @@ void *AugmentationNode::run()
 
 
 
-//	TODO
-// ???? Will this generalize to color images?
-//
 void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 {
 	vector< vector<cv::Mat> > 	out_imgs;
@@ -124,13 +121,16 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 	out_imgs.resize(_aug_factor + 1);
 	out_labels.resize(_aug_factor + 1);
 
-
 	for(int k=0; k < imgs.size(); k++){
 		_counter++;
 		//cv::Mat src;
 		
 		// Expand source image
 		cv::Mat	expImg(imgs[k].rows * 2, imgs[k].cols * 2, imgs[k].type(), 255);
+		if( imgs[k].type() == CV_8UC3 ) {
+			// Color image, make sure all channels set to 255
+			expImg = cv::Scalar(255, 255, 255);
+		}
 		imgs[k].copyTo(expImg(cv::Rect(SHIFT, SHIFT, imgs[k].cols, imgs[k].rows)));
 	
 		
@@ -248,12 +248,6 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 			cv::Point tl(tl_row, tl_col);
 			cv::Point br(br_row, br_col);
 
-			//cout << scaling_M << endl;
-			//cout << new_cx << " " << new_cy << endl;
-			//cout << tl << endl;
-			//cout << br << endl;
-			//cout << "*****" << endl; 
-			
 
 			cv::Rect new_cellROI(tl, br);
 			cv::Mat final_img = warped_img(new_cellROI);
@@ -277,12 +271,6 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 			out_imgs[i].push_back(final_img);
 			out_labels[i].push_back(label);
 		}
-
-		// Crop Image
-//		cv::Mat new_src = src(cellROI);
-//		if(!new_src.isContinuous()){
-//			new_src=new_src.clone();
-//		}
 
 		out_imgs[_aug_factor].push_back(imgs[k]);
 		out_labels[_aug_factor].push_back(labels[k]);
