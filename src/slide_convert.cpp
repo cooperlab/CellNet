@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -41,9 +41,6 @@
 
 using namespace std;
 
-
-#define SAMPLE_WIDTH  	50
-#define SAMPLE_HEIGHT	50
 
 
 struct Cent {
@@ -97,11 +94,11 @@ int ParseCentroids(vector<Cent>& centroids, char *filename)
 
 
 
-int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float reqPower)
+int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float reqPower, int imgSize)
 {
 	int		result = 0;
 	openslide_t	*img = NULL;
-	int64_t		offset = 0, chunkSize = SAMPLE_WIDTH * SAMPLE_HEIGHT * 3;
+	int64_t		offset = 0, chunkSize = imgSize * imgSize * 3;
 
 	if( images == NULL ) {
 		result = -10;
@@ -127,14 +124,13 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 			reqPower = objPower;
 		}	
 		scaleFactor = objPower / reqPower;
-		sampleSize = SAMPLE_WIDTH * scaleFactor;
+		sampleSize = imgSize * scaleFactor;
 
 		uint32_t	*buffer = (uint32_t*)malloc(sampleSize * sampleSize * sizeof(uint32_t));
-
+	
 		if( buffer != NULL ) {
 
 			for(int cell = 0; cell < centroids.size(); cell++) {
-
 				openslide_read_region(img, 
 									  buffer, 
 									  centroids[cell].x - (sampleSize / 2), 
@@ -148,7 +144,7 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 				// Note! The OpenSlide example code has a byte swap, this seems
 				// to not be needed. (Images written to jpeg are correct without it)
 				//
-				for(int64_t i = 0; i < 2500; i++) {
+				for(int64_t i = 0; i < sampleSize * sampleSize; i++) {
 					alpha = (buffer[i] >> 24);
 
 					if( alpha == 255 ) {
@@ -176,7 +172,7 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 				if( scaleFactor == 1.0f ) {
 					if( outImg.isContinuous() ) {
 						uint8_t	*data = outImg.ptr();
-					
+						
 						memcpy(&images[offset], data, chunkSize);
 						offset += chunkSize;
 					}
@@ -207,7 +203,7 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 
 
 
-int SaveProvenance(hid_t fileId, string commandLine, float reqPower)
+int SaveProvenance(hid_t fileId, string commandLine, float reqPower, int imgSize)
 {
 	int		result = 0;
 	hsize_t	dims[2];
@@ -278,24 +274,34 @@ int SaveProvenance(hid_t fileId, string commandLine, float reqPower)
 			result = -42;
 		}
 	}
+
+	if( result == 0 ) {
+		string 	size = to_string(imgSize);
+		
+		status = H5LTset_attribute_string(fileId, "/", "image_dims", size.c_str());
+		if( status < 0 ) {
+			cerr << "Unable to save image size" << endl;
+			result = -43;
+		}
+	}
+
 	return result;
 }
 
 
-// HDF5 has a default cache size of 1M. 139 images
-// at 50 by 50 will fit in the cache.
+// HDF5 has a default cache size of 1M. 
 //
-#define CHUNK_SIZE   139
+#define CACHE_SIZE   (1024 * 1024)
 
 
 
 
-int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages)
+int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages, int imgSize)
 {
-	int		result = 0;
-	hsize_t	dims[3] = {(hsize_t)numImages, SAMPLE_HEIGHT, SAMPLE_WIDTH * 3L}, 
-			chunkDims[3] = {CHUNK_SIZE, SAMPLE_HEIGHT, SAMPLE_WIDTH * 3L}, 
-			start[3] = {0, 0, 0}, size[3] = {0, SAMPLE_HEIGHT, SAMPLE_WIDTH * 3L};
+	int		result = 0, chunkSize = CACHE_SIZE / (imgSize * imgSize * 3);
+	hsize_t	dims[3] = {(hsize_t)numImages, (hsize_t)imgSize, (hsize_t)imgSize * 3L}, 
+			chunkDims[3] = {(hsize_t)chunkSize, (hsize_t)imgSize, (hsize_t)imgSize * 3L}, 
+			start[3] = {0, 0, 0}, size[3] = {0, (hsize_t)imgSize, (hsize_t)imgSize * 3L};
 	hid_t	datasetId, fileSpaceId, pList, memSpaceId;
 	herr_t	status;
 
@@ -308,7 +314,7 @@ int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages)
 	}
 
 	if( result == 0 ) {
-		if( numImages < CHUNK_SIZE ) {
+		if( numImages < chunkSize ) {
 			chunkDims[0] = numImages;
 		}
 
@@ -348,7 +354,7 @@ int SaveImageDataset(hid_t fileId, uint8_t *images, int numImages)
 
 
 int SaveData(vector<Cent>& centroids, uint8_t *images, string filename, string commandLine,
-			 float reqPower)
+			 float reqPower, int imgSize)
 {
 	int		result = 0;
 	hid_t	fileId;
@@ -362,7 +368,7 @@ int SaveData(vector<Cent>& centroids, uint8_t *images, string filename, string c
 	}
 
 	if( result == 0 ) {
-		result = SaveImageDataset(fileId, images, centroids.size());
+		result = SaveImageDataset(fileId, images, centroids.size(), imgSize);
 	}
 
 	if( result == 0 ) {
@@ -378,7 +384,7 @@ int SaveData(vector<Cent>& centroids, uint8_t *images, string filename, string c
 	}
 
 	if( result == 0 ) {
-		result = SaveProvenance(fileId, commandLine, reqPower);
+		result = SaveProvenance(fileId, commandLine, reqPower, imgSize);
 	}
 
 	if( fileId >= 0 ) {
@@ -410,6 +416,7 @@ int main(int argc, char *argv[])
 
 	vector<Cent>	centroids;
 	uint8_t	*imagesBuffer = NULL;
+	int		imgSize = args.size_arg;
 
 	cout << "Parsing cell list..." << endl;
 	startTime = utils::get_time();
@@ -417,7 +424,7 @@ int main(int argc, char *argv[])
 	cout << "ParseCentroids took: " << utils::get_time() - startTime << endl;
 
 	if( result == 0 ) {
-		imagesBuffer = (uint8_t*)malloc(centroids.size() * SAMPLE_WIDTH * SAMPLE_HEIGHT * 3);
+		imagesBuffer = (uint8_t*)malloc(centroids.size() * imgSize * imgSize * 3);
 		if( imagesBuffer == NULL ) {
 			cerr << "Unable to allocate buffer for images" << endl;
 			result = -2;
@@ -427,13 +434,15 @@ int main(int argc, char *argv[])
 	if( result == 0 ) {
 		cout << "Cropping cells..." << endl;
 		startTime = utils::get_time();
-		// TODO - add magnification  args.magnifiction_arg
-		result = CropCells(centroids, imagesBuffer, args.image_arg, args.magnification_arg);
+		result = CropCells(centroids, imagesBuffer, args.image_arg, args.magnification_arg, imgSize);
 		cout << "CropCells took: " << utils::get_time() - startTime << endl;
 	}
 
 
 	if( result == 0 ) {
+
+		// Strip the path from the slide name and append the output path.
+		//
 		string	imageFilename = args.image_arg, outFilename;
 		size_t	pos = imageFilename.find_last_of("/");
 		
@@ -442,7 +451,7 @@ int main(int argc, char *argv[])
 		} else {
 			outFilename = imageFilename.substr(pos + 1);
 		}
-		outFilename += ".h5";
+		outFilename = args.out_path_arg + outFilename + ".h5";
 
 		string cmdline;
 		for(int i = 0; i < argc; i++) {
@@ -451,7 +460,8 @@ int main(int argc, char *argv[])
 		}
 		cout << "Writing HDF5 file..." << endl;
 		startTime = utils::get_time();
-		result = SaveData(centroids, imagesBuffer, outFilename, cmdline, args.magnification_arg);
+		result = SaveData(centroids, imagesBuffer, outFilename, cmdline, 
+							args.magnification_arg, imgSize);
 		cout << "SaveData took: " << utils::get_time() - startTime << endl;
 	}
 

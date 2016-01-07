@@ -7,4 +7,6 @@ option "dataset" 	d    "HDF file of dataset" string required
 option "image-dir"  i    "Path to image directory" string required
 option "output"  	o    "Output filename" string required
 option "maginfication" m "Magnification level" float default="40.0" optional
+option "size"		s	 "Image size in pixels (image is square)" int default="48" optional
+
 

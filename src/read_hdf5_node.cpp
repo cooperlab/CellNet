@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -46,10 +46,9 @@
 #define BYTES_PER_PIXEL		3
 
 
-// Limit memory mallocs to 1GB, that's approximately 
-//	143165 images at 50 x 50 
+// Limit memory mallocs to 1GB
 //
-#define MAX_IMAGES_PER_READ		143165
+#define MAX_BUFFER	(1024 * 1024 * 1024)
 
 
 
@@ -194,7 +193,7 @@ bool ReadHDF5Node::ReadImages(string filename)
 		blockSize[2] = _imageWidth;
 
 		while( imagesRead < _numImages ) {
-			imagesToRead = min(_numImages - imagesRead, (1024 * 1024 * 1024) / (_imageHeight * _imageWidth));
+			imagesToRead = min(_numImages - imagesRead, MAX_BUFFER / (_imageHeight * _imageWidth));
 			
 			ptr = (uint8_t*)malloc(imagesToRead * _imageHeight * _imageWidth);
 			if( ptr == NULL ) {

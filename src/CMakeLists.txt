@@ -1,5 +1,5 @@
 #
-#	Copyright (c) 2015, Emory University
+#	Copyright (c) 2015-2016, Emory University
 #	All rights reserved.
 #
 #	Redistribution and use in source and binary forms, with or without modification, are
@@ -26,7 +26,7 @@
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 set(TissueNet_VERSION_MAJOR 0)
-set(TissueNet_VERSION_MINOR 2)
+set(TissueNet_VERSION_MINOR 3)
 
 
 

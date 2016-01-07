@@ -6,4 +6,6 @@ description "Tool to extracte cell images and save them in TisueNet format"
 option "image" 			i	"Image file" string required
 option "centroids"		c	"Text file containing the centroids of images to extract" string required	 
 option "magnification"	m 	"Magnification level" float default="40.0" optional
+option "size"			s	"Image size in pixels (image is square)" int default="48" optional
+option "out-path"		o	"Path to save" string default="./" optional
 

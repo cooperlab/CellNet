@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -34,7 +34,6 @@
 
 
 #define PI 3.1415926535897932
-#define SHIFT 25
 
 
 
@@ -115,6 +114,7 @@ void *AugmentationNode::run()
 
 void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 {
+	int	shift;
 	vector< vector<cv::Mat> > 	out_imgs;
 	vector< vector<int> > 		out_labels;
 
@@ -123,22 +123,23 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 
 	for(int k=0; k < imgs.size(); k++){
 		_counter++;
-		//cv::Mat src;
 		
-		// Expand source image
+		// Expand source image (Assuming image is square)
+		//
+		shift = imgs[k].cols / 2;
 		cv::Mat	expImg(imgs[k].rows * 2, imgs[k].cols * 2, imgs[k].type(), 255);
 		if( imgs[k].type() == CV_8UC3 ) {
 			// Color image, make sure all channels set to 255
 			expImg = cv::Scalar(255, 255, 255);
 		}
-		imgs[k].copyTo(expImg(cv::Rect(SHIFT, SHIFT, imgs[k].cols, imgs[k].rows)));
+		imgs[k].copyTo(expImg(cv::Rect(shift, shift, imgs[k].cols, imgs[k].rows)));
 	
 		
 		// Get ROI
-		float tl_row = expImg.rows/2.0F - SHIFT;
-		float tl_col = expImg.cols/2.0F - SHIFT;
-		float br_row = expImg.rows/2.0F + SHIFT;
-		float br_col = expImg.cols/2.0F + SHIFT;
+		float tl_row = expImg.rows/2.0F - shift;
+		float tl_col = expImg.cols/2.0F - shift;
+		float br_row = expImg.rows/2.0F + shift;
+		float br_col = expImg.cols/2.0F + shift;
 		cv::Point tl(tl_row, tl_col);
 		cv::Point br(br_row, br_col);
 
@@ -234,17 +235,14 @@ void AugmentationNode::augment_images(vector<cv::Mat> imgs, vector<int> labels)
 			double m02 = acc_M.at<double>(0,2);
 			double m12 = acc_M.at<double>(1,2); 
 
-			//cout << m00 << "," << m01 << "," << m02 << endl; 
-			//cout << m10 << "," << m11 << "," << m12 << endl;
-
 			int new_cx = expImg.rows/2.0F * m00 + expImg.cols/2.0F * m01 + m02;
 			int new_cy = expImg.rows/2.0F * m10 + expImg.cols/2.0F * m11 + m12;
 
 			// Get ROI
-			double tl_row = new_cx - SHIFT;
-			double tl_col = new_cy - SHIFT;
-			double br_row = new_cx + SHIFT;
-			double br_col = new_cy + SHIFT;
+			double tl_row = new_cx - shift;
+			double tl_col = new_cy - shift;
+			double br_row = new_cx + shift;
+			double br_col = new_cy + shift;
 			cv::Point tl(tl_row, tl_col);
 			cv::Point br(br_row, br_col);
 
