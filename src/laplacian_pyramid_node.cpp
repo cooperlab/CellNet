@@ -1,115 +1,152 @@
+//
+//	Copyright (c) 2015-2016, Emory University
+//	All rights reserved.
+//
+//	Redistribution and use in source and binary forms, with or without modification, are
+//	permitted provided that the following conditions are met:
+//
+//	1. Redistributions of source code must retain the above copyright notice, this list of
+//	conditions and the following disclaimer.
+//
+//	2. Redistributions in binary form must reproduce the above copyright notice, this list
+// 	of conditions and the following disclaimer in the documentation and/or other materials
+//	provided with the distribution.
+//
+//	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+//	EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+//	OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+//	SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+//	INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+//	TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+//	BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+//	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
+//	WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+//	DAMAGE.
+//
+//
 #include "laplacian_pyramid_node.h"
 #include "utils.h"
-#define KERNELL_SIZE 3
 
-LaplacianPyramidNode::LaplacianPyramidNode(std::string id, int mode): Node(id, mode) {
-	runtime_total_first = utils::get_time();
+
+using namespace std;
+
+
+
+
+#define KERNEL_SIZE 	3
+#define N_LAYERS 		4
+
+
+
+LaplacianPyramidNode::LaplacianPyramidNode(string id, int transferSize, int mode) : 
+Node(id, mode),
+_transferSize(transferSize)
+{
 }
 
-void *LaplacianPyramidNode::run(){
+
+
+
+
+void *LaplacianPyramidNode::run()
+{
+	vector<cv::Mat> 	layer0; 
+
 	increment_threads();
 
-	while(true){
+	// Start of runtime 
+	_runtimeStart = utils::get_time();
 
-		std::vector<cv::Mat> _layer0; 
-		copy_chunk_from_buffer(_layer0, _labels);
-		if(!_layer0.empty()){
 
-			for(std::vector<cv::Mat>::size_type i=0; i < _layer0.size(); i++){
+	while(true) {
 
-				// Initialize
-				increment_counter();
-				cv::Mat _gaussian_layer0;
-				std::vector<cv::Mat> layers;
-				std::vector<cv::Mat> merged_layers;
-				std::vector<cv::Mat> new_lap_out;
+		copy_chunk_from_buffer(layer0, _labels);
 
-				// Compute Laplacian
-				cv::GaussianBlur(_layer0.at(i), _gaussian_layer0, cv::Size(KERNELL_SIZE, KERNELL_SIZE), 0, 0);
-				gen_next_level(_gaussian_layer0, _layer0.at(i), &layers, 0);
-				utils::resize_all(layers, _layer0.at(i).size());
+		if( layer0.size() >= _transferSize ) {
 
-				// Merge layers
-				merged_layers = utils::merge_all(layers);
-				copy_to_buffer(merged_layers, _labels);
+			cout << "Appllying laplacian to " << layer0.size() << " images" << endl;
 
-				// Release memory
-				_gaussian_layer0.release();
-				layers.clear();
-				merged_layers.clear();
-			}			
-		}
-		else if(_in_edges.at(0)->is_in_node_done()){
+			Convert(layer0);
+			layer0.clear();
+			_labels.clear();
+
+		} else if(_in_edges.at(0)->is_in_node_done() ) {
+
+			if( layer0.size() > 0 ) {
+				Convert(layer0);
+			}
 			break;
 		}
-		_layer0.clear();
 	}
 
-	if(check_finished() == true){
+
+	if( check_finished() == true ) {
 	
-		std::cout << "******************" <<  std::endl << "LaplacianPyramidNode complete" << std::endl << "Total_time_first: " << std::to_string(utils::get_time() - runtime_total_first) << std::endl << "# of elements: " << std::to_string(_counter) << std::endl << "******************" << std::endl;
+		cout << "******************" <<  endl 
+			 << "LaplacianPyramidNode complete" << endl 
+			 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl 
+			 << "# of elements: " << to_string(_counter) << endl 
+			 << "******************" << endl;
 		
 		// Notify it has finished
-		for(std::vector<int>::size_type i=0; i < _out_edges.size(); i++){
-			
+		for(int i = 0; i < _out_edges.size(); i++ ) {
 			_out_edges.at(i)->set_in_node_done();
 		}
 	}
-	/****************** Debug ******************/
-	//print_pyramid();
 	return NULL;
 }
 
-/* This method builds a Laplacian Pyramid with '_n_layers' layers indexed from 0 to '_n_layers'-1   */
-/* In order to obtain '_n_layers' laplacian layers we build a pyramid with '_n_layers' + 1 layers,  */
-/* where the last layer corresponds to a gaussian layer and the first '_n_layers' layers correspond */
-/* to laplacian layers. 																			*/
 
-void LaplacianPyramidNode::gen_next_level(cv::Mat _current_gaussian_layer, cv::Mat _current_layer, std::vector<cv::Mat> *layers, int rec_level){
-	
-	cv::Mat _next_layer;
-	cv::Mat _next_gaussian_layer;
-	cv::Mat _current_laplacian;
-	cv::Mat _upsampled_gaussian_layer;
-	
-	// Downsample image
-	if(rec_level < N_LAYERS-1){
 
-		// Downsample current layer using cubic interpolation
-		cv::resize(_current_layer, _next_layer, cv::Size(), 0.5, 0.5, CV_INTER_CUBIC);
+
+
+
+
+void LaplacianPyramidNode::Convert(vector<cv::Mat> imgs)
+{
+	cv::Mat 	gaussian_layer0, v1, v2, f0, g0;
+	cv::Mat 	merged_layers, temp;
+	vector<cv::Mat> 	pyramidsOut;
+	vector<cv::Mat> 	layers;
+	
+
+	for(int i = 0; i < imgs.size(); i++) {
+
+		// Initialize
+		increment_counter();
+
+		cv::GaussianBlur(imgs[i], gaussian_layer0, cv::Size(KERNEL_SIZE, KERNEL_SIZE), 0, 0);
+		cv::resize(gaussian_layer0, v1, cv::Size(), 0.5f, 0.5f, cv::INTER_CUBIC);
+		cv::resize(gaussian_layer0, v2, cv::Size(), 0.25f, 0.25f, cv::INTER_CUBIC);
+
+		cv::resize(v1, temp, imgs[i].size(), 0, 0, cv::INTER_CUBIC);
+		f0 = imgs[i] - temp;
+		temp.release();
 		
-		// Apply Gaussian smooth 
-		cv::GaussianBlur( _next_layer, _next_gaussian_layer, cv::Size( KERNELL_SIZE, KERNELL_SIZE ), 0, 0 );
+	
+		cv::resize(v2, temp, v1.size(), 0, 0, cv::INTER_CUBIC);
+		g0 = v1 - temp;
+		temp.release();
+
+		layers.resize(3);
+
+		layers[2] = f0;
+		cv::resize(g0, layers[1], f0.size(), 0, 0, cv::INTER_CUBIC);
+		cv::resize(v2, layers[0], f0.size(), 0, 0, cv::INTER_CUBIC);
+
+
+		cv::merge(layers, merged_layers);
+		pyramidsOut.push_back(merged_layers);
+
+		// Release memory
+		gaussian_layer0.release();
+		layers.clear();
+		merged_layers.release();
 		
-		// Upsample
-		cv::resize(_next_gaussian_layer, _upsampled_gaussian_layer, _current_layer.size(), 0, 0, CV_INTER_CUBIC);
-		
-		// Compute L_i = G_i - G_{i+1}
-		_current_laplacian =  _current_gaussian_layer - _upsampled_gaussian_layer;
-		
-		// Stack Laplacian pyramid
-		layers->push_back(_current_laplacian);
-		
-		//Recursive call
-		gen_next_level(_next_gaussian_layer, _next_layer, layers, rec_level+1);
 	}
-	else{
-		// Last layer
-		layers->push_back(_current_gaussian_layer);
-	}		
+	copy_to_buffer(pyramidsOut, _labels);		
 }
 
-void LaplacianPyramidNode::print_pyramid(std::vector<cv::Mat> layers){
-	int i;
-	cv::Mat tmp_layer;
-	std::string w_name; 
-	
-		for(i = 0; i < _n_layers; i++){
-			
-			// Print each layer
-			w_name = "Layer: " + std::to_string(i);
-			cv::normalize(layers.at(i), tmp_layer, 0, 255, cv::NORM_MINMAX, CV_8UC1);
-			cv::imshow(w_name, tmp_layer);
-		}
-		cv::waitKey(0);
-	}
+
+
+

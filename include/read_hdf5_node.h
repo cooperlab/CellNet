@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -75,7 +75,8 @@ class ReadHDF5Node : public Node
 {
 public:
 
-		ReadHDF5Node(string id, vector<string> fileNames, int mode, bool labels = false);
+		ReadHDF5Node(string id, vector<string> fileNames, int mode, 
+					 bool deconvImg, bool labels = false);
 		void 	*run(void);
 		void	init(void);
 
@@ -83,6 +84,7 @@ private:
 
 		vector<string> 		_fileNames;
 		bool				_hasLabels;
+		bool				_deconvImg;
 		int					_numImages;
 		int					_imageWidth;
 		int					_imageHeight;

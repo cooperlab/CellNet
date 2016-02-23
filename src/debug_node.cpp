@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -33,9 +33,10 @@ using namespace std;
 
 
 
-DebugNode::DebugNode(std::string id, int transferSize, int mode) : 
+DebugNode::DebugNode(std::string id, bool split, int transferSize, int mode) : 
 Node(id, mode),
-_transferSize(transferSize)
+_transferSize(transferSize),
+_split(split)
 {
 
 }
@@ -97,10 +98,24 @@ void *DebugNode::run(){
 void DebugNode::SaveImages(vector<cv::Mat> images)
 {
 	string name; 
+	vector<cv::Mat>		layers;
 	
+		
 	for(int i = 0; i < images.size(); i++) {
-		name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) + ".jpg";
-		cv::imwrite(name.c_str(), images[i]);
+
+		if( _split ) {
+			cv::split(images[i], layers);
+			for(int l = 0; l < layers.size(); l++) {
+				name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
+						+ "_" + to_string(l) + ".jpg";
+			
+				cv::imwrite(name.c_str(), layers[l]);
+			}
+		} else {
+			name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
+				 + ".jpg";
+			cv::imwrite(name.c_str(), images[i]);
+		}
 		increment_counter();
 	}
 }

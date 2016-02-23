@@ -24,60 +24,24 @@
 //	DAMAGE.
 //
 //
-#ifndef _TRAIN_NODE_H
-#define _TRAIN_NODE_H
+#ifndef _MULTIRES_NODE_H
+#define _MULTIRES_NODE_H
 
 #include "node.h"
-#include "edge.h"
-#include "utils.h"
-#include <vector>
-#include <iostream>
-#include <cv.h>
-#include <opencv2/highgui/highgui.hpp> 
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include "caffe/caffe.hpp"
-#include "caffe/util/io.hpp"
-#include "caffe/blob.hpp"
-#include <boost/shared_ptr.hpp>
 
 
-using namespace std;
 
+class MultiResNode: public Node{
 
-class TrainNode: public Node
-{
 public:
+			MultiResNode(std::string id, int transferSize, int mode);
+	void 	*run();
 
-			TrainNode(string id, int mode, int batch_size, int device_id, string model_path, 
-					  float base_lr, float momentum, float gamma, int iter, string outFilename);
+private:
 
-		void *run();
-		void init_model();
-		void compute_update_value();
-		void snapshot();
-		int train_step(int first_idx);
-		void cross_validate(vector<cv::Mat> batch, vector<int> batch_labels);
+	int		_transferSize;
 
-
-protected:
-		int _batch_size;
-		string _model_path;
-		string _outFilename;
-
-		vector<cv::Mat> _data_buffer; 
-		vector<int>		_labels_buffer;
-		boost::shared_ptr<caffe::Net<float>> _net;
-		float _base_lr;
-		float _momentum;
-		float _gamma;
-		vector<boost::shared_ptr<caffe::Blob<float>>> _history;
-		vector<boost::shared_ptr<caffe::Blob<float>>> _temp;
-		boost::shared_ptr<caffe::Blob<float> > _out_layer;
-		boost::shared_ptr<caffe::MemoryDataLayer<float>> _data_layer;
-		int _iter;
-		int _device_id;
+	void	Convert(vector<cv::Mat> imgs);
 };
-
 
 #endif

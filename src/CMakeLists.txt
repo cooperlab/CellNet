@@ -26,7 +26,7 @@
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR})
 set(TissueNet_VERSION_MAJOR 0)
-set(TissueNet_VERSION_MINOR 3)
+set(TissueNet_VERSION_MINOR 9)
 
 
 
@@ -226,8 +226,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 ## tn_predict target
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
-				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp 
-				${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
+				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp
+				multires_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -239,8 +239,8 @@ set_target_properties(PREDICT PROPERTIES OUTPUT_NAME tn_predict${CMAKE_DEBUG_POS
 ## tn_train target
 #
 add_executable(TRAIN train.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp 
-			   grayscale_node.cpp train_node.cpp augmentation_node.cpp
-				${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c)
+			   grayscale_node.cpp train_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp
+				multires_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c)
 
 target_link_libraries(TRAIN ${LIBRARIES})
 set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
@@ -256,6 +256,17 @@ if( NOT CUDA_FOUND )
 	target_compile_options(PREDICT PUBLIC "-DCPU_ONLY")
 endif( NOT CUDA_FOUND)
 
+
+#
+## img_dump target
+#
+add_executable(IMG_DUMP imgdump.cpp read_hdf5_node.cpp debug_node.cpp node.cpp graph_net.cpp 
+						edge.cpp grayscale_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp 
+						multires_node.cpp utils.cpp )
+
+target_link_libraries(IMG_DUMP ${LIBRARIES})
+set_target_properties(IMG_DUMP PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
+set_target_properties(IMG_DUMP PROPERTIES OUTPUT_NAME tn_img_dump${CMAKE_DEBUG_POSTFIX})
 
 
 if( Openslide_FOUND ) 

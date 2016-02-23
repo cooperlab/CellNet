@@ -54,12 +54,12 @@
 
 
 
-ReadHDF5Node::ReadHDF5Node(string id, vector<string> fileNames, int mode, bool labels) :
+ReadHDF5Node::ReadHDF5Node(string id, vector<string> fileNames, int mode, bool deconvImg, bool labels) :
 Node(id, mode),
 _fileNames(fileNames),
-_hasLabels(labels)
+_hasLabels(labels),
+_deconvImg(deconvImg)
 {
-	runtime_total_first = utils::get_time();
 
 }
 
@@ -72,7 +72,8 @@ void *ReadHDF5Node::run()
 	vector<string>::iterator	fileIt;
 	
 	increment_threads();
-	double 	start = utils::get_time();
+	_runtimeStart = utils::get_time();
+
 
 	for(fileIt = _fileNames.begin(); fileIt != _fileNames.end(); fileIt++) {
 
@@ -91,7 +92,7 @@ void *ReadHDF5Node::run()
 
 		cout << "******************" << endl
 			 << "ReadHDF5Node" << endl 
-			 << "Run time: " << to_string(utils::get_time() - start) << endl 
+			 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl 
 			 << "# of elements: " << to_string(_counter) << endl 
 			 << "******************" << endl;
 
@@ -279,7 +280,21 @@ void ReadHDF5Node::FormatImages(void)
 		} else {
 			for(int i = 0; i < get<1>(curBuffer); i++) {
 				memcpy(img.ptr(), &ptr[bufferOffset], stride);
-				_input_data.push_back(img.clone());
+
+				if( _deconvImg ) {
+					// Deconoluted image, drop last channel
+					//
+					vector<cv::Mat> channels;
+					cv::Mat			deconv;
+					
+					cv::split(img, channels);
+					channels.pop_back();
+					cv::merge(channels, deconv);
+					_input_data.push_back(deconv.clone());
+				} else {
+					_input_data.push_back(img.clone());
+				}
+
 				if( !_hasLabels ) {
 					// Use index into dataset as an id
 					_labels.push_back(imagesFormatted + i);

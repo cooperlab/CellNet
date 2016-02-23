@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -51,8 +51,6 @@ _outFilename(outFilename),
 _out_layer(),
 _data_layer()
 {
-
-	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 }
 
@@ -95,10 +93,12 @@ void PredictionNode::init_model()
 void *PredictionNode::run()
 {
 
-	double	loop, start = utils::get_time();
 	int 	pid, epochs, first_idx = 0;
 	bool	done;
 	vector<Edge *>::iterator it;
+
+
+	_runtimeStart = utils::get_time();
 
 
 	while( true ) {
@@ -135,10 +135,9 @@ void *PredictionNode::run()
 
 				cout << "******************" << endl 
 					 << "Prediction" << endl 
-					 << "Total_time_first: " << to_string(utils::get_time() - runtime_total_first) << endl 
+					 << "Total_time_first: " << to_string(utils::get_time() - _runtimeStart) << endl 
 					 << "# of elements: " << to_string(_labels_buffer.size()) << endl 
 					 << "******************" << endl;
-				cout << "PredictionNode runtime: " << utils::get_time() - start << endl;
 
 				// Notify it has finished
 				for(vector<int>::size_type i=0; i < _out_edges.size(); i++){

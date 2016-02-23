@@ -47,7 +47,6 @@ _out_layer(), _data_layer(),
 _outFilename(outFilename)
 {
 	_counter = 0;	
-	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 }
 
@@ -95,11 +94,12 @@ void TrainNode::init_model()
 void *TrainNode::run()
 {
 	int 	first_idx = 0;
-	double	start = utils::get_time();
-
 
 	increment_threads();
 	init_model();
+
+	_runtimeStart = utils::get_time();
+
 
 	while( true ) {
 
@@ -139,7 +139,7 @@ void *TrainNode::run()
 
 		cout << "******************" << endl 
 			 << "TrainNode" << endl 
-			 << "Run time: " << to_string(utils::get_time() - start) << endl
+			 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl
 			 << "# of elements: " << to_string(_labels_buffer.size()) << endl 
 			 << "******************" << endl;
 
@@ -162,6 +162,9 @@ int TrainNode::train_step(int first_idx)
 {
 
 	int epochs = (_data_buffer.size() - first_idx)/_batch_size;
+	cout << "Running " << epochs << " epochs for training" << endl;
+	double start = utils::get_time();;
+
 	for(int i = 0; i < epochs; i++) {
 
 		// Split batch
@@ -194,6 +197,10 @@ int TrainNode::train_step(int first_idx)
 		_net->Update();
 		first_idx += _batch_size;
 	}
+
+	cout << "Traing took " << utils::get_time() - start << " for " 
+		<< _data_buffer.size() << " elements" << endl;
+
 	return first_idx;
 }
 

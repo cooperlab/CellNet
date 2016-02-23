@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -37,7 +37,7 @@ _in_edges(),
 _out_edges(),
 _curSendEdge(0), 
 _counter(0), 
-runtime_total_first(0), 
+_runtimeStart(0), 
 _counter_threads(0), 
 _labels()
 {
@@ -81,6 +81,7 @@ void Node::copy_to_buffer(vector<cv::Mat> out, vector<int> &labels)
 // Repeat Node
 // Copy everything to all output edges, repeating the images 
 	if( _mode == Node::Repeat ) {
+
 		for(vector<int>::size_type i=0; i < _out_edges.size(); i++) {
 
 			//std::cout << "To Buffer" << std::endl; 

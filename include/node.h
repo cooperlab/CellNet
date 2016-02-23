@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -61,7 +61,7 @@ class Node : private boost::noncopyable{
 		vector<int> _labels;
 		int			_curSendEdge;
 
-		double runtime_total_first;
+		double 		_runtimeStart;
 		boost::mutex _mutex;
 		boost::mutex _mutex_counter;
 		boost::mutex _mutex_ctrl;

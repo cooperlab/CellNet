@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -62,9 +62,12 @@ int main (int argc, char *argv[])
 	string outFilename = args.output_arg;
 
 
-	int batch_size = 1000;
+	int batch_size = args.batch_size_arg;
 
-
+	if( args.deconv_img_flag ) {
+		cout << "Using 2 channel deconvoluted images" << endl;
+	}
+	
 	// Start clock
 	double begin_time = utils::get_time();	
 	GraphNet *prediction_graph = new GraphNet(GraphNet::Parallel);
@@ -79,8 +82,15 @@ int main (int argc, char *argv[])
 	//
 	vector<string>	files;
 	files.push_back(args.dataset_arg);
-	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, false));
-	prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));
+	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, 
+							   args.deconv_img_flag, false));
+
+	if( args.grayscale_flag ) {
+		prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));
+	}
+	if( args.multires_flag ) {
+		prediction_graph->add_node(new MultiResNode("multires_node", 1000, Node::Repeat));
+	}
 	prediction_graph->add_node(new AugmentationNode("augmentation_node", batch_size, Node::Chunk, 3));
 
 
@@ -110,11 +120,26 @@ int main (int argc, char *argv[])
 	// Add edges
 	int n_edges = 0;
 
-	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
-	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "augmentation_node"));
+	if( args.grayscale_flag ) {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
+
+		if( args.multires_flag ) {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "multires_node"));
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "multires_node", "augmentation_node"));
+		} else {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "augmentation_node"));
+		}		
+	} else {
+		if( args.multires_flag ) {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "multires_node"));
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "multires_node", "augmentation_node"));
+		} else {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "augmentation_node"));
+		}		
+	}
 
 	for(int i = 0; i < PREDICTION_NODES; i++) {
-		prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
+		prediction_graph->add_edge(new Edge("edge" + to_string(n_edges++), 
 											"augmentation_node", 
 											"prediction_node" + to_string(i)));
 	}

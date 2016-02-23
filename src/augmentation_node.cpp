@@ -45,7 +45,6 @@ _labels_buffer(),
 _aug_factor(aug_factor),
 _transferSize(transferSize)
 {
-	runtime_total_first = utils::get_time();
 	_data_buffer.clear();
 	_labels_buffer.clear();
 }
@@ -56,7 +55,9 @@ _transferSize(transferSize)
 
 void *AugmentationNode::run()
 {
-	double 	start = utils::get_time();
+
+	_runtimeStart = utils::get_time();
+
 
 	while(true) {
 
@@ -95,7 +96,7 @@ void *AugmentationNode::run()
 			
 				cout << "******************" << endl 
 					 << "AugmentationNode" << endl 
-					 << "Run time: " << to_string(utils::get_time() - start) << endl 
+					 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl 
 					 << "# of elements: " << to_string(_counter) << endl 
 					 << "******************" << endl;
 
@@ -109,6 +110,8 @@ void *AugmentationNode::run()
 	}
 	return NULL;
 }
+
+
 
 
 

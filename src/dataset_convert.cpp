@@ -141,7 +141,7 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, floa
 				channels.pop_back();
 
 				// Merge RGB channels back to image Mat
-				merge(channels, outImg);
+				cv::merge(channels, outImg);
 				
 				if( scaleFactor == 1.0f ) {
 					if( outImg.isContinuous() ) {

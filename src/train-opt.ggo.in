@@ -8,3 +8,7 @@ option "params"			p   "Network model .prototxt" string required
 option "output"			o	"Output filename" string required
 option "gpu-dev"		g	"GPU device (ingnored for CPU only build)" int default="0" optional	
 option "aug-factor"		a	"Augmentation factor" int default="10" optional
+option "multires"		x	"Use 2x zoom along with original image" flag  off
+option "grayscale"		r	"Convert image to grayscale" flag off
+option "batch-size"		b 	"Mini-batch size" int default="16" optional
+option "deconv-img"		2	"Use 2 channel deconvoluted image" flag off

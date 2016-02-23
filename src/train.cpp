@@ -1,5 +1,5 @@
 //
-//	Copyright (c) 2015, Emory University
+//	Copyright (c) 2015-2016, Emory University
 //	All rights reserved.
 //
 //	Redistribution and use in source and binary forms, with or without modification, are
@@ -61,6 +61,11 @@ int main (int argc, char * argv[])
 	// Define Graphs
 	cout << "Defining graph nodes..." << endl;
 
+	if( args.deconv_img_flag ) {
+		cout << "Using 2 channel deconvoluted images" << endl;
+	}
+
+	
 	int	transferSize = 1000;
 
 	// The ReadHDF5Node object takes a list of files. For training we only
@@ -68,11 +73,19 @@ int main (int argc, char * argv[])
 	//
 	vector<string>	files;
 	files.push_back(args.training_set_arg);
-	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, true));
-	train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
-	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Chunk, 
+
+	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, args.deconv_img_flag, true));
+	if( args.grayscale_flag ) {
+		train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
+	}
+	if( args.multires_flag ) {
+		cout << "Running multires mode" << endl;
+		train_graph->add_node(new MultiResNode("multires_node", 1000, Node::Repeat));
+	}
+	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Repeat, 
 												args.aug_factor_arg));
-	int batch_size = 16;
+
+	int batch_size = args.batch_size_arg;
 	float momentum = 0.9;
 	float gamma = 0.0005;
 	float base_lr = 0.0001;
@@ -91,10 +104,23 @@ int main (int argc, char * argv[])
 	// Add edges
 	int n_edges = 0;
 
-	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "grayscale_node"));
-	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
+	if( args.grayscale_flag ) {
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "grayscale_node"));
+		if( args.multires_flag ) {
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "multires_node"));
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "augmentation_node"));
+		} else {
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
+		}
+	} else {
+		if( args.multires_flag ) {
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "multires_node"));
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "augmentation_node"));
+		} else {
+			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "augmentation_node"));
+		}
+	}
 	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
-
 
 	std::cout << "*Graph defined*" << std::endl;
 

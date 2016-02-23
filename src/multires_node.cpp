@@ -26,9 +26,7 @@
 //
 #include <iostream>
 
-#include "grayscale_node.h"
-#include "edge.h"
-#include "utils.h"
+#include "graph_net.h"
 
 
 
@@ -36,9 +34,7 @@ using namespace std;
 
 
 
-
-
-GrayScaleNode::GrayScaleNode(string id, int transferSize, int mode) : 
+MultiResNode::MultiResNode(string id, int transferSize, int mode) : 
 Node(id, mode),
 _transferSize(transferSize)
 {
@@ -47,17 +43,10 @@ _transferSize(transferSize)
 
 
 
+void *MultiResNode::run(){
 
-
-
-
-void *GrayScaleNode::run()
-{
 	vector<cv::Mat> out; 
-
-	increment_threads();
-	_runtimeStart = utils::get_time();
-
+	double	start = utils::get_time();
 
 	while( true ) {
 
@@ -66,32 +55,36 @@ void *GrayScaleNode::run()
 		if( out.size() >= _transferSize ) {
 
 			Convert(out);
+
 			out.clear();
 			_labels.clear();
 
 		} else if( _in_edges.at(0)->is_in_node_done() ) {
 
-			// Sending node is done, check for remaining data.
+			// Check for any data leftover
 			if( out.size() > 0 ) {
-				Convert(out);
-			} 
+				Convert(out);				
+				out.clear();
+				_labels.clear();
+			}
 			break;
 		}
 	}
 
-	if( check_finished() == true ) {
+	
+	// Notify it has finished
+	vector<Edge *>::iterator	it;
 
-		cout << "******************" << endl 
-			 << "GrayScaleNode complete" << endl 
-			 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl 
-			 << "# of elements: " << to_string(_counter) << endl 
-			 << "******************" << endl;
-
-		// Notify it has finished
-		for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
-			_out_edges.at(i)->set_in_node_done();
-		}
+	for(it = _out_edges.begin(); it != _out_edges.end(); it++) {
+		(*it)->set_in_node_done();
 	}
+
+	cout << "******************" << endl 
+		 << "MultiResNode complete" << endl 
+		 << "Run time: " << to_string(utils::get_time() - start) << endl 
+		 << "# of elements: " << to_string(_counter) << endl 
+		 << "******************" << endl;
+
 	return NULL;
 }
 
@@ -99,21 +92,29 @@ void *GrayScaleNode::run()
 
 
 
-void GrayScaleNode::Convert(vector<cv::Mat> images) 
+void MultiResNode::Convert(vector<cv::Mat> imgs)
 {
-	vector<cv::Mat> 			grayOut; 
-	vector<cv::Mat>::iterator	it;
+	int			shift = imgs[0].cols / 4;
+	cv::Rect	roi(shift, shift, shift * 2, shift * 2);
+	vector<cv::Mat>		out, layers;
+	cv::Mat				merged;
 
-	for(it = images.begin(); it != images.end(); it++) {
+	for(int i = 0; i < imgs.size(); i++) {
 		increment_counter();
+		
+		cv::Mat	cropped = imgs[i](roi), halfRes;
+		cv::resize(cropped, halfRes, cv::Size(), 2, 2, cv::INTER_CUBIC); 
 
-		// Convert to grayscale and equalize
-		cv::Mat gray_img, equilized_img;
+		layers.push_back(imgs[i]);
+		layers.push_back(halfRes);
 
-		cv::cvtColor(*it, gray_img, CV_BGR2GRAY);
-		cv::equalizeHist(gray_img, equilized_img);
-		grayOut.push_back(equilized_img);
+		cv::merge(layers, merged);
+		out.push_back(merged);
+
+		layers.clear();
+		merged.release();
 	}
-	// Copy to buffer
-	copy_to_buffer(grayOut, _labels);
-}
+
+	copy_to_buffer(out, _labels);
+	out.clear();
+}	
