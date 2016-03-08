@@ -304,16 +304,16 @@ if( Openslide_FOUND )
 	#
 	## Install all targets
 	#
-	install(TARGETS TRAIN PREDICT CONVERT_SLIDE CONVERT_DATASET
+	install(TARGETS TRAIN PREDICT CONVERT_SLIDE CONVERT_DATASET IMG_DUMP
 			RUNTIME DESTINATION bin)
 
 elseif( NOT Openslide_FOUND ) 
 
 
 	#
-	## Only install train and predict targets
+	## Only install image dume, train and predict targets
 	#
-	install(TARGETS TRAIN PREDICT
+	install(TARGETS TRAIN PREDICT IMG_DUMP
 			RUNTIME DESTINATION bin)
 			
 endif( Openslide_FOUND ) 
