@@ -164,6 +164,7 @@ endif( GENGETOPT STREQUAL "GENGETOPT-NOTFOUND" )
 #
 configure_file("${PROJECT_SOURCE_DIR}/src/train-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo")
 configure_file("${PROJECT_SOURCE_DIR}/src/predict-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo")
+configure_file("${PROJECT_SOURCE_DIR}/src/img-dump-opt.ggo.in" "${CMAKE_CURRENT_BINARY_DIR}/img-dump-opt.ggo")
 
 
 ADD_CUSTOM_COMMAND(
@@ -180,6 +181,15 @@ ADD_CUSTOM_COMMAND(
 	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo -F predict-cmd
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo
 )
+
+
+ADD_CUSTOM_COMMAND(
+	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/img-dump-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/img-dump-cmd.h
+	COMMAND ${GENGETOPT}
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/img-dump-opt.ggo -F img-dump-cmd
+	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/img-dump-opt.ggo
+)
+
 
 #
 ## Also for convert targets if openslide installed
@@ -260,13 +270,14 @@ endif( NOT CUDA_FOUND)
 #
 ## img_dump target
 #
-add_executable(IMG_DUMP imgdump.cpp read_hdf5_node.cpp debug_node.cpp node.cpp graph_net.cpp 
-						edge.cpp grayscale_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp 
-						multires_node.cpp utils.cpp )
+add_executable(IMG_DUMP imgdump.cpp read_hdf5_node.cpp write_image_node.cpp node.cpp graph_net.cpp 
+						edge.cpp grayscale_node.cpp augmentation_node.cpp utils.cpp 
+						${CMAKE_CURRENT_BINARY_DIR}/img-dump-cmd.c)
+
 
 target_link_libraries(IMG_DUMP ${LIBRARIES})
 set_target_properties(IMG_DUMP PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
-set_target_properties(IMG_DUMP PROPERTIES OUTPUT_NAME tn_img_dump${CMAKE_DEBUG_POSTFIX})
+set_target_properties(IMG_DUMP PROPERTIES OUTPUT_NAME tn_image_dump${CMAKE_DEBUG_POSTFIX})
 
 
 if( Openslide_FOUND ) 

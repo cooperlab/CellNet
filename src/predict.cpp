@@ -64,8 +64,8 @@ int main (int argc, char *argv[])
 
 	int batch_size = args.batch_size_arg;
 
-	if( args.deconv_img_flag ) {
-		cout << "Using 2 channel deconvoluted images" << endl;
+	if( args.deconv_img_arg > 0 ) {
+		cout << "Using " << args.deconv_img_arg << " channel deconvoluted images" << endl;
 	}
 	
 	// Start clock
@@ -83,7 +83,7 @@ int main (int argc, char *argv[])
 	vector<string>	files;
 	files.push_back(args.dataset_arg);
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, 
-							   args.deconv_img_flag, false));
+							   args.deconv_img_arg, false));
 
 	if( args.grayscale_flag ) {
 		prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));

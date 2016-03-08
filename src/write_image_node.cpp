@@ -26,21 +26,17 @@
 //
 #include <iostream>
 
-#include "grayscale_node.h"
-#include "edge.h"
-#include "utils.h"
-
+#include "graph_net.h"
 
 
 using namespace std;
 
 
 
-
-
-GrayScaleNode::GrayScaleNode(string id, int transferSize, int mode) : 
+WriteImageNode::WriteImageNode(std::string id, bool split, int transferSize, int mode) : 
 Node(id, mode),
-_transferSize(transferSize)
+_transferSize(transferSize),
+_split(split)
 {
 
 }
@@ -48,16 +44,10 @@ _transferSize(transferSize)
 
 
 
+void *WriteImageNode::run(){
 
-
-
-void *GrayScaleNode::run()
-{
-	vector<cv::Mat> out; 
-
-	increment_threads();
-	_runtimeStart = utils::get_time();
-
+	std::vector<cv::Mat> out; 
+	double	start = utils::get_time();
 
 	while( true ) {
 
@@ -65,33 +55,39 @@ void *GrayScaleNode::run()
 
 		if( out.size() >= _transferSize ) {
 
-			Convert(out);
+			SaveImages(out);
+
 			out.clear();
 			_labels.clear();
 
 		} else if( _in_edges.at(0)->is_in_node_done() ) {
 
-			// Sending node is done, check for remaining data.
+			// Check for any data leftover
 			if( out.size() > 0 ) {
-				Convert(out);
-			} 
+
+				SaveImages(out);
+
+				out.clear();
+				_labels.clear();
+			}
 			break;
 		}
 	}
 
-	if( check_finished() == true ) {
+	
+	// Notify it has finished
+	vector<Edge *>::iterator	it;
 
-		cout << "******************" << endl 
-			 << "GrayScaleNode complete" << endl 
-			 << "Run time: " << to_string(utils::get_time() - _runtimeStart) << endl 
-			 << "# of elements: " << to_string(_counter) << endl 
-			 << "******************" << endl;
-
-		// Notify it has finished
-		for(vector<int>::size_type i=0; i < _out_edges.size(); i++){
-			_out_edges.at(i)->set_in_node_done();
-		}
+	for(it = _out_edges.begin(); it != _out_edges.end(); it++) {
+		(*it)->set_in_node_done();
 	}
+
+	cout << "******************" << endl 
+		 << "WriteImageNode complete" << endl 
+		 << "Run time: " << to_string(utils::get_time() - start) << endl 
+		 << "# of elements: " << to_string(_counter) << endl 
+		 << "******************" << endl;
+
 	return NULL;
 }
 
@@ -99,21 +95,35 @@ void *GrayScaleNode::run()
 
 
 
-void GrayScaleNode::Convert(vector<cv::Mat> images) 
+void WriteImageNode::SaveImages(vector<cv::Mat> images)
 {
-	vector<cv::Mat> 			grayOut; 
-	vector<cv::Mat>::iterator	it;
+	string name; 
+	vector<cv::Mat>		layers;
+	
+		
+	for(int i = 0; i < images.size(); i++) {
 
-	for(it = images.begin(); it != images.end(); it++) {
+		if( _split ) {
+			cv::split(images[i], layers);
+
+
+			for(int l = 0; l < layers.size(); l++) {
+
+				name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
+						+ "_" + to_string(l) + ".jpg";
+			
+				cv::imwrite(name.c_str(), layers[l]);
+			}
+		} else {
+			name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
+				 + ".jpg";
+
+			if( images[i].channels() == 3 ) {
+				cv::cvtColor(images[i], images[i], CV_BGR2RGB);
+			}
+			cv::imwrite(name.c_str(), images[i]);
+		}
 		increment_counter();
-
-		// Convert to grayscale and equalize
-		cv::Mat gray_img, equilized_img;
-
-		cv::cvtColor(*it, gray_img, CV_RGB2GRAY);
-		cv::equalizeHist(gray_img, equilized_img);
-		grayOut.push_back(equilized_img);
 	}
-	// Copy to buffer
-	copy_to_buffer(grayOut, _labels);
 }
+

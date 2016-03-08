@@ -34,6 +34,7 @@
 #include <sys/time.h>
 #include <ctime>
 #include <glob.h>
+#include <endian.h>
 
 #include "utils.h"
 #include "base_config.h"
@@ -84,12 +85,6 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, floa
 
 		objPower = stof(openslide_get_property_value(img, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER));	
 
-		// Don't allow scaling up
-		//
-		if( objPower < reqPower ) {
-			reqPower = objPower;
-		}
-
 		scaleFactor = objPower / reqPower;
 		sampleSize = imgSize * scaleFactor;
 
@@ -121,7 +116,7 @@ int GetSlideCells(vector<Cent> centroids, uint8_t *images, int64_t&	offset, floa
 					alpha = (buffer[i] >> 24);
 
 					if( alpha == 255 ) {
-						buffer[i] &= 0xFFFFFF;
+						buffer[i] = be32toh(buffer[i] << 8);
 					} else if( alpha == 0 ) {
 						buffer[i] = 0xFFFFFF;
 					} else {

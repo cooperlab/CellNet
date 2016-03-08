@@ -33,7 +33,7 @@ using namespace std;
 
 
 
-DebugNode::DebugNode(std::string id, bool split, int transferSize, int mode) : 
+DebugNode::DebugNode(std::string id, int transferSize, int mode) : 
 Node(id, mode),
 _transferSize(transferSize),
 _split(split)
@@ -53,23 +53,11 @@ void *DebugNode::run(){
 
 		copy_chunk_from_buffer(out, _labels);
 
-		if( out.size() >= _transferSize ) {
+		// !!!!! Add debug code here  !!!!!
+		out.clear();
+		_labels.clear();
 
-			SaveImages(out);
-
-			out.clear();
-			_labels.clear();
-
-		} else if( _in_edges.at(0)->is_in_node_done() ) {
-
-			// Check for any data leftover
-			if( out.size() > 0 ) {
-
-				SaveImages(out);
-
-				out.clear();
-				_labels.clear();
-			}
+		if( _in_edges.at(0)->is_in_node_done() ) {
 			break;
 		}
 	}
@@ -87,36 +75,4 @@ void *DebugNode::run(){
 		 << "Run time: " << to_string(utils::get_time() - start) << endl 
 		 << "# of elements: " << to_string(_counter) << endl 
 		 << "******************" << endl;
-
-	return NULL;
 }
-
-
-
-
-
-void DebugNode::SaveImages(vector<cv::Mat> images)
-{
-	string name; 
-	vector<cv::Mat>		layers;
-	
-		
-	for(int i = 0; i < images.size(); i++) {
-
-		if( _split ) {
-			cv::split(images[i], layers);
-			for(int l = 0; l < layers.size(); l++) {
-				name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
-						+ "_" + to_string(l) + ".jpg";
-			
-				cv::imwrite(name.c_str(), layers[l]);
-			}
-		} else {
-			name = "Test" + to_string(_counter) + "_" + to_string(_labels[i]) 
-				 + ".jpg";
-			cv::imwrite(name.c_str(), images[i]);
-		}
-		increment_counter();
-	}
-}
-

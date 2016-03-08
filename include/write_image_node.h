@@ -24,82 +24,25 @@
 //	DAMAGE.
 //
 //
-#if !defined(_READ_HDF5_NODE_H_)
-#define _READ_HDF5_NODE_H_
-
-#include <thread>
-#include <condition_variable>
-#include <vector>
-#include <deque>
-#include <tuple>
-#include <opencv2/opencv.hpp>
-#include <hdf5.h>
-#include <hdf5_hl.h>
+#ifndef _WRITE_IMAGE_NODE_H
+#define _WRITE_IMAGE_NODE_H
 
 #include "node.h"
 
 
 
-using namespace std;
+class WriteImageNode: public Node{
 
-
-class Semaphore {
 public:
-	Semaphore(void) : _count(0) {}
-	void Increment(void) 
-	{
-		unique_lock<std::mutex> lck(_countMtx);
-		_count++;
-		_cv.notify_one();
-	}
-	void Decrement(void)
-	{
-		unique_lock<std::mutex> lck(_countMtx);
-		while( _count == 0 )
-			_cv.wait(lck);
-	}
-private:
-
-	mutex					_countMtx;
-	condition_variable		_cv;
-	int						_count;
-
-};
-
-
-
-
-
-
-class ReadHDF5Node : public Node
-{
-public:
-
-		ReadHDF5Node(string id, vector<string> fileNames, int mode, 
-					 int deconvChannels, bool labels = false);
-		void 	*run(void);
-		void	init(void);
+			WriteImageNode(std::string id, bool split, int transferSize, int mode);
+	void 	*run();
 
 private:
 
-		vector<string> 		_fileNames;
-		bool				_hasLabels;
-		int					_deconvChannels;
-		int					_numImages;
-		int					_imageWidth;
-		int					_imageHeight;
-		Semaphore			_imageSem;
-		deque< tuple<uint8_t*, int> >  _imagePipe;
-		vector<cv::Mat> 	_input_data;
-		vector<int>			_labels;
+	int		_transferSize;
+	bool	_split;
 
-
-		bool	ReadImages(string filename);
-		bool	ReadLabels(hid_t fileId);
-		void	FormatImages(void);
+	void	SaveImages(vector<cv::Mat> images);
 };
 
-
-
-		
 #endif

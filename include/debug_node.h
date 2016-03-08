@@ -34,15 +34,12 @@
 class DebugNode: public Node{
 
 public:
-			DebugNode(std::string id, bool split, int transferSize, int mode);
+			DebugNode(std::string id, int transferSize, int mode);
 	void 	*run();
 
 private:
 
 	int		_transferSize;
-	bool	_split;
-
-	void	SaveImages(vector<cv::Mat> images);
 };
 
 #endif

@@ -54,11 +54,11 @@
 
 
 
-ReadHDF5Node::ReadHDF5Node(string id, vector<string> fileNames, int mode, bool deconvImg, bool labels) :
+ReadHDF5Node::ReadHDF5Node(string id, vector<string> fileNames, int mode, int deconvChannels, bool labels) :
 Node(id, mode),
 _fileNames(fileNames),
 _hasLabels(labels),
-_deconvImg(deconvImg)
+_deconvChannels(deconvChannels)
 {
 
 }
@@ -281,16 +281,28 @@ void ReadHDF5Node::FormatImages(void)
 			for(int i = 0; i < get<1>(curBuffer); i++) {
 				memcpy(img.ptr(), &ptr[bufferOffset], stride);
 
-				if( _deconvImg ) {
+				// An assumption has been made that the deconvoluted images are
+				// H&E stained images, with the first channel being Hematoxylin,
+				// the second Eosin and the third the compliment (cross-product).
+				//
+				if( _deconvChannels > 0 && _deconvChannels < 3 ) {
 					// Deconoluted image, drop last channel
 					//
 					vector<cv::Mat> channels;
 					cv::Mat			deconv;
 					
 					cv::split(img, channels);
+
+					// Drop compliment
 					channels.pop_back();
+
+					if( _deconvChannels == 1 ) {
+						// Drop the Eosin channel 
+						channels.pop_back();
+					}
 					cv::merge(channels, deconv);
 					_input_data.push_back(deconv.clone());
+
 				} else {
 					_input_data.push_back(img.clone());
 				}

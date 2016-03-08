@@ -61,8 +61,8 @@ int main (int argc, char * argv[])
 	// Define Graphs
 	cout << "Defining graph nodes..." << endl;
 
-	if( args.deconv_img_flag ) {
-		cout << "Using 2 channel deconvoluted images" << endl;
+	if( args.deconv_img_arg > 0 ) {
+		cout << "Using " << args.deconv_img_arg << " channel deconvoluted images" << endl;
 	}
 
 	
@@ -74,7 +74,7 @@ int main (int argc, char * argv[])
 	vector<string>	files;
 	files.push_back(args.training_set_arg);
 
-	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, args.deconv_img_flag, true));
+	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, args.deconv_img_arg, true));
 	if( args.grayscale_flag ) {
 		train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
 	}

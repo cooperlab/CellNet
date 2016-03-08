@@ -33,6 +33,7 @@
 #include <sys/utsname.h>
 #include <sys/time.h>
 #include <ctime>
+#include <endian.h>
 
 #include "utils.h"
 #include "base_config.h"
@@ -118,11 +119,6 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 		uint8_t		alpha;
 
 		objPower = stof(openslide_get_property_value(img, OPENSLIDE_PROPERTY_NAME_OBJECTIVE_POWER));
-		// Scaling up not permitted.
-		//
-		if( objPower < reqPower ) {
-			reqPower = objPower;
-		}	
 		scaleFactor = objPower / reqPower;
 		sampleSize = imgSize * scaleFactor;
 
@@ -148,7 +144,7 @@ int CropCells(vector<Cent>& centroids, uint8_t *images, char *filename, float re
 					alpha = (buffer[i] >> 24);
 
 					if( alpha == 255 ) {
-						buffer[i] &= 0xFFFFFF;
+						buffer[i] = be32toh(buffer[i] << 8);
 					} else if( alpha == 0 ) {
 						buffer[i] = 0xFFFFFF;
 					} else {

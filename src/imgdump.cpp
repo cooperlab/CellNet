@@ -31,7 +31,7 @@
 
 #include "graph_net.h"
 #include "base_config.h"
-
+#include "img-dump-cmd.h"
 
 
 using namespace std;
@@ -41,41 +41,46 @@ using namespace std;
 
 int main (int argc, char *argv[])
 {
-	if( argc != 2 ) {
-		cerr << "usage: " << argv[0] << " <dataset>" << endl;
+
+	gengetopt_args_info		args;
+
+	if( cmdline_parser(argc, argv, &args) != 0 ) {
 		exit(-1);
 	}
-
-	FLAGS_alsologtostderr = 1;
-	// Need to fake args to caffe.
-	//
- 	caffe::GlobalInit(&argc, &argv);
-
 
 	// Start clock
 	double begin_time = utils::get_time();	
 	GraphNet *test_graph = new GraphNet(GraphNet::Parallel);
+	int		channels = args.channels_arg;
 
 	// Define Graphs
 	std::cout << "Defining graph nodes..." << std::endl;
 
+	cout << "Channels: " << channels << endl;
 
 	// Currently we only pass 1 file on the command line. Ww will add
 	// the option to pass a directory so we can glob the files and process
 	// all of them.
 	//
 	vector<string>	files;
-	files.push_back(argv[1]);
-	test_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, true));
-	test_graph->add_node(new DebugNode("debug_node", false, 1000, Node::Chunk));
+	files.push_back(args.dataset_arg);
+	test_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, channels, args.tag_labels_flag == 1));
+	if( args.grayscale_flag ) {
+		test_graph->add_node(new GrayScaleNode("grayscale_node", 1000, Node::Repeat));
+	}
+	test_graph->add_node(new WriteImageNode("write_node", channels != 0, 1000, Node::Chunk));
 
 		
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
 
-	test_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "debug_node"));
-
+	if( args.grayscale_flag ) {
+		test_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
+		test_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "write_node"));
+	} else {
+		test_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "write_node"));
+	}
 	std::cout << "Graph defined*" << std::endl;
 	
 	/********************************************* Run Graphs ***************************************************/

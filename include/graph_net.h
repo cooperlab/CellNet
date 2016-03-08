@@ -43,6 +43,7 @@
 #include "laplacian_pyramid_node.h"
 #include "read_hdf5_node.h"
 #include "multires_node.h"
+#include "write_image_node.h"
 
 
 
