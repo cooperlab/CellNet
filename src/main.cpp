@@ -16,7 +16,7 @@
 #include <boost/thread.hpp>
 #include <boost/ptr_container/ptr_deque.hpp>
 
-const static std::string LOCAL_HOME = "/home/nnauata";
+const static std::string LOCAL_HOME = getenv("HOME");
 
 void fill_data(int N, int num_elem, std::vector<std::vector<std::tuple<double, double>>> &cells_coordinates_set, std::vector<double> &shuffled_labels, std::vector<double> &x_centroid, std::vector<double> &y_centroid, std::vector<double> &labels, std::vector<double> &slide_idx){
 
