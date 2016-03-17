@@ -47,8 +47,8 @@ else( NOT CUDA_FOUND )
 	set(LIBRARIES ${LIBRARIES} ${CUDA_CUBLAS_LIBRARIES})
 	include_directories(${CUDA_INCLUDE_DIRS})
 
-endif( NOT CUDA_FOUND )
 
+endif( NOT CUDA_FOUND )
 
 
 #
@@ -237,7 +237,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
 				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp
-				multires_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
+				sample_node.cpp multires_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -259,7 +259,7 @@ set_target_properties(TRAIN PROPERTIES OUTPUT_NAME tn_train${CMAKE_DEBUG_POSTFIX
 
 
 #
-#	Set train & predict to CPU only if CUDA libraries not found
+#	Set train, predict and image dump  to CPU only if CUDA libraries not found
 #
 if( NOT CUDA_FOUND )
 	target_compile_options(TRAIN PUBLIC "-DCPU_ONLY")
@@ -278,6 +278,9 @@ add_executable(IMG_DUMP imgdump.cpp read_hdf5_node.cpp write_image_node.cpp node
 target_link_libraries(IMG_DUMP ${LIBRARIES})
 set_target_properties(IMG_DUMP PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)
 set_target_properties(IMG_DUMP PROPERTIES OUTPUT_NAME tn_image_dump${CMAKE_DEBUG_POSTFIX})
+
+# graph_net will pull in some caffe headers, this keeps that from happening.
+target_compile_options(IMG_DUMP PUBLIC "-DIMG_DUMP")
 
 
 if( Openslide_FOUND ) 

@@ -24,55 +24,25 @@
 //	DAMAGE.
 //
 //
-#ifndef _GRAPH_H
-#define _GRAPH_H
-
-#include <vector>
-#include <map> 
-#include <boost/thread.hpp>
-#include <boost/ptr_container/ptr_deque.hpp>
+#ifndef _SAMPLE_NODE_H
+#define _SAMPLE_NODE_H
 
 #include "node.h"
-#include "edge.h"
-#include "utils.h"
-#include "debug_node.h"
-#include "grayscale_node.h"
-#include "augmentation_node.h"
-#include "laplacian_pyramid_node.h"
-#include "read_hdf5_node.h"
-#include "multires_node.h"
-#include "write_image_node.h"
-#include "sample_node.h"
-
-#if !defined(IMG_DUMP)
-#include "train_node.h"
-#include "prediction_node.h"
-#endif
-
-using namespace std;
 
 
 
+class SampleNode: public Node{
 
-class GraphNet {
-	
-	public:
-		enum Mode {Serial, Parallel};
+public:
+			SampleNode(std::string id, int sampleStride, int transferSize, int mode);
+	void 	*run();
 
-		GraphNet(int mode);
-		void run();
-		void add_node(Node *node);
-		void add_edge(Edge *edge);
+private:
 
-  	private:
-  		void link();
-  		void start_parallel();
-  		void start_serial();
-  		int _mode;
-		boost::ptr_deque<Node> _nodes;
-		boost::ptr_deque<Edge> _edges;
-		std::map<std::string, int> _node_map;
+	int		_transferSize;
+	int 	_sampleStride;
+
+	void 	Sample(vector<cv::Mat> imgs);
 };
-
 
 #endif

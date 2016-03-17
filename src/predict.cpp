@@ -85,6 +85,12 @@ int main (int argc, char *argv[])
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, 
 							   args.deconv_img_arg, false));
 
+	// Must sample something, don't allow stride of 0
+	if( args.sample_arg == 0 )
+		args.sample_arg = 1;
+
+	prediction_graph->add_node(new SampleNode("sample_node", args.sample_arg, 1000, Node::Repeat));
+	
 	if( args.grayscale_flag ) {
 		prediction_graph->add_node(new GrayScaleNode("grayscale_node", batch_size, Node::Repeat));
 	}
@@ -120,8 +126,10 @@ int main (int argc, char *argv[])
 	// Add edges
 	int n_edges = 0;
 
+	prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "sample_node"));
+
 	if( args.grayscale_flag ) {
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "grayscale_node"));
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "sample_node", "grayscale_node"));
 
 		if( args.multires_flag ) {
 			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "grayscale_node", "multires_node"));
@@ -131,10 +139,10 @@ int main (int argc, char *argv[])
 		}		
 	} else {
 		if( args.multires_flag ) {
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "multires_node"));
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "sample_node", "multires_node"));
 			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "multires_node", "augmentation_node"));
 		} else {
-			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "read_node", "augmentation_node"));
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), "sample_node", "augmentation_node"));
 		}		
 	}
 

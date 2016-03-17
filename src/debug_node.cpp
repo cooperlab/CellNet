@@ -35,8 +35,7 @@ using namespace std;
 
 DebugNode::DebugNode(std::string id, int transferSize, int mode) : 
 Node(id, mode),
-_transferSize(transferSize),
-_split(split)
+_transferSize(transferSize)
 {
 
 }

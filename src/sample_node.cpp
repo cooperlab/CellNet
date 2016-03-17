@@ -24,55 +24,78 @@
 //	DAMAGE.
 //
 //
-#ifndef _GRAPH_H
-#define _GRAPH_H
+#include <iostream>
 
-#include <vector>
-#include <map> 
-#include <boost/thread.hpp>
-#include <boost/ptr_container/ptr_deque.hpp>
+#include "graph_net.h"
 
-#include "node.h"
-#include "edge.h"
-#include "utils.h"
-#include "debug_node.h"
-#include "grayscale_node.h"
-#include "augmentation_node.h"
-#include "laplacian_pyramid_node.h"
-#include "read_hdf5_node.h"
-#include "multires_node.h"
-#include "write_image_node.h"
-#include "sample_node.h"
-
-#if !defined(IMG_DUMP)
-#include "train_node.h"
-#include "prediction_node.h"
-#endif
 
 using namespace std;
 
 
 
+SampleNode::SampleNode(std::string id, int sampleStride, int transferSize, int mode) : 
+Node(id, mode),
+_transferSize(transferSize),
+_sampleStride(sampleStride)
+{
 
-class GraphNet {
+}
+
+
+
+
+void *SampleNode::run(){
+
+	std::vector<cv::Mat> out; 
+	double	start = utils::get_time();
+
+	while( true ) {
+
+		copy_chunk_from_buffer(out, _labels);
+
+		Sample(out);
+
+		out.clear();
+		_labels.clear();
+
+		if( _in_edges.at(0)->is_in_node_done() ) {
+			break;
+		}
+	}
+
 	
-	public:
-		enum Mode {Serial, Parallel};
+	// Notify it has finished
+	vector<Edge *>::iterator	it;
 
-		GraphNet(int mode);
-		void run();
-		void add_node(Node *node);
-		void add_edge(Edge *edge);
+	for(it = _out_edges.begin(); it != _out_edges.end(); it++) {
+		(*it)->set_in_node_done();
+	}
 
-  	private:
-  		void link();
-  		void start_parallel();
-  		void start_serial();
-  		int _mode;
-		boost::ptr_deque<Node> _nodes;
-		boost::ptr_deque<Edge> _edges;
-		std::map<std::string, int> _node_map;
-};
+	cout << "******************" << endl 
+		 << "SampleNode complete" << endl 
+		 << "Run time: " << to_string(utils::get_time() - start) << endl 
+		 << "# of elements: " << to_string(_counter) << endl 
+		 << "******************" << endl;
+}
 
 
-#endif
+
+
+
+void SampleNode::Sample(vector<cv::Mat> imgs) 
+{
+	vector<cv::Mat> 			imgOut;
+	vector<int>					labelsOut;
+
+	for(int i = 0; i < imgs.size(); i++) {
+
+		if( i % _sampleStride == 0 ) {
+			increment_counter();
+
+			imgOut.push_back(imgs[i]);
+			labelsOut.push_back(_labels[i]);
+		}
+	}
+	// Copy to buffer
+	copy_to_buffer(imgOut, labelsOut);
+}

@@ -11,3 +11,4 @@ option "multires"		x	"Use 2x zoom along with original image" flag  off
 option "grayscale"		r 	"Convert to grayscale" flag off
 option "batch-size"		b 	"Mini-batch size" int default="1000" optional
 option "deconv-img"		c	"Use 1 - E or 2 - H&E channels" int  values="0","1","2" default="0" optional
+option "sample"			s 	"Sample every s cells" int default="1" optional
