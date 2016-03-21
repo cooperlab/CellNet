@@ -1,1 +1,0 @@
-/home/nelson/CellNet/train/data_hdf5/lap_train_part_0.h5
