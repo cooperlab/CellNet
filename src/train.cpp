@@ -100,27 +100,25 @@ int main (int argc, char * argv[])
 										100,
 										args.output_arg));	
 
+
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
 
 	if( args.grayscale_flag ) {
 		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "grayscale_node"));
-		if( args.multires_flag ) {
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "multires_node"));
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "augmentation_node"));
-		} else {
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
-		}
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "grayscale_node", "augmentation_node"));
 	} else {
-		if( args.multires_flag ) {
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "multires_node"));
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "augmentation_node"));
-		} else {
-			train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "augmentation_node"));
-		}
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "augmentation_node"));
 	}
-	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
+
+	if( args.multires_flag ) {
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "multires_node"));
+
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "train_node"));
+	} else {
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
+	}
 
 	std::cout << "*Graph defined*" << std::endl;
 
