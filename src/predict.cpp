@@ -76,12 +76,11 @@ int main (int argc, char *argv[])
 	std::cout << "Defining graph nodes..." << std::endl;
 
 
-	// Currently we only pass 1 file on the command line. Ww will add
-	// the option to pass a directory so we can glob the files and process
-	// all of them.
-	//
 	vector<string>	files;
-	files.push_back(args.dataset_arg);
+	for(int i = 0; i < args.inputs_num; i++) {
+
+		files.push_back(args.inputs[i]);
+	}
 	prediction_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, 
 							   args.deconv_img_arg, false));
 

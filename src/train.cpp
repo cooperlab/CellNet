@@ -72,7 +72,11 @@ int main (int argc, char * argv[])
 	// use one file, so we just put in into a vector.
 	//
 	vector<string>	files;
-	files.push_back(args.training_set_arg);
+
+	for(int i = 0; i < args.inputs_num; i++) {
+
+		files.push_back(args.inputs[i]);
+	}
 
 	train_graph->add_node(new ReadHDF5Node("read_node", files, Node::Repeat, args.deconv_img_arg, true));
 	if( args.grayscale_flag ) {

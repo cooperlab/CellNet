@@ -57,6 +57,7 @@ public:
 		unique_lock<std::mutex> lck(_countMtx);
 		while( _count == 0 )
 			_cv.wait(lck);
+		_count--;
 	}
 private:
 

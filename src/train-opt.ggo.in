@@ -3,7 +3,7 @@ version "@TissueNet_VERSION_MAJOR@.@TissueNet_VERSION_MINOR@"
 
 description "TissueNet model training tool"
 
-option "training-set"	t	"HDF file of training set" string required
+
 option "params"			p   "Network model .prototxt" string required
 option "output"			o	"Output filename" string required
 option "gpu-dev"		g	"GPU device (ingnored for CPU only build)" int default="0" optional	

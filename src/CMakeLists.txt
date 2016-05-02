@@ -170,7 +170,7 @@ configure_file("${PROJECT_SOURCE_DIR}/src/img-dump-opt.ggo.in" "${CMAKE_CURRENT_
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.h
 	COMMAND ${GENGETOPT}
-	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo -F train-cmd
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo -F train-cmd -u
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/train-opt.ggo
 )
 
@@ -178,7 +178,7 @@ ADD_CUSTOM_COMMAND(
 ADD_CUSTOM_COMMAND(
 	OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.h
 	COMMAND ${GENGETOPT}
-	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo -F predict-cmd
+	ARGS	-i ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo -F predict-cmd -u
 	DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/predict-opt.ggo
 )
 

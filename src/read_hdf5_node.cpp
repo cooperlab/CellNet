@@ -74,7 +74,6 @@ void *ReadHDF5Node::run()
 	increment_threads();
 	_runtimeStart = utils::get_time();
 
-
 	for(fileIt = _fileNames.begin(); fileIt != _fileNames.end(); fileIt++) {
 
 		if( !ReadImages(*fileIt) ) {
@@ -112,7 +111,6 @@ bool ReadHDF5Node::ReadLabels(hid_t fileId)
 	bool	result = true;
 	herr_t	status;
 
-	cout << "Reading labels" << endl;
 	_labels.resize(_numImages);
 	status = H5LTread_dataset_int(fileId, "/labels", _labels.data());
 	if( status < 0 ) {
@@ -273,11 +271,13 @@ void ReadHDF5Node::FormatImages(void)
 
 		curBuffer = _imagePipe.front();
 		_imagePipe.pop_front();
+
 		ptr = get<0>(curBuffer);
 		if( ptr == NULL ) {
 			// An error occured, stop
 			break;
 		} else {
+
 			for(int i = 0; i < get<1>(curBuffer); i++) {
 				memcpy(img.ptr(), &ptr[bufferOffset], stride);
 
