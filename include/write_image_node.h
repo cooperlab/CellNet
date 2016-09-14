@@ -30,19 +30,29 @@
 #include "node.h"
 
 
+struct Scores {
+	int	  	idx;
+	float	score;
+};
+
 
 class WriteImageNode: public Node{
 
 public:
-			WriteImageNode(std::string id, bool split, int transferSize, int mode);
+			WriteImageNode(std::string id, bool split, int transferSize, int mode, char *scoreFile = NULL);
+			~WriteImageNode();
 	void 	*run();
 
 private:
 
 	int		_transferSize;
 	bool	_split;
+	char	*_scoreFile;
+	Scores	*_scores;
+	int		_scoreCnt;
 
 	void	SaveImages(vector<cv::Mat> images);
+	bool	ReadScores(void);	
 };
 
 #endif

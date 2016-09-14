@@ -7,3 +7,4 @@ option "dataset" 		d	"Dataset to extract images from" string required
 option "channels"		c	"Split into individual images for first c channels (0 for no split)" int default="0" optional	 
 option "grayscale"		g 	"Save as grayscale" flag off
 option "tag-labels"		l 	"Append class lable to filename" flag off
+option "scores"			s	"Score file to use to append scores to filename" string optional

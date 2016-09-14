@@ -68,7 +68,12 @@ int main (int argc, char *argv[])
 	if( args.grayscale_flag ) {
 		test_graph->add_node(new GrayScaleNode("grayscale_node", 1000, Node::Repeat));
 	}
-	test_graph->add_node(new WriteImageNode("write_node", channels != 0, 1000, Node::Chunk));
+
+	char *scoreFile = NULL;
+	if( args.scores_given ) {
+		scoreFile = args.scores_arg;
+	}
+	test_graph->add_node(new WriteImageNode("write_node", channels != 0, 1000, Node::Chunk, scoreFile));
 
 		
 	std::cout << "Defining edges" << std::endl;
