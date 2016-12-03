@@ -1,7 +1,7 @@
 package "tn_convert_dataset"
 version "@TissueNet_VERSION_MAJOR@.@TissueNet_VERSION_MINOR@"
 
-description "Tool to extracte cell images for a labled dataset"
+description "Tool to extract cell images for a labeled dataset"
 
 option "dataset" 	d    "HDF file of dataset" string required
 option "image-dir"  i    "Path to image directory" string required

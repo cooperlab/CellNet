@@ -82,6 +82,10 @@ int main (int argc, char * argv[])
 	if( args.grayscale_flag ) {
 		train_graph->add_node(new GrayScaleNode("grayscale_node", transferSize, Node::Repeat));
 	}
+    if( args.multires_flag ) {
+        cout << "Running multires mode" << endl;
+        train_graph->add_node(new MultiResNode("multires_node", 1000, Node::Repeat));
+    }
 	train_graph->add_node(new AugmentationNode("augmentation_node", transferSize, Node::Repeat, 
 												args.aug_factor_arg));
 
@@ -100,6 +104,7 @@ int main (int argc, char * argv[])
 										100,
 										args.output_arg));	
 
+
 	std::cout << "Defining edges" << std::endl;
 	// Add edges
 	int n_edges = 0;
@@ -110,7 +115,14 @@ int main (int argc, char * argv[])
 	} else {
 		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "read_node", "augmentation_node"));
 	}
-	train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
+
+	if( args.multires_flag ) {
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "multires_node"));
+
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "multires_node", "train_node"));
+	} else {
+		train_graph->add_edge(new Edge("edge" + to_string(n_edges++), "augmentation_node", "train_node"));
+	}
 
 	std::cout << "*Graph defined*" << std::endl;
 

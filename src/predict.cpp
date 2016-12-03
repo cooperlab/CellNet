@@ -109,6 +109,11 @@ int main (int argc, char *argv[])
 	}
 
 	for(int i = 0; i < PREDICTION_NODES; i++ ) {
+		
+		if( args.multires_flag ) {
+			prediction_graph->add_node(new MultiResNode("multires_node" + to_string(i), 1000, Node::Repeat));
+		}
+
 		prediction_graph->add_node(new PredictionNode("prediction_node" + to_string(i), 
 													  Node::Repeat, 
 													  batch_size, 
@@ -132,10 +137,20 @@ int main (int argc, char *argv[])
 	}
 
 	for(int i = 0; i < PREDICTION_NODES; i++) {
-		prediction_graph->add_edge(new Edge("edge" + to_string(n_edges++), 
-											"augmentation_node", 
-											"prediction_node" + to_string(i)));
-	}
+		if( args.multires_flag ) {
+			prediction_graph->add_edge(new Edge("edge" + std::to_string(n_edges++), 
+												"augmentation_node", 
+												"multires_node" + to_string(i)));
+			
+			prediction_graph->add_edge(new Edge("edge" + to_string(n_edges++), 
+												"multires_node" + to_string(i), 
+												"prediction_node" + to_string(i)));
+		} else {
+			prediction_graph->add_edge(new Edge("edge" + to_string(n_edges++), 
+												"augmentation_node", 
+												"prediction_node" + to_string(i)));
+		}
+	}		
 
 	std::cout << "Preproccess Graph defined*" << std::endl;
 	

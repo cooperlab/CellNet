@@ -237,7 +237,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 #
 add_executable(PREDICT predict.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp
 				grayscale_node.cpp prediction_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp
-				sample_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
+				multires_node.cpp sample_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/predict-cmd.c)
 
 
 target_link_libraries(PREDICT ${LIBRARIES})
@@ -250,7 +250,7 @@ set_target_properties(PREDICT PROPERTIES OUTPUT_NAME tn_predict${CMAKE_DEBUG_POS
 #
 add_executable(TRAIN train.cpp utils.cpp read_hdf5_node.cpp graph_net.cpp node.cpp edge.cpp 
 			   grayscale_node.cpp train_node.cpp augmentation_node.cpp laplacian_pyramid_node.cpp
-			   ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c)
+			   multires_node.cpp ${CMAKE_CURRENT_BINARY_DIR}/train-cmd.c)
 
 target_link_libraries(TRAIN ${LIBRARIES})
 set_target_properties(TRAIN PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/app)

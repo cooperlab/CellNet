@@ -39,6 +39,7 @@
 #include "caffe/caffe.hpp"
 #include "caffe/util/io.hpp"
 #include "caffe/blob.hpp"
+#include "caffe/layers/memory_data_layer.hpp"
 #include <iostream>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>

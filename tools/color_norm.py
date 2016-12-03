@@ -28,8 +28,6 @@ print "Normalizing", images.shape[0], "images"
 TargetStats = numpy.load(sys.argv[2])
 
 for i in range(images.shape[0]):
-
-	print "Normalizing image", i
 	
 	dim = images[i].shape[0]
 	img = images[i].reshape(dim, dim, 3)
@@ -41,3 +39,4 @@ for i in range(images.shape[0]):
 	images[i] = norm.reshape(dim, dim * 3)
 
 
+print "Normalized", i+1, "images"
